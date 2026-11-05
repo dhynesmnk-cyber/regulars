@@ -1997,5 +1997,145 @@ class TestForwardedForHTTP(_HTTPHarness, unittest.TestCase):
         self.assertEqual(self.login(self.PASSWORD, forwarded_for="198.51.100.4"), 303)
 
 
+# ---------------------------------------------------------------------------
+# billing v0: free preview, pay to send
+# ---------------------------------------------------------------------------
+
+class TestBillingRules(unittest.TestCase):
+    def test_status_at_every_boundary(self):
+        import billing as B
+        d = datetime(2026, 11, 5).date()
+        day = timedelta(days=1)
+        self.assertEqual(B.status(None, d, on=False), "off")
+        self.assertEqual(B.status(d, d, on=False), "off")
+        self.assertEqual(B.status(None, d), "preview")
+        self.assertEqual(B.status(d + 8 * day, d), "active")
+        self.assertEqual(B.status(d + 7 * day, d), "due_soon")
+        self.assertEqual(B.status(d, d), "due_soon")              # the last paid day
+        self.assertEqual(B.status(d - day, d), "grace")
+        self.assertEqual(B.status(d - 7 * day, d), "grace")
+        self.assertEqual(B.status(d - 8 * day, d), "lapsed")
+
+    def test_add_months_clamps_to_month_end(self):
+        import billing as B
+        D = lambda y, m, dd: datetime(y, m, dd).date()
+        self.assertEqual(B.add_months(D(2026, 1, 31), 1), D(2026, 2, 28))
+        self.assertEqual(B.add_months(D(2028, 1, 31), 1), D(2028, 2, 29))
+        self.assertEqual(B.add_months(D(2026, 11, 5), 2), D(2027, 1, 5))
+        self.assertEqual(B.add_months(D(2026, 12, 31), 12), D(2027, 12, 31))
+
+    def test_pay_url_tags_the_venue(self):
+        import billing as B
+        env = {"REGULARS_PAY_URL_AU": "https://buy.stripe.com/test_au?locale=en",
+               "REGULARS_PAY_URL_US": "https://buy.stripe.com/test_us"}
+        with mock.patch.dict(os.environ, env):
+            self.assertEqual(B.pay_url("AU", "juniper-co"),
+                             "https://buy.stripe.com/test_au?locale=en&client_reference_id=juniper-co")
+            self.assertEqual(B.pay_url("US", "juniper-co"),
+                             "https://buy.stripe.com/test_us?client_reference_id=juniper-co")
+            self.assertEqual(B.pay_url("US", None), "https://buy.stripe.com/test_us")
+        with mock.patch.dict(os.environ, {}, clear=False):
+            os.environ.pop("REGULARS_PAY_URL_AU", None)
+            self.assertIsNone(B.pay_url("AU", "x"))
+
+
+class TestBillingHTTP(_HTTPHarness, unittest.TestCase):
+    ENV = {"REGULARS_BILLING": "on", "REGULARS_VENUE_ID": "juniper-co",
+           "REGULARS_PAY_URL_AU": "https://buy.stripe.com/test_au",
+           "REGULARS_PAY_URL_US": "https://buy.stripe.com/test_us"}
+
+    def setUp(self):
+        super().setUp()
+        import billing
+        self.B = billing
+        self._env = mock.patch.dict(os.environ, {
+            **self.ENV, "REGULARS_BILLING_FILE": os.path.join(self._tmp.name, "billing.json")})
+        self._env.start()
+        if os.path.exists(billing.path()):
+            os.remove(billing.path())
+
+    def tearDown(self):
+        if os.path.exists(self.B.path()):
+            os.remove(self.B.path())
+        self._env.stop()
+        super().tearDown()
+
+    def go_live(self, region="AU"):
+        self.post_multipart("/upload", {"consent": "1"},
+                            {"f_main": ("s.csv", D.sample_simple(300))})
+        self.post("/business", biz_name="Juniper & Co", biz_suburb="Brunswick, Melbourne",
+                  region=region, biz_abn="51824753556",
+                  venue_address="1 Main St, Springfield IL" if region == "US" else "")
+        return S.result()["messages"][0]["id"]
+
+    def paid(self, days_from_today):
+        self.B.write(self.B.today() + timedelta(days=days_from_today))
+
+    def can_send(self, mid):
+        st, _, hdr = self.post("/approve?id=" + parse.quote(mid))
+        exp, _, _ = self.get("/export.csv")
+        return hdr["Location"] == "/inbox" and exp == 200
+
+    def test_preview_shows_everything_but_sending_waits_for_payment(self):
+        mid = self.go_live()
+        self.assertEqual(self.get("/inbox")[0], 200)                 # reading is free
+        self.assertFalse(self.can_send(mid))
+        self.assertEqual(S.STATE["sent"], [])
+        _, home, _ = self.get("/")
+        self.assertIn("Your plan", home)
+        self.assertIn("starts once your plan is paid", home)         # the refusal, flashed
+        self.assertIn('href="https://buy.stripe.com/test_au?client_reference_id=juniper-co"',
+                      home)
+        self.assertIn("A$40 a month + GST", home)
+        self.assertIn("Preview.", self.get("/inbox")[1])
+
+    def test_a_payment_unlocks_sending_at_once_and_is_audited_once(self):
+        mid = self.go_live()
+        self.assertFalse(self.can_send(mid))
+        self.paid(30)                                                # no restart
+        self.assertTrue(self.can_send(mid))
+        for _ in range(3):
+            self.get("/")
+        changes = [ev for ev in S.AUDIT.read(500) if ev["event"] == "config_change"
+                   and ev["detail"].get("what") == "billing"]
+        self.assertEqual(len(changes), 1)
+        self.assertEqual(changes[0]["detail"]["paid_until"],
+                         (self.B.today() + timedelta(days=30)).isoformat())
+        self.assertNotIn("Pay &middot;", self.get("/")[1])           # paid up: no button
+
+    def test_reminders_then_grace_then_paused(self):
+        mid = self.go_live()
+        self.paid(3)
+        _, goals, _ = self.get("/goals")
+        self.assertIn("Renewal due.", goals)
+        self.assertIn("in 3 days", goals)
+        self.assertTrue(self.can_send(mid))
+        self.paid(-3)
+        _, goals, _ = self.get("/goals")
+        self.assertIn("Payment overdue.", goals)
+        self.assertTrue(self.can_send(mid))                          # grace still sends
+        self.paid(-10)
+        _, goals, _ = self.get("/goals")
+        self.assertIn("Sending paused.", goals)
+        self.assertFalse(self.can_send(mid))
+        self.assertIn("Renew &middot;", self.get("/")[1])
+
+    def test_the_demo_can_always_be_rehearsed(self):
+        mid = S.result()["messages"][0]["id"]
+        self.assertTrue(self.can_send(mid))
+
+    def test_us_venues_get_the_us_link(self):
+        self.go_live(region="US")
+        _, home, _ = self.get("/")
+        self.assertIn("https://buy.stripe.com/test_us?client_reference_id=juniper-co", home)
+        self.assertIn("US$40 a month", home)
+
+    def test_without_billing_nothing_changes(self):
+        os.environ.pop("REGULARS_BILLING")
+        mid = self.go_live()
+        self.assertTrue(self.can_send(mid))
+        self.assertNotIn("Your plan", self.get("/")[1])
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

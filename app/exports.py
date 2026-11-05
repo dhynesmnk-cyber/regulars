@@ -5,8 +5,7 @@ import io
 from datetime import datetime
 
 import engine as E
-from state import (AUDIT, CAT_LABEL, ESP, IDENTITY_MISSING_MSG, STATE, flash, identity,
-                   identity_missing, result)
+from state import AUDIT, CAT_LABEL, ESP, STATE, flash, identity, result, send_block
 from web import download, redirect
 
 
@@ -63,14 +62,19 @@ def export_copy():
     return "\n".join(out)
 
 
-def _refuse_without_identity():
-    flash(IDENTITY_MISSING_MSG)
+def _refused():
+    """Approve and export share one rule: state.send_block()."""
+    msg = send_block()
+    if not msg:
+        return None
+    flash(msg)
     return redirect("/")
 
 
 def get_export_csv(req):
-    if identity_missing():
-        return _refuse_without_identity()
+    refused = _refused()
+    if refused:
+        return refused
     AUDIT.write("export", ip=req.ip,
                 detail={"what": "audience_csv",
                         "region": STATE.get("region", "AU")})
@@ -78,8 +82,9 @@ def get_export_csv(req):
 
 
 def get_export_copy(req):
-    if identity_missing():
-        return _refuse_without_identity()
+    refused = _refused()
+    if refused:
+        return refused
     AUDIT.write("export", ip=req.ip,
                 detail={"what": "copy_txt",
                         "region": STATE.get("region", "AU")})

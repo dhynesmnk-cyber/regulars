@@ -1,8 +1,9 @@
 """
 Operator commands that run inside a venue's container, against its /data.
 
-    python3 admin.py verify-audit    exit 0 if the audit chain is intact, 1 if not
-    python3 admin.py reset-owner     clear the owner's password and sessions
+    python3 admin.py verify-audit             exit 0 if the audit chain is intact, 1 if not
+    python3 admin.py reset-owner              clear the owner's password and sessions
+    python3 admin.py paid-until YYYY-MM-DD    record that the venue has paid up to that day
 
 regularsctl calls these; you shouldn't need to by hand. reset-owner must run
 while the app is stopped (regularsctl stops it first): the running app keeps
@@ -35,14 +36,32 @@ def reset_owner():
     return 0
 
 
-COMMANDS = {"verify-audit": verify_audit, "reset-owner": reset_owner}
+def paid_until(day):
+    """Safe while the app runs: it only reads this file, and it writes the
+    audit entry itself when it notices the new date."""
+    from datetime import date
+
+    import billing
+    try:
+        paid = date.fromisoformat(day)
+    except ValueError:
+        print(f"not a date: {day!r} (use YYYY-MM-DD)")
+        return 2
+    billing.write(paid, note="set by operator")
+    print(f"paid up to {paid.isoformat()}")
+    return 0
+
+
+COMMANDS = {"verify-audit": (verify_audit, 0), "reset-owner": (reset_owner, 0),
+            "paid-until": (paid_until, 1)}
 
 
 def main(argv):
-    if len(argv) != 1 or argv[0] not in COMMANDS:
+    if not argv or argv[0] not in COMMANDS or len(argv) - 1 != COMMANDS[argv[0]][1]:
         print(__doc__.strip())
         return 2
-    return COMMANDS[argv[0]]()
+    fn, _nargs = COMMANDS[argv[0]]
+    return fn(*argv[1:])
 
 
 if __name__ == "__main__":

@@ -18,6 +18,7 @@ import os
 import threading
 from datetime import datetime, timezone
 
+import billing as BILL
 import engine as E
 import security as SEC
 import store
@@ -230,6 +231,8 @@ def fresh_state():
         "password_hash": None,
         # sha256 of setup tokens already used, so a link never works twice
         "setup_burned": [],
+        # the last paid-until date the audit log recorded (billing.py)
+        "billing_seen": None,
         "sessions": {},
         "oauth_tokens_enc": None,
         "oauth_pending": {},
@@ -324,6 +327,50 @@ ui.venue_label = header_label
 def identity_missing():
     """Real customer data loaded, but no complete business details to sign with."""
     return STATE.get("dataset") is not None and not business_complete()
+
+
+# ---------------------------------------------------------------- billing
+# Free preview, pay to send (billing.py). The paid-until date comes from a
+# file only the operator writes; the app records each new date in the audit
+# log itself, so the log keeps a single writer.
+
+def billing_state():
+    on = BILL.enforced()
+    paid = BILL.paid_until() if on else None
+    if on:
+        seen = paid.isoformat() if paid else None
+        if seen != STATE.get("billing_seen"):
+            AUDIT.write("config_change", actor="operator",
+                        detail={"what": "billing", "paid_until": seen})
+            STATE["billing_seen"] = seen
+            persist()
+    region = STATE.get("region", "AU")
+    return {"status": BILL.status(paid, BILL.today(), on), "paid_until": paid,
+            "pay_url": BILL.pay_url(region, os.environ.get("REGULARS_VENUE_ID")),
+            "price": BILL.PRICE.get(region, BILL.PRICE["AU"]),
+            "support": (os.environ.get("REGULARS_SUPPORT_EMAIL") or "").strip()}
+
+
+def billing_message(b):
+    if b["status"] == "preview":
+        return ("Your messages are ready to read. Approving and exporting them starts once "
+                "your plan is paid - see Your plan on the Setup screen.")
+    if b["status"] == "lapsed":
+        return (f"Your plan ended on {BILL.nice(b['paid_until'])}, so approving and exporting "
+                f"are paused. Renew under Your plan on the Setup screen; everything else "
+                f"keeps working.")
+    return None
+
+
+def send_block():
+    """Why approving or exporting is refused right now, or None. Only real
+    customer data is ever blocked; the demo can always be rehearsed."""
+    if identity_missing():
+        return IDENTITY_MISSING_MSG
+    if STATE.get("dataset") is None:
+        return None
+    b = billing_state()
+    return billing_message(b) if b["status"] in BILL.LOCKED else None
 
 
 def result():

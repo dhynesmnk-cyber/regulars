@@ -17,6 +17,7 @@ import tarfile
 import tempfile
 import time
 import unittest
+from datetime import datetime, timezone
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 APP = os.path.join(HERE, "..", "app")
@@ -78,6 +79,8 @@ class FakeDocker(rc.Runner):
             return subprocess.CompletedProcess(args, 0 if running else 1,
                                                b"running\n" if running else b"", b"")
         elif args[:2] == ["docker", "exec"]:
+            if args[2] not in self.containers:          # like docker: no exec into a stopped one
+                return subprocess.CompletedProcess(args, 1, b"", b"not running")
             return subprocess.CompletedProcess(args, 0, b"audit chain intact: 3 entries", b"")
         return ok
 
@@ -345,6 +348,63 @@ class TestBackupRestoreLink(CtlCase):
         self.assertNotEqual(self.env("juniper-co")["REGULARS_SETUP_TOKEN"], token)
 
 
+class TestBillingCommands(CtlCase):
+    def setUp(self):
+        super().setUp()
+        self.ctl("provision", "juniper-co")
+        self.today = datetime.now(timezone.utc).date()
+        self.bill = rc.app_module("billing")
+
+    def exec_calls(self):
+        return [a for a, _ in self.d.cmds if a[:2] == ["docker", "exec"] and "paid-until" in a]
+
+    def test_provision_turns_billing_on_and_names_the_venue(self):
+        env = self.env("juniper-co")
+        self.assertEqual((env["REGULARS_BILLING"], env["REGULARS_VENUE_ID"]), ("on", "juniper-co"))
+        self.assertEqual(self.meta("juniper-co")["billing"], "on")
+
+    def test_no_billing_venues_are_never_charged(self):
+        self.ctl("provision", "demo-venue", "--no-billing")
+        self.assertEqual(self.env("demo-venue")["REGULARS_BILLING"], "off")
+        self.assertEqual(self.ctl("paid", "demo-venue", "--months", "1"), 1)
+        self.assertEqual(self.exec_calls(), [])
+
+    def test_months_extend_from_today_then_from_the_paid_date(self):
+        self.assertEqual(self.ctl("paid", "juniper-co", "--months", "1"), 0)
+        first = self.bill.add_months(self.today, 1)
+        self.assertEqual(self.meta("juniper-co")["paid_until"], first.isoformat())
+        self.assertEqual(self.exec_calls()[-1], ["docker", "exec", "regulars-juniper-co",
+                                                 "python3", "admin.py", "paid-until",
+                                                 first.isoformat()])
+        self.ctl("paid", "juniper-co", "--months", "1")       # paying early doesn't lose days
+        self.assertEqual(self.meta("juniper-co")["paid_until"],
+                         self.bill.add_months(first, 1).isoformat())
+
+    def test_until_sets_an_exact_day_and_rejects_nonsense(self):
+        self.assertEqual(self.ctl("paid", "juniper-co", "--until", "2027-01-31"), 0)
+        self.assertEqual(self.meta("juniper-co")["paid_until"], "2027-01-31")
+        self.assertEqual(self.ctl("paid", "juniper-co", "--until", "31/01/2027"), 1)
+        self.assertEqual(self.meta("juniper-co")["paid_until"], "2027-01-31")
+
+    def test_a_stopped_venue_is_not_marked_paid(self):
+        self.d.containers.pop("regulars-juniper-co")
+        self.assertEqual(self.ctl("paid", "juniper-co", "--months", "1"), 1)
+        self.assertNotIn("paid_until", self.meta("juniper-co"))
+        self.assertIn("is it running", self.d.output())
+
+    def test_status_shows_each_venue_plan(self):
+        self.ctl("provision", "paid-up")
+        self.ctl("provision", "gone-quiet")
+        self.ctl("paid", "paid-up", "--months", "2")
+        self.ctl("paid", "gone-quiet", "--until", "2020-01-01")
+        self.d.out = io.StringIO()
+        self.ctl("status")
+        rows = {ln.split()[0]: ln for ln in self.d.output().splitlines()}
+        self.assertIn("preview (not paid yet)", rows["juniper-co"])
+        self.assertIn("paid to ", rows["paid-up"])
+        self.assertIn("LAPSED 2020-01-01", rows["gone-quiet"])
+
+
 class TestAdmin(unittest.TestCase):
     """app/admin.py run for real against a temp state file and audit log."""
 
@@ -390,6 +450,14 @@ class TestAdmin(unittest.TestCase):
         res = self.admin("admin.py", "verify-audit")
         self.assertEqual(res.returncode, 1)
         self.assertIn("BROKEN", res.stdout)
+
+    def test_paid_until_writes_the_billing_file_beside_the_state(self):
+        res = self.admin("admin.py", "paid-until", "2026-12-31")
+        self.assertEqual(res.returncode, 0, res.stderr)
+        with open(os.path.join(self._tmp.name, "regulars-billing.json")) as f:
+            self.assertEqual(json.load(f)["paid_until"], "2026-12-31")
+        self.assertEqual(self.admin("admin.py", "paid-until", "next tuesday").returncode, 2)
+        self.assertEqual(self.admin("admin.py", "paid-until").returncode, 2)
 
     def test_unknown_command_shows_usage(self):
         res = self.admin("admin.py", "drop-tables")

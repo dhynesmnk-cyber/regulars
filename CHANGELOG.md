@@ -4,6 +4,32 @@ Versioning: the state file carries a `schema` number; the server migrates older
 state on boot and writes a `config_change` audit entry when it does. Bump
 `VERSION` and `SCHEMA` in `app/server.py` for every release.
 
+## Unreleased - Gate 2.4: billing v0 (free preview, pay to send)
+
+Nothing collected the A$40/month. Now, with billing on:
+
+- A venue can sign in, upload and read every message free. **Approving or
+  exporting real customers' messages needs a paid-up period**; the demo data
+  can always be rehearsed. Sign-in, upload, settings and reading never lock.
+- Setup gains **Your plan**: status in plain words, the price for the
+  venue's market (A$40 a month + GST / US$40 a month), and a **Pay** or
+  **Renew** button opening your Stripe Payment Link with
+  `client_reference_id=<venue>`.
+- Seven days before the paid-up date every screen shows a renewal reminder;
+  seven days after it an overdue banner while sending still works; then
+  approving and exporting pause until the next payment.
+- `regularsctl paid <venue> --months 1 | --until DATE` records a payment
+  (extending from the later of today and the current date). It takes effect
+  without a restart: the date lives in `/data/regulars-billing.json`, which
+  only the operator writes and the app re-reads when it changes. The app
+  writes each new date to the audit log itself, once.
+- `regularsctl provision` turns billing on (`--no-billing` for demos) and
+  names the venue; `status` shows each venue's plan.
+- Approve and export now share one rule, `state.send_block()` (business
+  details, then billing).
+- Opt-in via `REGULARS_BILLING=on`: local runs and existing tests unchanged.
+- 16 new tests.
+
 ## Unreleased - Gate 2.3: provisioning and ops
 
 Handing a venue its own instance used to take about a dozen manual steps

@@ -6,7 +6,8 @@ from state import (AUDIT, ESP, LOCK, STATE, VERSION, dataset, flash, fresh_state
                    result)
 from ui import e, page, stat
 from upload import do_import
-from views import _business_card, _flash_html, _security_banner, _suppression_card
+from views import (_business_card, _flash_html, _plan_card, _security_banner,
+                   _suppression_card)
 from web import html, redirect
 
 
@@ -16,7 +17,7 @@ def page_setup():
     g = STATE["goals"]
     conn = STATE["connected"]
     ds = dataset()
-    pre = _flash_html() + _security_banner() + _business_card()
+    pre = _flash_html() + _security_banner() + _business_card() + _plan_card()
 
     if not conn:
         body = ['<h1>Connect your Square, or bring a CSV.</h1>',
@@ -182,8 +183,8 @@ def post_upload(req):
 
 
 def post_reset(req):
-    keep = {k: STATE.get(k) for k in ("password_hash", "setup_burned", "sessions",
-                                      "region", "venue_address", "business",
+    keep = {k: STATE.get(k) for k in ("password_hash", "setup_burned", "billing_seen",
+                                      "sessions", "region", "venue_address", "business",
                                       "oauth_tokens_enc", "oauth_pending", "schema")}
     STATE.update(fresh_state())
     STATE.update({k: v for k, v in keep.items() if v is not None})

@@ -1,6 +1,11 @@
 """HTML fragments shared by several screens."""
 
-from state import CTX, IDENTITY_MISSING_MSG, STATE, demo_mode, identity_missing, take_flash
+from datetime import timedelta
+
+import billing as BILL
+import ui
+from state import (CTX, IDENTITY_MISSING_MSG, STATE, billing_message, billing_state,
+                   demo_mode, identity_missing, take_flash)
 from ui import e
 
 
@@ -141,3 +146,76 @@ def _business_card():
         'anywhere by this app.</span>'
         '<button class="btn" type="submit">Save business details</button></div>'
         '</form></div>')
+
+
+# ---------------------------------------------------------------- billing
+
+def _send_banner():
+    """Messages screens: why approving and exporting are off, if they are.
+    A lapsed plan is shown by the page-wide notice instead."""
+    if identity_missing():
+        return _identity_banner()
+    if STATE.get("dataset") is None:
+        return ""
+    b = billing_state()
+    if b["status"] != "preview":
+        return ""
+    return (f'<div class="warn"><b>Preview.</b> {e(billing_message(b))} '
+            f'<a href="/">Your plan &rarr;</a></div>')
+
+
+def _billing_notice():
+    b = billing_state()
+    st, paid = b["status"], b["paid_until"]
+    if st == "due_soon":
+        days = (paid - BILL.today()).days
+        when = "today" if days == 0 else f"in {days} day{'s' if days != 1 else ''}"
+        title, text = "Renewal due.", (f"Your plan is paid up to {BILL.nice(paid)} ({when}). "
+                                       f"Renew to keep sending without a break.")
+    elif st == "grace":
+        stop = paid + timedelta(days=BILL.GRACE_DAYS)
+        title, text = "Payment overdue.", (f"Your plan ended on {BILL.nice(paid)}. Approving and "
+                                           f"exporting keep working until {BILL.nice(stop)}.")
+    elif st == "lapsed":
+        title, text = "Sending paused.", billing_message(b)
+    else:
+        return ""
+    return f'<div class="warn"><b>{title}</b> {e(text)} <a href="/">Your plan &rarr;</a></div>'
+
+
+ui.notice = _billing_notice
+
+
+def _plan_card():
+    b = billing_state()
+    st, paid = b["status"], b["paid_until"]
+    if st == "off":
+        return ""
+    words = {
+        "preview": "Preview: read every message free. Approving and exporting your customers' "
+                   "messages starts once your plan is paid.",
+        "active": f"Paid up to {BILL.nice(paid)}." if paid else "",
+        "due_soon": f"Paid up to {BILL.nice(paid)}. Renew to keep sending without a break."
+                    if paid else "",
+        "grace": f"Your plan ended on {BILL.nice(paid)}. Sending keeps working until "
+                 f"{BILL.nice(paid + timedelta(days=BILL.GRACE_DAYS))}." if paid else "",
+        "lapsed": f"Your plan ended on {BILL.nice(paid)}, so approving and exporting are paused. "
+                  f"Everything else still works." if paid else "",
+    }[st]
+    action = ""
+    if st != "active":
+        label = "Pay" if st == "preview" else "Renew"
+        if b["pay_url"]:
+            action = (f'<a class="btn" href="{e(b["pay_url"])}" target="_blank" '
+                      f'rel="noopener">{label} &middot; {e(b["price"])}</a>')
+        elif b["support"]:
+            action = (f'<span>To pay, email <a href="mailto:{e(b["support"])}">'
+                      f'{e(b["support"])}</a>.</span>')
+        else:
+            action = '<span>To pay, contact whoever set up Regulars for you.</span>'
+    box = "warn" if st in ("preview", "grace", "lapsed") else ""
+    return ('<h2>Your plan</h2><div class="card">'
+            f'<div class="{box}" style="margin-bottom:20px">{e(words)}</div>'
+            '<div class="row between">'
+            f'<span class="sm soft">{e(b["price"])}, cancel anytime. Sending unlocks within one '
+            f'business day of payment, usually sooner.</span>{action}</div></div>')

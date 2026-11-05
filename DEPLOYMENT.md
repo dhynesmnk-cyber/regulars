@@ -88,8 +88,48 @@ MAILTO=you@example.com
 | Restore a venue | `regularsctl restore juniper-co /var/backups/regulars/<archive> --yes` - takes a safety copy first, then checks the audit chain |
 | Owner lost their link | `regularsctl link juniper-co` |
 | Owner forgot their password | `regularsctl link juniper-co --reset-owner` - clears it (audited) and prints a new link |
+| A venue paid | `regularsctl paid juniper-co --months 1` - unlocks sending at once, no restart |
 
 Every command takes `--dry-run`.
+
+### Billing: free preview, pay to send
+
+A new venue can sign in, upload its Square export and read every message
+without paying. **Approving or exporting real customers' messages needs a
+paid-up period** - that's the moment they've seen what they'd pay for. The
+demo data can always be approved and exported, so owners can rehearse.
+
+1. In Stripe, create two **Payment Links**, each a monthly subscription:
+   A$40 (GST-exclusive, with Stripe Tax on) and US$40.
+2. Put them in `/etc/regulars/shared.env`, with the address owners should
+   write to:
+
+   ```
+   REGULARS_PAY_URL_AU=https://buy.stripe.com/...
+   REGULARS_PAY_URL_US=https://buy.stripe.com/...
+   REGULARS_SUPPORT_EMAIL=you@example.com
+   ```
+
+   New venues get them straight away; existing ones at their next
+   `regularsctl upgrade`. Each owner's **Pay** button adds
+   `client_reference_id=<venue>`, so every Stripe payment shows which venue it
+   came from.
+3. When Stripe emails you about a payment (first or renewal), run
+   `regularsctl paid <venue> --months 1`. It extends from the later of today
+   and the current paid-up date, so early payers don't lose days. Sending
+   unlocks immediately; the owner's screen says to expect that within one
+   business day.
+4. Seven days before a paid-up period ends, every screen shows a renewal
+   reminder; for seven days after it, an "overdue" banner while sending still
+   works; after that, approving and exporting pause until the next `paid`.
+   A cancellation needs nothing from you: just don't extend it.
+
+`regularsctl status` shows each venue's plan (preview, paid to, due, GRACE,
+LAPSED). Demo and friends-and-family instances: `provision --no-billing`.
+The paid-up date lives in `/data/regulars-billing.json`, written only by
+`regularsctl paid`; the app re-reads it when it changes and records each new
+date in the audit log. (A Stripe webhook can replace step 3 once there are
+enough venues for it to matter.)
 
 ### Doing it by hand (one venue)
 
@@ -172,6 +212,11 @@ OAuth endpoints during connect/refresh/revoke.
 | `REGULARS_KEYFILE` | `app/regulars-master.key` | Keyfile location |
 | `REGULARS_TLS` | *(unset)* | Set to `1` behind HTTPS: adds HSTS, marks cookies `Secure` |
 | `REGULARS_BIND` | `127.0.0.1` | Interface to listen on. The Docker image sets `0.0.0.0` and expects the port published on the host's `127.0.0.1` only |
+| `REGULARS_BILLING` | *(unset)* | `on` = free preview, pay to send (see Billing). `regularsctl provision` sets it; `--no-billing` sets `off` |
+| `REGULARS_VENUE_ID` | *(unset)* | The venue's name in `regularsctl`; sent to Stripe as `client_reference_id` |
+| `REGULARS_PAY_URL_AU` / `REGULARS_PAY_URL_US` | *(unset)* | Your Stripe Payment Links, chosen by the venue's market |
+| `REGULARS_SUPPORT_EMAIL` | *(unset)* | Shown to owners when there's no pay link to show |
+| `REGULARS_BILLING_FILE` | beside the state file | Where the paid-up date is read from (`regulars-billing.json`) |
 | `REGULARS_TRUST_PROXY` | *(unset)* | Number of reverse proxies in front (`1` for Caddy/nginx, `2` with a CDN too). Unset = `X-Forwarded-For` ignored. The Docker image sets `1` |
 | `REGULARS_SETUP_TOKEN` | *(unset)* | One-time owner setup link (`/welcome?token=...`). While set and no password exists, the whole app is closed except that link and `/healthz`. At least 24 characters. **Use this for every instance you hand to a venue** |
 | `REGULARS_OPEN_FIRST_RUN` | *(unset)* | `1` = allow creating the first password from a non-localhost address. Use once, behind TLS, then unset. Ignored while `REGULARS_SETUP_TOKEN` is set |

@@ -12,6 +12,7 @@ one port on 127.0.0.1, and one Caddy site at https://<slug>.<domain>.
     regularsctl backup [--to DIR] [--keep 14]
     regularsctl restore juniper-co ARCHIVE --yes
     regularsctl link juniper-co [--reset-owner] a fresh setup link
+    regularsctl paid juniper-co --months 1      record a payment
 
 Add --dry-run to any command to print what it would do. Runs as root on the
 server; Python standard library only. Secrets live in /etc/regulars/venues/
@@ -29,7 +30,7 @@ import subprocess
 import sys
 import time
 import urllib.request
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(HERE)
@@ -190,13 +191,30 @@ def next_port(ctx, cfg):
     return port
 
 
-def industries():
+def app_module(module):
+    """Import one of the app's dependency-free modules (packs, billing), so
+    the rules live in one place."""
     sys.path.insert(0, os.path.join(REPO, "app"))
     try:
-        import packs
-        return packs.AVAILABLE
+        return __import__(module)
     finally:
         sys.path.pop(0)
+
+
+def industries():
+    return app_module("packs").AVAILABLE
+
+
+def billing_line(meta, on_day):
+    """What `status` says about a venue's plan."""
+    if meta.get("billing", "on") != "on":
+        return "no billing"
+    bill = app_module("billing")
+    paid = date.fromisoformat(meta["paid_until"]) if meta.get("paid_until") else None
+    st = bill.status(paid, on_day)
+    return {"preview": "preview (not paid yet)", "active": f"paid to {paid}",
+            "due_soon": f"due {paid}", "grace": f"GRACE, ended {paid}",
+            "lapsed": f"LAPSED {paid}"}[st]
 
 
 def image_exists(ctx, tag):
@@ -305,7 +323,8 @@ def cmd_provision(ctx, a):
     token = secrets.token_urlsafe(32)
     master = secrets.token_hex(32)
     meta = {"slug": slug, "port": port, "industry": a.industry, "host": host(cfg, slug),
-            "created": datetime.now(timezone.utc).isoformat(timespec="seconds")}
+            "created": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            "billing": "off" if a.no_billing else "on"}
     caddy_file = os.path.join(ctx.p(cfg["caddy_dir"]), slug + ".caddy")
     written = []
     try:
@@ -314,7 +333,9 @@ def cmd_provision(ctx, a):
         written.append(os.path.join(ctx.venues_dir, slug + ".json"))
         ctx.write_env(slug, {"REGULARS_MASTER_KEY": master, "REGULARS_SETUP_TOKEN": token,
                              "REGULARS_INDUSTRY": a.industry,
-                             "REGULARS_REDIRECT_URI": f"https://{meta['host']}/oauth/callback"})
+                             "REGULARS_REDIRECT_URI": f"https://{meta['host']}/oauth/callback",
+                             "REGULARS_VENUE_ID": slug,
+                             "REGULARS_BILLING": meta["billing"]})
         written.append(ctx.env_path(slug))
         run_container(ctx, slug, meta=meta)
         ctx.r.write(caddy_file, caddy_site(cfg, slug, port))
@@ -350,6 +371,7 @@ def cmd_status(ctx, a):
     ctx.config()
     down = []
     rows = []
+    on_day = datetime.now(timezone.utc).date()
     for slug in ctx.slugs():
         meta = ctx.meta(slug)
         res = ctx.r.run(["docker", "inspect", "-f", "{{.State.Status}}", name(slug)], check=False)
@@ -361,7 +383,7 @@ def cmd_status(ctx, a):
             continue
         claimed = "claimed" if h.get("auth_enabled") else "waiting for owner"
         rows.append(f"{slug:24} {meta['port']:5}  {state:9}  ok  v{h.get('version', '?')}  "
-                    f"{claimed}")
+                    f"{claimed:17}  {billing_line(meta, on_day)}")
     if not a.quiet:
         ctx.r.say("\n".join(rows) if rows else "no venues yet (regularsctl provision <slug>)")
         if down:
@@ -457,6 +479,34 @@ def cmd_restore(ctx, a):
     return 0
 
 
+def cmd_paid(ctx, a):
+    """Record a payment: --months N from the later of today and the current
+    paid-up date, or an exact --until. Takes effect at once, no restart."""
+    ctx.config()
+    meta = ctx.meta(a.slug)
+    if meta.get("billing", "on") != "on":
+        raise Fail(f"{a.slug} was set up with --no-billing")
+    today = datetime.now(timezone.utc).date()
+    if a.until:
+        try:
+            new = date.fromisoformat(a.until)
+        except ValueError:
+            raise Fail(f"not a date: {a.until!r} (use YYYY-MM-DD)")
+    else:
+        current = date.fromisoformat(meta["paid_until"]) if meta.get("paid_until") else None
+        new = app_module("billing").add_months(max(today, current) if current else today,
+                                              a.months)
+    res = ctx.r.run(["docker", "exec", name(a.slug), "python3", "admin.py", "paid-until",
+                     new.isoformat()], check=False)
+    if res.returncode:
+        raise Fail(f"couldn't record it inside {a.slug} - is it running? (regularsctl status)")
+    meta["paid_until"] = new.isoformat()
+    ctx.r.write(os.path.join(ctx.venues_dir, a.slug + ".json"),
+                json.dumps(meta, indent=2) + "\n", 0o600)
+    ctx.r.say(f"{a.slug} is paid up to {new.isoformat()}; approving and exporting work now.")
+    return 0
+
+
 def cmd_link(ctx, a):
     cfg = ctx.config()
     meta = ctx.meta(a.slug)
@@ -496,6 +546,13 @@ def parser():
     p = sub.add_parser("provision", help="create a venue and print its setup link")
     p.add_argument("slug")
     p.add_argument("--industry", default="restaurant")
+    p.add_argument("--no-billing", action="store_true",
+                   help="never ask this venue to pay (demo or friends-and-family instances)")
+    p = sub.add_parser("paid", help="record a payment, e.g. --months 1")
+    p.add_argument("slug")
+    when = p.add_mutually_exclusive_group(required=True)
+    when.add_argument("--months", type=int, help="extend by this many months")
+    when.add_argument("--until", help="paid up to this day, YYYY-MM-DD")
     p = sub.add_parser("status", help="list venues and their health")
     p.add_argument("--quiet", action="store_true", help="silent unless something is down")
     p = sub.add_parser("upgrade", help="rebuild the image and recreate venues on it")
@@ -518,7 +575,7 @@ def parser():
 
 COMMANDS = {"init": cmd_init, "provision": cmd_provision, "status": cmd_status,
             "upgrade": cmd_upgrade, "backup": cmd_backup, "restore": cmd_restore,
-            "link": cmd_link}
+            "link": cmd_link, "paid": cmd_paid}
 
 
 def main(argv=None, runner=None, root=None):
