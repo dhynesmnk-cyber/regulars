@@ -26,6 +26,10 @@ and threshold variants.
   `packs/restaurant.py` behind a documented interface (`packs/__init__.py`).
   `REGULARS_INDUSTRY` picks the pack; `restaurant` is the default and the
   only one so far.
+- **Benchmark**: `tools/bench.py` times the engine, the Setup and Messages
+  screens and a full Square-format import at 2k-50k customers, with peak
+  memory. `data.build(scale=N)` multiplies the demo venue for it. Results
+  are in the README under Performance.
 
 ## 0.6.0 - 2026-11-05 - specificity & tone
 

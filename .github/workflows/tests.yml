@@ -1,7 +1,9 @@
 name: tests
 
+# Pull requests run once via pull_request; pushes to main run after merge.
 on:
   push:
+    branches: [main]
   pull_request:
 
 permissions:

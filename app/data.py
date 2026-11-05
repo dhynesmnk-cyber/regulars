@@ -312,12 +312,14 @@ def _assign_mods(customers):
                     it["mods"] = []
 
 
-def build():
+def build(scale=1):
+    """The demo venue. `scale` multiplies every archetype's head-count, for
+    benchmarking at real-venue sizes; scale=1 is the 525-customer demo."""
     RNG.seed(SEED)
     customers = []
     i = 0
     for arch in ARCHETYPES:
-        for _ in range(arch[1]):
+        for _ in range(arch[1] * scale):
             customers.append(_build_customer(arch, i))
             i += 1
     _assign_birthdays(customers)
@@ -450,12 +452,12 @@ SQUARE_CUST_HEADERS = ["Customer ID", "Given name", "Family name", "Email addres
                        "Phone number", "Birthday", "Marketing opt-in"]
 
 
-def sample_square(customers=40):
+def sample_square(customers=40, ds=None):
     """Two files shaped like Square dashboard exports: transactions (one row per
     line item) and the customer directory."""
     import csv as _csv
     import io as _io
-    ds = build()
+    ds = ds or build()
     tx, cu = _io.StringIO(), _io.StringIO()
     wt, wc = _csv.writer(tx), _csv.writer(cu)
     wt.writerow(SQUARE_TXN_HEADERS)

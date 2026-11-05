@@ -281,6 +281,30 @@ States**, and the product changes where the law says it must:
 
 ---
 
+## Performance at real-venue sizes
+
+`python3 tools/bench.py --sizes 525,2000,20000,50000` scales the demo venue up
+and times the real code paths (measured 2026-11-05, one CPU core of a cloud VM):
+
+| Customers | Orders | Line items | Messages | Engine run | Setup page | Messages page | Square CSV | Import | Peak RAM |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 525 (demo) | 8,124 | 28,022 | 199 | 0.10 s | 0.11 s | 0.11 s | 3 MB | 0.7 s | 78 MB |
+| 2,100 | 32,365 | 111,655 | 799 | 0.36 s | 0.33 s | 0.28 s | 11 MB | 3.2 s | 217 MB |
+| 20,475 | 318,147 | 1,094,736 | 7,683 | 3.36 s | 5.10 s | 2.99 s | 111 MB | 49.7 s | 1,755 MB |
+| 50,400 | 783,897 | 2,695,103 | 19,045 | 11.57 s | 9.80 s | 7.23 s | 276 MB | 163.1 s | 4,291 MB |
+
+What this means today:
+
+- **The 8 MB upload cap blocks venues above roughly 1,500 customers** sending
+  their full history (at the demo's order rate). Gate 2 makes the cap
+  configurable; Gate 3 makes large imports practical.
+- **Every page view re-runs the engine**, so at 20,000 customers each screen
+  takes 3-5 seconds. Gate 3 caches the result between changes.
+- **The Messages screen shows the first 120 messages only.** The export carries
+  all of them; paging the screen is Gate 3.
+- **Memory**: a 20,000-customer import peaks near 1.8 GB, too much for the
+  smallest VPS plans. Gate 3's target is under 512 MB.
+
 ## Files
 
 ```
@@ -290,6 +314,7 @@ app/engine.py     the pipeline every industry shares: suppress → order trigger
 app/packs/        industry packs (REGULARS_INDUSTRY, default restaurant): profile,
                   triggers, thresholds, offer categories, email templates
 app/core.py       industry-neutral wording: vague timing, seasons, US spelling
+tools/bench.py    timings and memory at 2k-50k customers (see Performance)
 app/importer.py   Square-format and simple-format CSV parsing, menu inference
 app/security.py   passwords, sessions, CSRF, rate limits, audit chain, secret box, headers
 app/oauth.py      Square authorization-code flow: authorize, exchange, refresh, revoke
