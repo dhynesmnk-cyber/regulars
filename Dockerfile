@@ -17,7 +17,14 @@ ENV REGULARS_STATE=/data/regulars-state.json \
     REGULARS_AUDIT_LOG=/data/regulars-audit.log \
     REGULARS_KEYFILE=/data/regulars-master.key \
     REGULARS_TLS=1 \
+    REGULARS_BIND=0.0.0.0 \
+    REGULARS_TRUST_PROXY=1 \
     PORT=8010
+
+# Listening on 0.0.0.0 is only safe because the port is published on the
+# host's loopback (docker run -p 127.0.0.1:8010:8010) and a TLS proxy on the
+# host is the only thing that reaches it. REGULARS_TRUST_PROXY=1 then takes
+# the client address from the entry that proxy adds to X-Forwarded-For.
 
 # Secrets are injected at runtime, never baked into the image:
 #   REGULARS_MASTER_KEY, REGULARS_SETUP_TOKEN, SQUARE_CLIENT_ID,

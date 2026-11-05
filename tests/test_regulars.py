@@ -18,6 +18,7 @@ import sys
 import tempfile
 import threading
 import unittest
+from unittest import mock
 from collections import Counter
 from datetime import datetime, timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -1889,6 +1890,111 @@ class TestSetupLink(_HTTPHarness, unittest.TestCase):
         self.assertEqual(st, 200)                         # open demo mode, as before
         st, _, hdr = self.call("GET", "/welcome?token=anything")
         self.assertEqual((st, hdr["Location"]), (303, "/login"))
+
+
+# ---------------------------------------------------------------------------
+# network: which client address to believe, and where to listen
+# ---------------------------------------------------------------------------
+
+class TestClientAddress(unittest.TestCase):
+    def test_header_ignored_without_a_trusted_proxy(self):
+        self.assertEqual(SEC.client_ip("127.0.0.1", "203.0.113.7", 0), "127.0.0.1")
+        self.assertEqual(SEC.client_ip("10.0.0.2", "127.0.0.1", 0), "10.0.0.2")
+
+    def test_rightmost_entry_wins_behind_one_proxy(self):
+        self.assertEqual(SEC.client_ip("127.0.0.1", "203.0.113.7", 1), "203.0.113.7")
+        # whatever the client typed sits to the left of what the proxy appended
+        self.assertEqual(SEC.client_ip("127.0.0.1", "127.0.0.1, 203.0.113.7", 1),
+                         "203.0.113.7")
+
+    def test_two_hops_for_a_cdn_in_front_of_the_proxy(self):
+        self.assertEqual(SEC.client_ip("10.0.0.5", "6.6.6.6, 203.0.113.7, 198.51.100.200", 2),
+                         "203.0.113.7")
+        self.assertEqual(SEC.client_ip("10.0.0.5", "203.0.113.7", 2), "203.0.113.7")
+
+    def test_header_only_believed_from_a_local_or_private_connection(self):
+        self.assertEqual(SEC.client_ip("8.8.8.8", "127.0.0.1", 1), "8.8.8.8")
+
+    def test_garbage_falls_back_to_the_connection(self):
+        self.assertEqual(SEC.client_ip("127.0.0.1", "not-an-ip", 1), "127.0.0.1")
+        self.assertEqual(SEC.client_ip("127.0.0.1", " , ", 1), "127.0.0.1")
+        self.assertEqual(SEC.client_ip("::1", "2001:db8::1", 1), "2001:db8::1")
+
+    def test_trust_proxy_setting_is_bounded(self):
+        for raw, want in ((None, 0), ("", 0), ("1", 1), ("2", 2), ("99", 5), ("-3", 0),
+                          ("yes", 0)):
+            env = {} if raw is None else {"REGULARS_TRUST_PROXY": raw}
+            with mock.patch.dict(os.environ, env, clear=False):
+                if raw is None:
+                    os.environ.pop("REGULARS_TRUST_PROXY", None)
+                self.assertEqual(SEC.trusted_proxy_hops(), want, raw)
+
+    def test_bind_defaults_to_loopback(self):
+        with mock.patch.dict(os.environ, {}, clear=False):
+            os.environ.pop("REGULARS_BIND", None)
+            self.assertEqual(S.bind_address(), "127.0.0.1")
+            os.environ["REGULARS_BIND"] = "0.0.0.0"
+            self.assertEqual(S.bind_address(), "0.0.0.0")
+
+    def test_start_up_warnings(self):
+        self.assertEqual(S.network_warnings("127.0.0.1", 0, False, 8010), [])
+        exposed = S.network_warnings("0.0.0.0", 0, False, 8010)
+        self.assertEqual(len(exposed), 1)
+        self.assertIn("REGULARS_TRUST_PROXY=1", exposed[0])
+        self.assertIn("REGULARS_TRUST_PROXY", S.network_warnings("127.0.0.1", 0, True, 8010)[0])
+        docker = S.network_warnings("0.0.0.0", 1, True, 8010)
+        self.assertEqual(len(docker), 1)
+        self.assertIn("-p 127.0.0.1:8010:8010", docker[0])
+
+
+class TestForwardedForHTTP(_HTTPHarness, unittest.TestCase):
+    PASSWORD = "the right password"
+
+    def setUp(self):
+        super().setUp()
+        os.environ.pop("REGULARS_TRUST_PROXY", None)
+        S.STATE["password_hash"] = SEC.hash_secret(self.PASSWORD)
+        for d in (S.GUARD.locked, S.GUARD.fails, S.GUARD.hits):
+            d.clear()
+
+    def tearDown(self):
+        os.environ.pop("REGULARS_TRUST_PROXY", None)
+        for d in (S.GUARD.locked, S.GUARD.fails, S.GUARD.hits):
+            d.clear()
+        super().tearDown()
+
+    def login(self, password, forwarded_for=None):
+        req = request.Request(self.base + "/login",
+                              data=parse.urlencode({"password": password}).encode())
+        if forwarded_for:
+            req.add_header("X-Forwarded-For", forwarded_for)
+        try:
+            with request.build_opener(_NoRedirect).open(req, timeout=60) as r:
+                return r.status
+        except HTTPError as err:
+            return err.code
+
+    def last_ip(self, event):
+        return [ev for ev in S.AUDIT.read(500) if ev["event"] == event][-1]["ip"]
+
+    def test_rotating_forwarded_for_cannot_dodge_the_lockout(self):
+        for i in range(SEC.LOGIN_MAX_FAILS):
+            self.login("wrong guess", forwarded_for=f"203.0.113.{i + 1}")
+        self.assertEqual(self.login(self.PASSWORD, forwarded_for="203.0.113.99"), 429)
+
+    def test_header_is_only_believed_when_a_proxy_is_trusted(self):
+        self.login("wrong guess", forwarded_for="203.0.113.7")
+        self.assertEqual(self.last_ip("login_fail"), "127.0.0.1")
+        os.environ["REGULARS_TRUST_PROXY"] = "1"
+        self.login("wrong guess", forwarded_for="6.6.6.6, 203.0.113.7")
+        self.assertEqual(self.last_ip("login_fail"), "203.0.113.7")
+
+    def test_behind_a_trusted_proxy_lockouts_are_per_client(self):
+        os.environ["REGULARS_TRUST_PROXY"] = "1"
+        for _ in range(SEC.LOGIN_MAX_FAILS):
+            self.login("wrong guess", forwarded_for="203.0.113.7")
+        self.assertEqual(self.login(self.PASSWORD, forwarded_for="203.0.113.7"), 429)
+        self.assertEqual(self.login(self.PASSWORD, forwarded_for="198.51.100.4"), 303)
 
 
 if __name__ == "__main__":

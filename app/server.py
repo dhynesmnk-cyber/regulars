@@ -159,8 +159,8 @@ class Handler(BaseHTTPRequestHandler):
                        cookie=resp.cookie)
 
     def _ip(self):
-        fwd = self.headers.get("X-Forwarded-For", "")
-        return fwd.split(",")[0].strip() if fwd else (self.client_address[0] or "-")
+        return SEC.client_ip(self.client_address[0], self.headers.get("X-Forwarded-For", ""),
+                             SEC.trusted_proxy_hops())
 
     def _cookie_token(self):
         for part in (self.headers.get("Cookie") or "").split(";"):
@@ -287,6 +287,33 @@ class Handler(BaseHTTPRequestHandler):
         self._respond(resp)
 
 
+def bind_address():
+    """REGULARS_BIND: the interface to listen on. Loopback by default, so a
+    fresh install is never reachable from the network by accident; the
+    Docker image sets 0.0.0.0 and publishes the port on 127.0.0.1 only."""
+    return (os.environ.get("REGULARS_BIND") or "127.0.0.1").strip() or "127.0.0.1"
+
+
+def network_warnings(bind, hops, tls, port):
+    """Start-up advice about how the app is exposed. Pure, so it is tested."""
+    loopback = bind in ("127.0.0.1", "::1", "localhost")
+    out = []
+    if not loopback and not hops:
+        out.append(f"listening on {bind}:{port} and not told about a reverse proxy. If one "
+                   f"is in front, set REGULARS_TRUST_PROXY=1, or every visitor shares its "
+                   f"address and one person's lockout locks out everyone. If none is, the app "
+                   f"is exposed without TLS: put it behind one.")
+    elif tls and not hops:
+        out.append("REGULARS_TLS is set but REGULARS_TRUST_PROXY isn't: behind a proxy, every "
+                   "visitor shares its address for rate limits and lockouts. Set "
+                   "REGULARS_TRUST_PROXY=1.")
+    if not loopback and hops:
+        out.append(f"listening on {bind}:{port}; trusting {hops} proxy hop(s) for client "
+                   f"addresses. Only the proxy may reach this port (Docker: publish it as "
+                   f"-p 127.0.0.1:{port}:{port}).")
+    return out
+
+
 class Server(ThreadingHTTPServer):
     # The stdlib default queues only 5 waiting connections; a browser opening
     # a few tabs plus a health check can exceed that and get resets.
@@ -295,14 +322,19 @@ class Server(ThreadingHTTPServer):
 
 
 def main():
+    # Under Docker or systemd stdout isn't a terminal and Python would hold
+    # these start-up lines back; the operator needs them in the log at once.
+    sys.stdout.reconfigure(line_buffering=True)
     port = int(sys.argv[1]) if len(sys.argv) > 1 else int(os.environ.get("PORT", 8000))
     token = setup_token()
     if token and len(token) < SETUP_TOKEN_MIN:
         sys.exit(f"REGULARS_SETUP_TOKEN is too short ({len(token)} characters; at least "
                  f"{SETUP_TOKEN_MIN}). Generate one with:\n  python3 -c \"import secrets; "
                  f"print(secrets.token_urlsafe(32))\"")
-    mode = "OPEN DEMO MODE - no operator password set" if demo_mode() else "password gated"
-    print(f"Regulars {VERSION} -> http://0.0.0.0:{port}")
+    mode = ("CLOSED until the owner uses their setup link" if unclaimed() else
+            "OPEN DEMO MODE - no operator password set" if demo_mode() else "password gated")
+    bind = bind_address()
+    print(f"Regulars {VERSION} -> http://{bind}:{port}")
     print(f"  market: {STATE.get('region', 'AU')} | auth: {mode}")
     print(f"  audit log: {AUDIT.path}")
     r = result()
@@ -312,7 +344,10 @@ def main():
     if unclaimed():
         print("  setup: waiting for the owner - send them https://<this host>/welcome?token="
               "<the value of REGULARS_SETUP_TOKEN>")
-    Server(("0.0.0.0", port), Handler).serve_forever()
+    for note in network_warnings(bind, SEC.trusted_proxy_hops(),
+                                 bool(os.environ.get("REGULARS_TLS")), port):
+        print(f"  network: {note}")
+    Server((bind, port), Handler).serve_forever()
 
 
 if __name__ == "__main__":

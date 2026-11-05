@@ -249,6 +249,10 @@ One instance = one venue, and the app assumes it is the only tenant:
   `/welcome?token=...`) and chooses the password; the link then stops working.
   Without a token, the first password can only be set from localhost (or
   `REGULARS_OPEN_FIRST_RUN=1`, once, behind TLS).
+- **Network.** Listens on `127.0.0.1` unless told otherwise (`REGULARS_BIND`).
+  `X-Forwarded-For` is ignored unless `REGULARS_TRUST_PROXY` says a proxy is in
+  front, and then only the entry that proxy added counts, so a visitor can't
+  dodge the lockout or pose as localhost by writing their own.
 - **Outside-attack detection.** Per-IP rate limits (120 POST/min, 600 GET/min),
   an 8 MB upload cap, forged-OAuth-callback rejection — all refused *and*
   written to the audit log, all visible on the Security screen.

@@ -4,6 +4,32 @@ Versioning: the state file carries a `schema` number; the server migrates older
 state on boot and writes a `config_change` audit entry when it does. Bump
 `VERSION` and `SCHEMA` in `app/server.py` for every release.
 
+## Unreleased - Gate 2.2: network hardening
+
+**Fixes two security holes.** The app believed the first entry of any
+`X-Forwarded-For` header, which the visitor controls:
+
+- **Unlimited password guessing**: a different made-up address on each
+  request meant the five-strikes lockout never triggered (demonstrated:
+  eight wrong guesses then a correct one signed straight in).
+- **Remote takeover of a fresh instance**: with no password set, a visitor
+  could claim `X-Forwarded-For: 127.0.0.1`, pass the "first password only from
+  the server itself" check and set the operator password - whenever the
+  port was exposed directly or the proxy appended to the header (as nginx's
+  common config does).
+
+Changes:
+- `security.client_ip()`: the header is ignored unless `REGULARS_TRUST_PROXY`
+  (number of proxies in front) is set; then only the entry the proxy
+  appended counts (N-th from the right), only on connections from a loopback
+  or private address, and unparseable values fall back to the connection.
+- `REGULARS_BIND` (default `127.0.0.1`): a fresh install no longer listens
+  on every interface. The Docker image sets `0.0.0.0` plus
+  `REGULARS_TRUST_PROXY=1`, matching the documented Caddy setup.
+- Start-up prints a `network:` line when the bind and proxy settings look
+  wrong together; the Security checklist shows whether a proxy is trusted.
+- 11 new tests, including the lockout-dodge attack (fails on the old code).
+
 ## Unreleased - Gate 2.1: owner setup link
 
 A provisioned instance used to start in open demo mode: until someone set a

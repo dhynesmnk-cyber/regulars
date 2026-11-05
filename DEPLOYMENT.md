@@ -30,6 +30,10 @@ the first password can only be created from localhost (or with
 `REGULARS_OPEN_FIRST_RUN=1`, see below). Until a password exists the app runs
 in open demo mode and says so on every screen.
 
+It listens on `127.0.0.1` only, so nothing else on your network can reach it.
+To try it from a phone on the same Wi-Fi, start it with `REGULARS_BIND=0.0.0.0`
+(evaluation only: that's plain HTTP).
+
 ## 3. Run it on a server (the recommended shape)
 
 Docker + a TLS-terminating reverse proxy. The app itself speaks plain HTTP and
@@ -77,6 +81,24 @@ regulars.yourvenue.com {
 whenever the app is reachable over HTTPS, and leave it off for plain-HTTP
 local testing.
 
+**Client addresses.** Rate limits, the sign-in lockout and the audit log key
+on the visitor's IP address. Behind a proxy the app only sees the proxy's, so
+the Dockerfile sets `REGULARS_TRUST_PROXY=1`: the app then takes the address
+your proxy *appended* to `X-Forwarded-For` (the right-most entry), ignores
+anything the visitor wrote to its left, and only believes the header on
+connections from a loopback or private address. Without it, the header is
+ignored. Get this right in both directions:
+
+- Proxy in front but `REGULARS_TRUST_PROXY` unset: every visitor shares the
+  proxy's address, so one attacker's lockout locks everyone out.
+- `REGULARS_TRUST_PROXY` set but the port reachable from the internet: a
+  visitor can claim any address. Publish the port on `127.0.0.1` only.
+- A CDN (e.g. Cloudflare) in front of your proxy: set `REGULARS_TRUST_PROXY=2`.
+
+Caddy's `header_up X-Forwarded-For {remote_host}` (above) works, and so does
+nginx's usual `proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;`.
+The start-up log prints a `network:` line when the combination looks wrong.
+
 **Data residency:** the container runs where you run it. For Australian venues
 pick an AU region (Sydney/Melbourne) on your host; for US venues a US region.
 Nothing phones home — the only outbound calls the app makes are to Square's
@@ -92,6 +114,8 @@ OAuth endpoints during connect/refresh/revoke.
 | `REGULARS_MASTER_KEY` | *(unset)* | Token-encryption key from the environment. If unset, a 0600 keyfile is auto-generated at `REGULARS_KEYFILE` |
 | `REGULARS_KEYFILE` | `app/regulars-master.key` | Keyfile location |
 | `REGULARS_TLS` | *(unset)* | Set to `1` behind HTTPS: adds HSTS, marks cookies `Secure` |
+| `REGULARS_BIND` | `127.0.0.1` | Interface to listen on. The Docker image sets `0.0.0.0` and expects the port published on the host's `127.0.0.1` only |
+| `REGULARS_TRUST_PROXY` | *(unset)* | Number of reverse proxies in front (`1` for Caddy/nginx, `2` with a CDN too). Unset = `X-Forwarded-For` ignored. The Docker image sets `1` |
 | `REGULARS_SETUP_TOKEN` | *(unset)* | One-time owner setup link (`/welcome?token=...`). While set and no password exists, the whole app is closed except that link and `/healthz`. At least 24 characters. **Use this for every instance you hand to a venue** |
 | `REGULARS_OPEN_FIRST_RUN` | *(unset)* | `1` = allow creating the first password from a non-localhost address. Use once, behind TLS, then unset. Ignored while `REGULARS_SETUP_TOKEN` is set |
 | `SQUARE_CLIENT_ID` / `SQUARE_CLIENT_SECRET` | *(unset)* | Square OAuth application credentials. Unset = the connect button explains setup instead of failing |
@@ -150,4 +174,4 @@ These are documented in `../04-COMMERCIAL-READINESS-TEARDOWN.md` with the plan:
 - The stdlib HTTP server is fine behind a proxy for one venue's traffic; it is not a hardened production WSGI server.
 - OAuth tokens are obtained and stored, but live Square API data pulls (Orders/Customers sync) are not wired yet — the app runs on demo data or CSV uploads. This is the first production feature.
 - No email transmission: exports go to the venue's own sender, as designed.
-- X-Forwarded-For is trusted for rate limiting — correct behind your proxy, spoofable if the port is exposed directly. Bind to 127.0.0.1 and let the proxy face the internet.
+- Client addresses come from `X-Forwarded-For` only when `REGULARS_TRUST_PROXY` says a proxy is in front, and then only the entry that proxy added. If the app's port is reachable from the internet with that setting on, the header can be forged: keep the port on loopback and let the proxy face the internet.

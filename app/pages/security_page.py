@@ -103,6 +103,8 @@ def page_security():
         ("Served over HTTPS (set REGULARS_TLS=1 behind your proxy to add HSTS)",
          bool(os.environ.get("REGULARS_TLS"))),
         ("Square OAuth application configured", OAUTH.configured()),
+        ("Client addresses taken from your reverse proxy (REGULARS_TRUST_PROXY), so "
+         "lockouts hit the attacker, not everyone", SEC.trusted_proxy_hops() > 0),
         ("Master key supplied via environment, not auto-keyfile",
          bool(os.environ.get("REGULARS_MASTER_KEY"))),
         ("Business name and " + ("postal address" if STATE.get("region") == "US" else "ABN")

@@ -18,6 +18,7 @@ manager over the keyfile; see DEPLOYMENT.md.
 
 import hashlib
 import hmac
+import ipaddress
 import json
 import os
 import secrets
@@ -41,6 +42,50 @@ AUDIT_EVENTS = (
 )
 
 PASSWORD_MIN = 10
+MAX_PROXY_HOPS = 5
+
+
+# ---------------------------------------------------------------------------
+# which address is the client?
+# ---------------------------------------------------------------------------
+
+def trusted_proxy_hops():
+    """REGULARS_TRUST_PROXY: how many reverse proxies sit in front of the app
+    (1 for Caddy or nginx; 2 for a CDN in front of those). Unset or 0 means
+    X-Forwarded-For is ignored entirely."""
+    try:
+        return max(0, min(MAX_PROXY_HOPS, int(os.environ.get("REGULARS_TRUST_PROXY") or 0)))
+    except ValueError:
+        return 0
+
+
+def client_ip(peer, forwarded_for="", hops=0):
+    """The address that rate limits, lockouts and the audit log key on.
+
+    X-Forwarded-For is just a header: anyone can send one. Each proxy
+    *appends* the address it saw, so with `hops` trusted proxies the honest
+    entry is the hops-th from the right; everything to its left was written
+    by the client. The header is believed only when hops > 0 and the
+    connection itself comes from a loopback or private address - that is,
+    from the proxy. Anything unparseable falls back to the connection.
+    """
+    peer = peer or "-"
+    if hops <= 0 or not forwarded_for:
+        return peer
+    try:
+        via = ipaddress.ip_address(peer)
+    except ValueError:
+        return peer
+    if not (via.is_loopback or via.is_private):
+        return peer
+    parts = [p.strip() for p in forwarded_for.split(",") if p.strip()]
+    if not parts:
+        return peer
+    chosen = parts[-hops] if len(parts) >= hops else parts[0]
+    try:
+        return str(ipaddress.ip_address(chosen))
+    except ValueError:
+        return peer
 
 
 def password_ok(password, again):
