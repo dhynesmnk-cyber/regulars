@@ -5,7 +5,8 @@ import smtplib
 from datetime import datetime, timezone
 
 import oauth as OAUTH
-from state import AUDIT, ESP, LOCK, STATE, _load_tokens, _store_tokens, flash, persist
+from state import (AUDIT, ESP, LOCK, STATE, _load_tokens, _store_tokens, flash, identity,
+                   persist)
 from ui import e, page
 from views import _flash_html
 from web import html, redirect
@@ -75,7 +76,7 @@ def page_sending():
                               ("smtp_port", "Port", "587", "number"),
                               ("smtp_user", "Username", "campaigns@yourvenue.com.au", "text"),
                               ("smtp_pass", "Password / app password", "", "password"),
-                              ("from_addr", "From address", "Marlow & Finch <hello@...>", "text"),
+                              ("from_addr", "From address", f"{identity()['name']} <hello@...>", "text"),
                               ("reply_to", "Reply-to (should be a monitored inbox)", "", "text")]:
         body.append(f'<div class="field"><label>{e(lab)}</label>'
                     f'<input type="{typ}" name="{key}" value="{e(sd.get(key) or "")}" '

@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 import oauth as OAUTH
 import security as SEC
 from state import (AUDIT, BUILD_DATE, GUARD, HERE, SCHEMA, STATE, VERSION, _load_tokens,
-                   demo_mode, expire_cookie, flash, kill_sessions)
+                   business_complete, demo_mode, expire_cookie, flash, kill_sessions)
 from ui import e, page, stat
 from views import _flash_html
 from web import download, html, redirect
@@ -104,6 +104,8 @@ def page_security():
         ("Square OAuth application configured", OAUTH.configured()),
         ("Master key supplied via environment, not auto-keyfile",
          bool(os.environ.get("REGULARS_MASTER_KEY"))),
+        ("Business name and " + ("postal address" if STATE.get("region") == "US" else "ABN")
+         + " set - they sign every message", business_complete()),
         ("US market: postal address recorded" if STATE.get("region") == "US"
          else "AU market selected (no postal-address requirement)",
          STATE.get("region") != "US" or bool(STATE.get("venue_address"))),

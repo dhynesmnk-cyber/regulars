@@ -4,9 +4,10 @@ from collections import Counter
 from datetime import datetime
 
 import engine as E
-from state import AUDIT, CAT_HELP, CAT_LABEL, STATE, now, persist, result
+from state import (AUDIT, CAT_HELP, CAT_LABEL, IDENTITY_MISSING_MSG, STATE, flash,
+                   identity_missing, now, persist, result)
 from ui import e, page, stat
-from views import evidence_html, money
+from views import _identity_banner, evidence_html, money
 from web import html, redirect
 
 
@@ -17,7 +18,7 @@ def page_inbox(flt=None):
     if flt and flt != "all":
         msgs = [m for m in msgs if m["offer_cat"] == flt]
 
-    body = ['<h1>Ready to send.</h1>',
+    body = [_identity_banner(), '<h1>Ready to send.</h1>',
             f'<p class="lead">{s["ready"]} messages written from your sales data, '
             f'{s["unique_subjects"]} different subject lines. Open any one to see the email, the '
             f'numbers behind it, and why that person got that offer.</p>']
@@ -102,7 +103,8 @@ def page_message(mid):
                     '<p style="margin-top:30px"><a href="/inbox">Back to the list</a></p>', "/inbox")
     c = m["customer"]
     p = m["profile"]
-    body = [f'<p style="margin-top:40px"><a href="/inbox">&larr; All messages</a></p>',
+    body = [_identity_banner(),
+            f'<p style="margin-top:40px"><a href="/inbox">&larr; All messages</a></p>',
             f'<h1>{e(c["name"])}</h1>',
             f'<p class="lead">{e(m["trigger_name"])} &rarr; {e(CAT_LABEL.get(m["offer_cat"], ""))}: '
             f'{e(m["offer_label"])}</p>']
@@ -173,6 +175,9 @@ def get_message(req):
 
 
 def post_approve(req):
+    if identity_missing():
+        flash(IDENTITY_MISSING_MSG)
+        return redirect("/")
     one = req.one
     r = result()
     mid = req.q.get("id") or one("id", "")

@@ -558,7 +558,10 @@ class TestStore(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
-class TestHTTP(unittest.TestCase):
+class _HTTPHarness:
+    """A live server on a random port with a throwaway state file, plus
+    get/post helpers. Mixed into the HTTP test classes."""
+
     @classmethod
     def setUpClass(cls):
         # tests must never touch the operator's real state file
@@ -627,6 +630,8 @@ class TestHTTP(unittest.TestCase):
         except HTTPError as err:
             return err.code, err.read().decode(), err.headers
 
+
+class TestHTTP(_HTTPHarness, unittest.TestCase):
     # -- pages -------------------------------------------------------------
     def test_every_page_renders(self):
         for path in ("/", "/goals", "/triggers", "/inbox", "/sending", "/sent", "/data",
@@ -1599,6 +1604,153 @@ class TestToneControl(unittest.TestCase):
         finally:
             S.STATE["goals"] = original
             S.persist()
+
+
+# ---------------------------------------------------------------------------
+# business identity: real data is never signed by the demo venue
+# ---------------------------------------------------------------------------
+
+VALID_ABN = "51824753556"        # the Australian Business Register's published example
+
+
+class TestBusinessIdentity(_HTTPHarness, unittest.TestCase):
+    DEMO_NAME = D.VENUE["name"]
+    DEMO_ABN = D.VENUE["abn"]
+
+    def upload(self):
+        self.post_multipart("/upload", {"consent": "1"},
+                            {"f_main": ("s.csv", D.sample_simple(300))})
+        self.assertEqual(S.STATE["source"], "csv")
+
+    def save(self, **form):
+        fields = {"biz_name": "Juniper & Co", "biz_suburb": "Brunswick, Melbourne",
+                  "region": "AU", "biz_abn": VALID_ABN, "venue_address": ""}
+        fields.update(form)
+        return self.post("/business", **fields)
+
+    def assertNoDemoIdentity(self, text):
+        self.assertNotIn(self.DEMO_NAME, text)
+        self.assertNotIn(self.DEMO_ABN, text)
+
+    def test_abn_check_digit(self):
+        import abn
+        self.assertEqual(abn.normalise(VALID_ABN), "51 824 753 556")
+        self.assertEqual(abn.normalise("53 004 085 616"), "53 004 085 616")
+        for bad in ("51 824 753 557", "12 345 678 901", "5182475355", "", "abc",
+                    "01824753556"):
+            self.assertIsNone(abn.normalise(bad), bad)
+
+    def test_demo_data_keeps_the_demo_signature(self):
+        for m in S.result()["messages"]:
+            self.assertIn(f"- {self.DEMO_NAME}", m["body"])
+        st, _, _ = self.get("/export.csv")
+        self.assertEqual(st, 200)
+
+    def test_setup_shows_the_business_form(self):
+        _, body, _ = self.get("/")
+        self.assertIn('action="/business"', body)
+        self.assertIn('name="biz_abn"', body)
+
+    def test_real_data_without_details_uses_placeholders_and_blocks(self):
+        self.upload()
+        msgs = S.result()["messages"]
+        self.assertGreater(len(msgs), 0)
+        for m in msgs:
+            self.assertIn("- [Your business name]", m["body"])
+            self.assertIn("ABN [ABN]", m["body"])
+            self.assertNoDemoIdentity(m["body"])
+        for path in ("/export.csv", "/export-copy.txt"):
+            st, _, hdr = self.get(path)
+            self.assertEqual((st, hdr["Location"]), (303, "/"), path)
+        st, _, hdr = self.post("/approve?id=" + parse.quote(msgs[0]["id"]))
+        self.assertEqual((st, hdr["Location"]), (303, "/"))
+        self.assertEqual(S.STATE["sent"], [])
+        _, body, _ = self.get("/")
+        self.assertIn("approving and exporting are switched off", body)
+        _, body, _ = self.get("/inbox")
+        self.assertIn("Your business details are missing", body)
+
+    def test_saved_details_sign_every_message_and_export(self):
+        self.upload()
+        st, _, hdr = self.save()
+        self.assertEqual((st, hdr["Location"]), (303, "/"))
+        self.assertEqual(S.STATE["business"], {"name": "Juniper & Co",
+                                               "suburb": "Brunswick, Melbourne",
+                                               "abn": "51 824 753 556"})
+        msgs = S.result()["messages"]
+        for m in msgs:
+            self.assertIn("- Juniper & Co", m["body"])
+            self.assertIn("Juniper & Co - Brunswick, Melbourne", m["body"])
+            self.assertIn("ABN 51 824 753 556", m["body"])
+            self.assertNotIn("[Your business name]", m["body"])
+            self.assertNoDemoIdentity(m["body"])
+        st, csv_text, _ = self.get("/export.csv")
+        self.assertEqual(st, 200)
+        self.assertIn("Juniper & Co", csv_text)
+        self.assertNoDemoIdentity(csv_text)
+        st, txt, _ = self.get("/export-copy.txt")
+        self.assertEqual(st, 200)
+        self.assertIn("ABN in the footer is correct: 51 824 753 556", txt)
+        self.assertNoDemoIdentity(txt)
+        st, _, hdr = self.post("/approve?id=" + parse.quote(msgs[0]["id"]), approver="Sam")
+        self.assertEqual(hdr["Location"], "/inbox")
+        self.assertEqual(len(S.STATE["sent"]), 1)
+        self.assertNoDemoIdentity(S.STATE["sent"][0]["body"])
+
+    def test_bad_or_missing_details_are_refused_whole(self):
+        self.save(biz_abn="51 824 753 557")
+        self.assertEqual(S.STATE["business"]["name"], "")
+        _, body, _ = self.get("/")
+        self.assertIn("fails the ABN check digit", body)
+        self.save(biz_name="  ")
+        self.assertEqual(S.STATE["business"]["name"], "")
+        self.save(biz_abn="")
+        self.assertEqual(S.STATE["business"]["name"], "")
+
+    def test_us_needs_an_address_not_an_abn(self):
+        self.upload()
+        self.save(region="US", biz_abn="", venue_address="")
+        self.assertEqual(S.STATE["region"], "AU")       # refused, nothing changed
+        self.assertEqual(S.STATE["business"]["name"], "")
+        self.save(region="US", biz_abn="", venue_address="1 Main St, Springfield IL 62701")
+        self.assertEqual(S.STATE["region"], "US")
+        body = S.result()["messages"][0]["body"]
+        self.assertIn("- Juniper & Co", body)
+        self.assertIn("1 Main St, Springfield IL 62701", body)
+        self.assertNotIn("ABN", body)
+        st, _, _ = self.get("/export.csv")
+        self.assertEqual(st, 200)
+
+    def test_tone_sign_off_uses_the_saved_name(self):
+        self.save()
+        S.STATE["goals"]["tone"] = "playful"
+        body = S.result()["messages"][0]["body"]
+        self.assertIn(E.TONE_SIGNOFF["playful"].format(venue="Juniper & Co"), body)
+        self.assertNoDemoIdentity(body)
+
+    def test_no_screen_shows_the_demo_name_on_real_data(self):
+        self.upload()
+        mid = S.result()["messages"][0]["id"]
+        pages = ("/", "/goals", "/triggers", "/inbox", "/sending", "/sent", "/data",
+                 "/security", "/m?id=" + parse.quote(mid))
+        for saved in (False, True):
+            if saved:
+                self.save()
+            for path in pages:
+                st, body, _ = self.get(path)
+                self.assertEqual(st, 200, path)
+                self.assertNotIn("Marlow", body, f"{path} (details saved: {saved})")
+        _, body, _ = self.get("/inbox")
+        self.assertIn("Juniper &amp; Co, Brunswick", body)        # page header
+
+    def test_details_persist_survive_reset_and_are_audited(self):
+        self.save()
+        self.assertEqual(store.load()["business"]["abn"], "51 824 753 556")
+        self.post("/reset")
+        self.assertEqual(S.STATE["business"]["name"], "Juniper & Co")
+        saved = [ev for ev in S.AUDIT.read(500)
+                 if ev["event"] == "config_change" and ev["detail"].get("what") == "business"]
+        self.assertTrue(saved)
 
 
 if __name__ == "__main__":

@@ -244,7 +244,7 @@ def render(trigger_id, ev, c, p, goals, stats=None, now=None):
             offer = alt
 
     subj, body, why = PACK.copy(trigger_id, ev, c, p, goals, stats, now, offer, offer_note)
-    v = PACK.VENUE
+    v = goals.get("_venue") or PACK.VENUE
     region = goals.get("_region", "AU")
     subj, body = _apply_tone(subj, body, goals.get("tone", "warm"), first, v["name"])
     return {

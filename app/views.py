@@ -1,6 +1,6 @@
 """HTML fragments shared by several screens."""
 
-from state import CTX, STATE, demo_mode, take_flash
+from state import CTX, IDENTITY_MISSING_MSG, STATE, demo_mode, identity_missing, take_flash
 from ui import e
 
 
@@ -92,27 +92,52 @@ def _security_banner():
             '<a href="/security">Security screen &rarr;</a></div>')
 
 
-def _region_card():
+def _identity_banner():
+    """Shown on screens where the owner might try to approve or export."""
+    if not identity_missing():
+        return ""
+    return (f'<div class="warn"><b>Your business details are missing.</b> '
+            f'{e(IDENTITY_MISSING_MSG)} <a href="/">Add them on Setup &rarr;</a></div>')
+
+
+def _business_card():
     reg = STATE.get("region", "AU")
     addr = STATE.get("venue_address", "")
+    b = STATE.get("business") or {}
     opts = "".join(f'<option value="{v}"{" selected" if reg == v else ""}>{l}</option>'
                    for v, l in (("AU", "Australia"), ("US", "United States")))
+    missing = ('<div class="warn" style="margin-bottom:20px"><b>Not set yet.</b> Your messages '
+               'are signed &ldquo;[Your business name]&rdquo; with &ldquo;[ABN]&rdquo; in the '
+               'footer, and approving and exporting stay off until you save these details.'
+               '</div>') if identity_missing() else ""
     return (
-        '<h2>Market &amp; footer law</h2>'
-        '<div class="card"><form method="post" action="/region">'
-        '<p class="sm muted" style="margin-bottom:20px">The market changes the legal footer '
-        'inside every message, the season references, and the spelling. '
-        '<b>Australia</b>: Spam Act 2003 &mdash; sender identity, a working unsubscribe, ABN. '
+        '<h2>Your business</h2>'
+        '<div class="card"><form method="post" action="/business">'
+        f'{missing}'
+        '<p class="sm muted" style="margin-bottom:20px">Every message is signed with your '
+        'business name, and its legal footer carries who you are. '
+        '<b>Australia</b>: Spam Act 2003 &mdash; sender identity including your ABN, and a '
+        'working unsubscribe. '
         '<b>United States</b>: CAN-SPAM &mdash; a valid physical postal address in every '
-        'commercial email, and opt-outs honoured within 10 business days.</p>'
+        'commercial email, and opt-outs honoured within 10 business days. The market also '
+        'sets season references and spelling.</p>'
         '<div class="grid g2">'
+        '<div class="field"><label>Business name, as customers know it</label>'
+        f'<input type="text" name="biz_name" maxlength="80" value="{e(b.get("name", ""))}" '
+        'placeholder="Juniper &amp; Co"></div>'
+        '<div class="field"><label>Suburb or city</label>'
+        f'<input type="text" name="biz_suburb" maxlength="60" value="{e(b.get("suburb", ""))}" '
+        'placeholder="Fitzroy, Melbourne"></div>'
         f'<div class="field"><label>Market</label><select name="region">{opts}</select></div>'
+        '<div class="field"><label>ABN (required in Australia)</label>'
+        f'<input type="text" name="biz_abn" maxlength="20" value="{e(b.get("abn", ""))}" '
+        'placeholder="11 digits, e.g. 51 824 753 556" inputmode="numeric"></div>'
         '<div class="field"><label>Physical postal address (required for the US)</label>'
-        f'<input type="text" name="venue_address" value="{e(addr)}" '
+        f'<input type="text" name="venue_address" maxlength="200" value="{e(addr)}" '
         'placeholder="412 Smith St, Fitzroy VIC 3065"></div>'
         '</div>'
         '<div class="row between" style="margin-top:20px">'
-        '<span class="sm soft">Applies to message footers immediately. Nothing is sent '
+        '<span class="sm soft">Applies to every message immediately. Nothing is sent '
         'anywhere by this app.</span>'
-        '<button class="btn" type="submit">Save market</button></div>'
+        '<button class="btn" type="submit">Save business details</button></div>'
         '</form></div>')

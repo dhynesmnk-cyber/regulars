@@ -25,7 +25,7 @@ On macOS you can double-click `start.command` instead.
 
 | Screen | What it does |
 |---|---|
-| **Setup** | Connect Square (real OAuth when the server has credentials) **or upload CSVs**; market switch (AU/US); where you are in onboarding; who we deliberately did *not* contact |
+| **Setup** | Connect Square (real OAuth when the server has credentials) **or upload CSVs**; your business details (name, suburb, ABN, or a US postal address) and market (AU/US); where you are in onboarding; who we deliberately did *not* contact |
 | **Goals** | Three questions — times you want busier, products you want to sell, what you're optimising for — plus the **message tone** (warm / punchy / polished / playful), the offer catalogue, and which offer each rule uses |
 | **Triggers** | All ten rules in priority order with live people-counts, a switch each, and **every threshold editable** with a reset |
 | **Messages** | The product. Every message, expandable: the email, the evidence numbers behind it, and why that person got that offer |
@@ -314,6 +314,7 @@ app/engine.py     the pipeline every industry shares: suppress → order trigger
 app/packs/        industry packs (REGULARS_INDUSTRY, default restaurant): profile,
                   triggers, thresholds, offer categories, email templates
 app/core.py       industry-neutral wording: vague timing, seasons, US spelling
+app/abn.py        ABN check-digit validation and formatting
 tools/bench.py    timings and memory at 2k-50k customers (see Performance)
 app/importer.py   Square-format and simple-format CSV parsing, menu inference
 app/security.py   passwords, sessions, CSRF, rate limits, audit chain, secret box, headers

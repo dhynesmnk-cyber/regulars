@@ -4,6 +4,29 @@ Versioning: the state file carries a `schema` number; the server migrates older
 state on boot and writes a `config_change` audit entry when it does. Bump
 `VERSION` and `SCHEMA` in `app/server.py` for every release.
 
+## Unreleased - Gate 2.0: business identity
+
+**Fixes a first-sale blocker.** Every message used to be signed "Marlow &
+Finch" with the demo ABN `12 345 678 901` in its footer, and every page
+header named the demo venue, even after a real venue uploaded its own CSV.
+Nothing in the app let an owner enter their own details.
+
+- **Your business** card on Setup (replaces the market-only card): business
+  name, suburb or city, market, ABN (Australia) or physical postal address
+  (US). Saved all-or-nothing via `POST /business`, audited, kept by Start over.
+- **ABN check digit**: the ABR's published checksum rejects typos, so a wrong
+  ABN can't be printed in every footer. Stored as `NN NNN NNN NNN`.
+- **Who signs**: the owner's saved details, everywhere (sign-off, tone
+  sign-offs, footer, page header, exports, the send checklist). The demo data
+  is still signed by the demo venue until details are saved. Real data with
+  no details shows `[Your business name]` / `[ABN]` placeholders, and
+  approving and exporting are refused with a pointer to Setup.
+- Security checklist gains a "business identity set" line.
+- State schema 2 -> 3 (`business` key). Older state files load with empty
+  details; a 0.6.0 build ignores the new key, so rolling back is safe.
+- 10 new tests, including one that loads every screen on real data, before
+  and after saving details, and fails if the demo name appears anywhere.
+
 ## Unreleased - Gate 1: safe to change
 
 No change to what the app shows or sends: the old and new versions return

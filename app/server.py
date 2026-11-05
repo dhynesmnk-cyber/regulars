@@ -74,6 +74,7 @@ POST_ROUTES = {
     "/upload": setup_page.post_upload,
     "/reset": setup_page.post_reset,
     "/region": setup_page.post_region,
+    "/business": setup_page.post_business,
     "/goals": goals_page.post_goals,
     "/triggers": triggers_page.post_triggers,
     "/tuning/reset": triggers_page.post_tuning_reset,

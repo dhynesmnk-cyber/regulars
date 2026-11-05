@@ -1,11 +1,12 @@
-"""Setup screen: connect or upload, market switch, onboarding, reset."""
+"""Setup screen: connect or upload, business details, onboarding, reset."""
 
+import abn as ABN
 import engine as E
 from state import (AUDIT, ESP, LOCK, STATE, VERSION, dataset, flash, fresh_state, persist,
                    result)
 from ui import e, page, stat
 from upload import do_import
-from views import _flash_html, _region_card, _security_banner, _suppression_card
+from views import _business_card, _flash_html, _security_banner, _suppression_card
 from web import html, redirect
 
 
@@ -15,7 +16,7 @@ def page_setup():
     g = STATE["goals"]
     conn = STATE["connected"]
     ds = dataset()
-    pre = _flash_html() + _security_banner() + _region_card()
+    pre = _flash_html() + _security_banner() + _business_card()
 
     if not conn:
         body = ['<h1>Connect your Square, or bring a CSV.</h1>',
@@ -182,12 +183,12 @@ def post_upload(req):
 
 def post_reset(req):
     keep = {k: STATE.get(k) for k in ("password_hash", "sessions", "region",
-                                      "venue_address", "oauth_tokens_enc",
+                                      "venue_address", "business", "oauth_tokens_enc",
                                       "oauth_pending", "schema")}
     STATE.update(fresh_state())
     STATE.update({k: v for k, v in keep.items() if v is not None})
     AUDIT.write("reset", ip=req.ip,
-                detail={"kept": "auth, market, tokens", "version": VERSION})
+                detail={"kept": "auth, market, business, tokens", "version": VERSION})
     persist()
     return redirect("/")
 
@@ -210,4 +211,52 @@ def post_region(req):
     persist()
     flash(f"Market set to {'United States' if reg == 'US' else 'Australia'}. "
           f"Footers, season references and spelling now follow that market's rules.")
+    return redirect("/")
+
+
+def _clean(text, limit):
+    """One line, single spaces, bounded - it goes into every email."""
+    return " ".join(str(text or "").split())[:limit]
+
+
+def post_business(req):
+    """Save who the messages come from. All-or-nothing: if anything required
+    is missing or wrong, nothing changes and the owner is told what."""
+    reg = req.one("region", "")
+    if reg not in ("AU", "US"):
+        reg = STATE.get("region", "AU")
+    name = _clean(req.one("biz_name"), 80)
+    suburb = _clean(req.one("biz_suburb"), 60)
+    abn_raw = req.one("biz_abn", "") or ""
+    addr = _clean(req.one("venue_address"), 200)
+    abn_fmt = ABN.normalise(abn_raw) if abn_raw.strip() else None
+
+    problems = []
+    if len(name) < 2:
+        problems.append("your business name")
+    if len(suburb) < 2:
+        problems.append("your suburb or city")
+    if reg == "AU" and not abn_fmt:
+        problems.append("a valid ABN" + (" (that number fails the ABN check digit - look "
+                                         "for a typo, or check it on abr.business.gov.au)"
+                                         if abn_raw.strip() else ""))
+    if reg == "US" and not addr and not STATE.get("venue_address"):
+        problems.append("a physical postal address (CAN-SPAM requires one in every "
+                        "commercial email)")
+    if problems:
+        flash("Business details not saved. Still needed: " + "; ".join(problems) + ".")
+        return redirect("/")
+
+    STATE["business"] = {"name": name, "suburb": suburb,
+                         "abn": abn_fmt or (STATE["business"].get("abn", "")
+                                            if reg == "US" else "")}
+    STATE["region"] = reg
+    if addr:
+        STATE["venue_address"] = addr
+    persist()
+    AUDIT.write("config_change", ip=req.ip,
+                detail={"what": "business", "region": reg, "name": name,
+                        "abn_set": bool(STATE["business"]["abn"])})
+    flash(f"Saved. Every message is now signed by {name}, and the footer follows "
+          f"{'United States' if reg == 'US' else 'Australian'} rules.")
     return redirect("/")

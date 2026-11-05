@@ -184,9 +184,16 @@ Every figure in every message traces to an order in the dataset; no figure appea
 customer&rsquo;s email unless a human put it there.</div></div></body></html>"""
 
 
-def page(title, body, active="/", venue="Marlow &amp; Finch, Fitzroy"):
+# The business named in the header. state.py points this at the saved
+# business identity, so this module never needs to know about settings.
+def venue_label():
+    return ""
+
+
+def page(title, body, active="/", venue=None):
     nav = "".join(f'<a href="{h}" class="{"on" if h == active else ""}">{e(l)}</a>' for h, l in NAV)
-    return render(LAYOUT, title=e(title), css=CSS, nav=nav, body=body, venue=venue)
+    return render(LAYOUT, title=e(title), css=CSS, nav=nav, body=body,
+                  venue=venue if venue is not None else venue_label())
 
 
 def stat(label, value, note=""):

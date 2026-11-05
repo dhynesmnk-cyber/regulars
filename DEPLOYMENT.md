@@ -101,6 +101,7 @@ credentials) — useful for staging.
 - [ ] Operator password created (Security screen stops showing the demo-mode warning)
 - [ ] `REGULARS_MASTER_KEY` set from the environment (Security screen → Credentials shows "environment")
 - [ ] Square OAuth configured, or the venue is on CSV upload
+- [ ] Business name, suburb and ABN (or US postal address) saved under **Your business** on Setup; approving and exporting real data stay off until they are
 - [ ] `/healthz` returns `{"status":"ok","version":...}` and your uptime monitor watches it
 - [ ] `/data` volume (or the three files) included in backups
 - [ ] You know where the audit log is and have clicked **Verify chain integrity** once

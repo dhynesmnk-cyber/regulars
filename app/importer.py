@@ -306,8 +306,9 @@ def build_menu(visits):
 # ---------------------------------------------------------------------------
 def to_dataset(visits, people, menu, now, attested_consent=False, venue=None):
     """Fold visits into the dataset shape the engine expects."""
-    import data as D
-    venue = venue or D.VENUE
+    # The business identity comes from the owner's Setup details, never from
+    # the file; this is only a neutral label for the dataset itself.
+    venue = venue or {"name": "", "suburb": "", "abn": ""}
     by_email = {}
     for v in visits:
         if not v["email"]:

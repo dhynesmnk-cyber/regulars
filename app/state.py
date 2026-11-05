@@ -19,10 +19,11 @@ from datetime import datetime, timezone
 import engine as E
 import security as SEC
 import store
+import ui
 
 
 VERSION = "0.6.0"
-SCHEMA = 2
+SCHEMA = 3
 BUILD_DATE = "2026-11-05"
 HERE = os.path.dirname(os.path.abspath(__file__))
 
@@ -187,6 +188,8 @@ def fresh_state():
         "import_report": None,
         "region": "AU",
         "venue_address": "",
+        # who the messages come from: signs every email and fills the legal footer
+        "business": {"name": "", "suburb": "", "abn": ""},
         "password_hash": None,
         "sessions": {},
         "oauth_tokens_enc": None,
@@ -201,6 +204,7 @@ for k, v in _saved.items():
     if k in STATE:
         STATE[k] = v
 STATE["approved"] = set(STATE.get("approved") or [])
+STATE["business"] = {**fresh_state()["business"], **(STATE.get("business") or {})}
 STATE["dataset"] = None          # imports are deliberately not persisted
 STATE["import_report"] = None
 STATE["source"] = "demo"         # every start begins on the demo; an import is
@@ -237,10 +241,57 @@ def now():
     return E._dt(dataset()["now"])
 
 
+# ---------------------------------------------------------------- identity
+# Every message is signed with the business's name, and the legal footer
+# carries its ABN (AU) or postal address (US). The demo data is signed by the
+# demo venue; real data is never signed by anyone but the owner.
+
+PLACEHOLDER_IDENTITY = {"name": "[Your business name]", "suburb": "[Suburb]", "abn": "[ABN]"}
+IDENTITY_MISSING_MSG = ("Add your business name, suburb and ABN under Your business on the "
+                        "Setup screen first. Until then your messages are signed with "
+                        "placeholders, so approving and exporting are switched off.")
+
+
+def business_complete():
+    b = STATE.get("business") or {}
+    if not (b.get("name") and b.get("suburb")):
+        return False
+    if STATE.get("region") == "US":
+        return bool(STATE.get("venue_address"))
+    return bool(b.get("abn"))
+
+
+def identity():
+    """Who the messages come from: the owner's saved details; the demo venue
+    while exploring the demo; placeholders on real data until details exist."""
+    if business_complete():
+        b = STATE["business"]
+        return {"name": b["name"], "suburb": b["suburb"], "abn": b.get("abn", "")}
+    if STATE.get("dataset") is None:
+        return dict(E.PACK.VENUE)
+    return dict(PLACEHOLDER_IDENTITY)
+
+
+def header_label():
+    """'Marlow &amp; Finch, Fitzroy' - the business and its suburb, for the page header."""
+    v = identity()
+    suburb = (v.get("suburb") or "").split(",")[0].strip()
+    return ui.e(f"{v['name']}, {suburb}" if suburb else v["name"])
+
+
+ui.venue_label = header_label
+
+
+def identity_missing():
+    """Real customer data loaded, but no complete business details to sign with."""
+    return STATE.get("dataset") is not None and not business_complete()
+
+
 def result():
     g = dict(STATE["goals"])
     g["_region"] = STATE.get("region", "AU")
     g["_address"] = STATE.get("venue_address", "")
+    g["_venue"] = identity()
     return E.run(dataset(), g, g, STATE["sent_history"],
                  now(), STATE["enabled"], STATE["thresholds"])
 

@@ -556,7 +556,7 @@ def copy(trigger_id, ev, c, p, goals, stats=None, now=None, offer=None, offer_no
     first = c["first_name"]
     oval = offer["label"]
     oval_cap = oval[0].upper() + oval[1:] if oval else oval
-    v = VENUE
+    v = goals.get("_venue") or VENUE
 
     if trigger_id == "signature_overdue":
         item = ev["item"].lower()

@@ -5,8 +5,9 @@ import io
 from datetime import datetime
 
 import engine as E
-from state import AUDIT, CAT_LABEL, ESP, STATE, dataset, result
-from web import download
+from state import (AUDIT, CAT_LABEL, ESP, IDENTITY_MISSING_MSG, STATE, flash, identity,
+                   identity_missing, result)
+from web import download, redirect
 
 
 def export_csv():
@@ -14,7 +15,8 @@ def export_csv():
     buf = io.StringIO()
     w = csv.writer(buf)
     w.writerow(["# Regulars - ready-to-send audience"])
-    w.writerow([f"# Venue: {dataset()['venue']['name']}, {dataset()['venue']['suburb']}"])
+    v = identity()
+    w.writerow([f"# Venue: {v['name']}, {v['suburb']}"])
     w.writerow([f"# Sender: {ESP[STATE['sender']['tool']][0]}"])
     w.writerow([f"# Generated: {datetime.now().isoformat(timespec='seconds')}"])
     w.writerow([f"# {len(r['messages'])} messages. Every contact has consent on file or was "
@@ -35,7 +37,8 @@ def export_csv():
 
 def export_copy():
     r = result()
-    out = [f"REGULARS - {dataset()['venue']['name']}",
+    v = identity()
+    out = [f"REGULARS - {v['name']}",
            f"Generated {datetime.now().isoformat(timespec='seconds')}",
            f"{len(r['messages'])} messages", "=" * 70, ""]
     by = {}
@@ -51,7 +54,7 @@ def export_copy():
             out += [f"... and {len(ms)-3} more in this group", "", ""]
     out += ["BEFORE YOU SEND", "=" * 70,
             "[ ] A named human has approved this batch",
-            f"[ ] ABN in the footer is correct: {dataset()['venue']['abn']}",
+            f"[ ] ABN in the footer is correct: {v['abn']}",
             "[ ] Unsubscribe tag matches your sending tool (see the Sending screen)",
             "[ ] Reply-to is monitored by the venue",
             "[ ] Staff know about every offer in here - nothing worse than a coupon the till refuses",
@@ -60,7 +63,14 @@ def export_copy():
     return "\n".join(out)
 
 
+def _refuse_without_identity():
+    flash(IDENTITY_MISSING_MSG)
+    return redirect("/")
+
+
 def get_export_csv(req):
+    if identity_missing():
+        return _refuse_without_identity()
     AUDIT.write("export", ip=req.ip,
                 detail={"what": "audience_csv",
                         "region": STATE.get("region", "AU")})
@@ -68,6 +78,8 @@ def get_export_csv(req):
 
 
 def get_export_copy(req):
+    if identity_missing():
+        return _refuse_without_identity()
     AUDIT.write("export", ip=req.ip,
                 detail={"what": "copy_txt",
                         "region": STATE.get("region", "AU")})
