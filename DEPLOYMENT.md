@@ -217,6 +217,7 @@ OAuth endpoints during connect/refresh/revoke.
 | `REGULARS_PAY_URL_AU` / `REGULARS_PAY_URL_US` | *(unset)* | Your Stripe Payment Links, chosen by the venue's market |
 | `REGULARS_SUPPORT_EMAIL` | *(unset)* | Shown to owners when there's no pay link to show |
 | `REGULARS_BILLING_FILE` | beside the state file | Where the paid-up date is read from (`regulars-billing.json`) |
+| `REGULARS_MAX_UPLOAD_MB` | `50` | Biggest CSV upload accepted (1-500). An upload needs roughly 20x its size in RAM while it's read (a 43 MB export peaked at 823 MB), so raise it only with memory to match. Every other form is capped at 1 MB |
 | `REGULARS_TRUST_PROXY` | *(unset)* | Number of reverse proxies in front (`1` for Caddy/nginx, `2` with a CDN too). Unset = `X-Forwarded-For` ignored. The Docker image sets `1` |
 | `REGULARS_SETUP_TOKEN` | *(unset)* | One-time owner setup link (`/welcome?token=...`). While set and no password exists, the whole app is closed except that link and `/healthz`. At least 24 characters. **Use this for every instance you hand to a venue** |
 | `REGULARS_OPEN_FIRST_RUN` | *(unset)* | `1` = allow creating the first password from a non-localhost address. Use once, behind TLS, then unset. Ignored while `REGULARS_SETUP_TOKEN` is set |
@@ -276,6 +277,7 @@ credentials) — useful for staging.
 These are documented in `../04-COMMERCIAL-READINESS-TEARDOWN.md` with the plan:
 
 - Single instance, single venue. Sessions and rate limits are in-process; multi-tenant SaaS needs shared storage and per-venue isolation.
+- Imports are memory-hungry: about 20x the upload's size while it's read, and the imported data stays in memory until the next restart (a 43 MB export: 823 MB peak, 672 MB after). Size the server for the venues it hosts; a leaner import is planned.
 - The stdlib HTTP server is fine behind a proxy for one venue's traffic; it is not a hardened production WSGI server.
 - OAuth tokens are obtained and stored, but live Square API data pulls (Orders/Customers sync) are not wired yet — the app runs on demo data or CSV uploads. This is the first production feature.
 - No email transmission: exports go to the venue's own sender, as designed.

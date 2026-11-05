@@ -32,7 +32,9 @@ LOGIN_WINDOW = 900                   # failures counted over 15 minutes
 LOGIN_LOCKOUT = 900                  # and locked out for 15 minutes
 RATE_POST = 120                      # per minute per IP
 RATE_GET = 600
-MAX_BODY_BYTES = 8 * 1024 * 1024     # uploads bigger than this are refused
+MAX_FORM_BYTES = 1024 * 1024        # every POST except a CSV upload
+DEFAULT_UPLOAD_MB = 50              # CSV uploads; REGULARS_MAX_UPLOAD_MB overrides
+UPLOAD_MB_RANGE = (1, 500)
 
 AUDIT_EVENTS = (
     "login_ok", "login_fail", "lockout", "logout", "csrf_reject", "rate_limit",
@@ -48,6 +50,18 @@ MAX_PROXY_HOPS = 5
 # ---------------------------------------------------------------------------
 # which address is the client?
 # ---------------------------------------------------------------------------
+
+def max_upload_bytes():
+    """REGULARS_MAX_UPLOAD_MB (1-500, default 50). An upload is held in memory
+    while it is read - several times its size - so raise it only with RAM to
+    match (see Performance in the README)."""
+    lo, hi = UPLOAD_MB_RANGE
+    try:
+        mb = int(os.environ.get("REGULARS_MAX_UPLOAD_MB") or DEFAULT_UPLOAD_MB)
+    except ValueError:
+        mb = DEFAULT_UPLOAD_MB
+    return max(lo, min(hi, mb)) * 1024 * 1024
+
 
 def trusted_proxy_hops():
     """REGULARS_TRUST_PROXY: how many reverse proxies sit in front of the app

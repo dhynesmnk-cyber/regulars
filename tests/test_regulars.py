@@ -17,6 +17,7 @@ import re
 import sys
 import tempfile
 import threading
+import time
 import unittest
 from unittest import mock
 from collections import Counter
@@ -1252,7 +1253,7 @@ class TestHTTPSecurity(unittest.TestCase):
         conn = http.client.HTTPConnection("127.0.0.1", self.srv.server_port,
                                           timeout=30)
         conn.putrequest("POST", "/upload")
-        conn.putheader("Content-Length", str(SEC.MAX_BODY_BYTES + 1))
+        conn.putheader("Content-Length", str(SEC.max_upload_bytes() + 1))
         conn.endheaders()
         r = conn.getresponse()
         self.assertEqual(r.status, 413)
@@ -1260,6 +1261,73 @@ class TestHTTPSecurity(unittest.TestCase):
         conn.close()
         events = [ev["event"] for ev in S.AUDIT.read(500)]
         self.assertIn("oversize_upload", events)
+
+    # -- upload limits: decided from the headers, before reading a body ----
+    def raw_post(self, path, length, body=b"", headers=None, timeout=10):
+        import http.client
+        conn = http.client.HTTPConnection("127.0.0.1", self.srv.server_port, timeout=timeout)
+        conn.putrequest("POST", path)
+        conn.putheader("Content-Length", str(length))
+        for k, v in (headers or {}).items():
+            conn.putheader(k, v)
+        conn.endheaders()
+        if body:
+            try:
+                conn.send(body)
+            except OSError:
+                pass                  # the server may stop listening once it has answered
+        started = time.monotonic()
+        r = conn.getresponse()
+        text = r.read().decode(errors="replace")
+        conn.close()
+        return r.status, text, time.monotonic() - started
+
+    def multipart(self, content, csrf=""):
+        b = "----regularsbound"
+        body = (f"--{b}\r\nContent-Disposition: form-data; name=\"csrf\"\r\n\r\n{csrf}\r\n"
+                f"--{b}\r\nContent-Disposition: form-data; name=\"consent\"\r\n\r\n1\r\n"
+                f"--{b}\r\nContent-Disposition: form-data; name=\"f_main\"; "
+                f"filename=\"s.csv\"\r\nContent-Type: text/csv\r\n\r\n").encode()
+        body += content.encode() + f"\r\n--{b}--\r\n".encode()
+        return body, {"Content-Type": f"multipart/form-data; boundary={b}"}
+
+    def test_ordinary_forms_are_capped_at_one_megabyte(self):
+        st, _, took = self.raw_post("/goals", SEC.MAX_FORM_BYTES + 1)
+        self.assertEqual(st, 413)
+        self.assertLess(took, 5)                      # answered without waiting for a body
+        last = [ev for ev in S.AUDIT.read(500) if ev["event"] == "oversize_upload"][-1]
+        self.assertEqual((last["detail"]["path"], last["detail"]["limit"]),
+                         ("/goals", SEC.MAX_FORM_BYTES))
+
+    def test_uploads_are_refused_unread_without_a_session(self):
+        st, text, took = self.raw_post("/upload", 20 * 1024 * 1024)   # under the cap
+        self.assertEqual(st, 403)
+        self.assertIn("Session required", text)
+        self.assertLess(took, 5)                      # didn't wait for 20 MB that never came
+
+    def test_a_negative_length_is_refused_not_waited_on(self):
+        st, _, took = self.raw_post("/goals", -1)
+        self.assertEqual(st, 400)
+        self.assertLess(took, 5)
+
+    def test_the_upload_cap_is_configurable_and_the_refusal_is_readable(self):
+        cookie = self.login()
+        csrf = self.csrf_of(cookie)
+        with mock.patch.dict(os.environ, {"REGULARS_MAX_UPLOAD_MB": "1"}):
+            big, hdrs = self.multipart("x" * (1536 * 1024), csrf)
+            st, text, _ = self.raw_post("/upload", len(big), big, {**hdrs, "Cookie": cookie})
+            self.assertEqual(st, 413)
+            self.assertIn("capped at 1 MB", text)     # the page arrives intact
+            small, hdrs = self.multipart(D.sample_simple(100), csrf)
+            st, _, _ = self.raw_post("/upload", len(small), small, {**hdrs, "Cookie": cookie})
+            self.assertEqual(st, 303)
+            self.assertEqual(S.STATE["source"], "csv")
+        self.assertEqual(SEC.max_upload_bytes(), SEC.DEFAULT_UPLOAD_MB * 1024 * 1024)
+
+    def test_upload_cap_setting_is_bounded(self):
+        for raw, mb in (("0", 1), ("abc", 50), ("100", 100), ("9999", 500)):
+            with mock.patch.dict(os.environ, {"REGULARS_MAX_UPLOAD_MB": raw}):
+                self.assertEqual(SEC.max_upload_bytes(), mb * 1024 * 1024, raw)
 
 
 # ---------------------------------------------------------------------------

@@ -63,7 +63,7 @@ def page_security():
     body.append('<div class="card"><table>'
                 f'<tr><td>POST rate limit</td><td class="r mono">{SEC.RATE_POST} / min / address</td></tr>'
                 f'<tr><td>GET rate limit</td><td class="r mono">{SEC.RATE_GET} / min / address</td></tr>'
-                f'<tr><td>Upload size cap</td><td class="r mono">{SEC.MAX_BODY_BYTES // (1024 * 1024)} MB</td></tr>'
+                f'<tr><td>Upload size cap (other forms: {SEC.MAX_FORM_BYTES // 1024} KB)</td><td class="r mono">{SEC.max_upload_bytes() // (1024 * 1024)} MB</td></tr>'
                 f'<tr><td>Password attempts</td><td class="r mono">{SEC.LOGIN_MAX_FAILS} fails '
                 f'&rarr; {SEC.LOGIN_LOCKOUT // 60} min lockout</td></tr>'
                 f'<tr><td>Addresses locked right now</td><td class="r mono">{len(GUARD.locked)}</td></tr>'

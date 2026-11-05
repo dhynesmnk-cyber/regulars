@@ -2,6 +2,7 @@
 
 import abn as ABN
 import engine as E
+import security as SEC
 from state import (AUDIT, ESP, LOCK, STATE, VERSION, dataset, flash, fresh_state, persist,
                    result)
 from ui import e, page, stat
@@ -43,7 +44,10 @@ def page_setup():
                     '<form method="post" action="/upload" enctype="multipart/form-data">'
                     '<div class="filerow"><div class="field"><label>Square transactions / item '
                     'sales CSV &mdash; or the simple format</label>'
-                    '<input type="file" name="f_main" accept=".csv,text/csv"></div>'
+                    '<input type="file" name="f_main" accept=".csv,text/csv">'
+                    f'<span class="sm soft">Up to {SEC.max_upload_bytes() // (1024 * 1024)} MB '
+                    'in total. A bigger export? Pick a shorter date range in Square: the '
+                    'last two years is plenty.</span></div>'
                     '<div class="field"><label>Square customer directory CSV (optional)</label>'
                     '<input type="file" name="f_cust" accept=".csv,text/csv"></div>'
                     '<div class="row" style="align-items:flex-start;gap:12px">'

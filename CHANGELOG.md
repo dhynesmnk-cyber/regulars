@@ -4,6 +4,30 @@ Versioning: the state file carries a `schema` number; the server migrates older
 state on boot and writes a `config_change` audit entry when it does. Bump
 `VERSION` and `SCHEMA` in `app/server.py` for every release.
 
+## Unreleased - Gate 2.5: upload limit
+
+The 8 MB cap turned away any venue with more than about 1,500 customers'
+full history. Raising it naively would have made things worse: every POST
+body, on every route, was read into memory before anyone was checked.
+
+- **CSV uploads: 50 MB by default** (`REGULARS_MAX_UPLOAD_MB`, 1-500). Every
+  other form: 1 MB. Both decided from the headers, before reading.
+- **Uploads only from a signed-in owner**: on a password-gated or unclaimed
+  instance, an upload without a valid session is refused before its body
+  is read (its CSRF token, inside the body, is still checked after).
+- **A negative Content-Length is refused** (400). It used to make the
+  server wait until the client hung up.
+- **Refusals are delivered reliably**: the server answers, stops writing,
+  and discards the rest of the upload for up to two seconds before closing.
+  Measured with curl sending 297 MB: the old server reset 1 of 5
+  connections instead of answering; the new one answered 5 of 5. (Chromium
+  showed the page either way.)
+- The upload form says the limit and what to do about a bigger export; the
+  Security screen shows both caps.
+- Measured: a 43 MB export (8,367 customers) imports in 17 s and peaks at
+  823 MB of RAM - see Performance in the README.
+- 5 new tests (each hangs or times out against the old code).
+
 ## Unreleased - Gate 2.4: billing v0 (free preview, pay to send)
 
 Nothing collected the A$40/month. Now, with billing on:

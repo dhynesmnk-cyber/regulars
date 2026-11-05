@@ -13,7 +13,9 @@ Python standard library only.
 import json
 import os
 import re
+import socket
 import sys
+import time
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlparse
@@ -158,6 +160,24 @@ class Handler(BaseHTTPRequestHandler):
             self._send(resp.body, resp.status, ctype=resp.ctype, extra=resp.extra,
                        cookie=resp.cookie)
 
+    def _refuse_unread(self, body, status):
+        """Answer without reading the request body (too big, or not allowed).
+        Closing straight away would reset the connection while the browser is
+        still sending, and it would show a network error instead of this
+        page. So: answer, stop writing, discard whatever is still arriving for
+        up to two seconds, then close - what web servers call a lingering
+        close."""
+        self.close_connection = True
+        self._send(body, status, extra={"Connection": "close"})
+        try:
+            self.connection.shutdown(socket.SHUT_WR)
+            self.connection.settimeout(0.5)
+            deadline = time.monotonic() + 2
+            while time.monotonic() < deadline and self.connection.recv(65536):
+                pass
+        except OSError:
+            pass
+
     def _ip(self):
         return SEC.client_ip(self.client_address[0], self.headers.get("X-Forwarded-For", ""),
                              SEC.trusted_proxy_hops())
@@ -228,14 +248,35 @@ class Handler(BaseHTTPRequestHandler):
         try:
             n = int(self.headers.get("Content-Length", 0) or 0)
         except ValueError:
-            n = 0
-        if n > SEC.MAX_BODY_BYTES:
-            AUDIT.write("oversize_upload", ip=ip,
-                        detail={"bytes": n, "path": u.path[:120]})
-            self._send(page("Too large", '<h1>That file is too large.</h1><p>Uploads are '
-                            f'capped at {SEC.MAX_BODY_BYTES // (1024 * 1024)} MB. Export a '
-                            'shorter date range and upload that instead.</p>'), 413)
+            n = -1
+        if n < 0:                      # read(-1) would wait for the client to hang up
+            self._refuse_unread(page("Bad request", "<h1>That request was malformed.</h1>"),
+                                400)
             return
+        upload = u.path == "/upload"
+        limit = SEC.max_upload_bytes() if upload else SEC.MAX_FORM_BYTES
+        if n > limit:
+            AUDIT.write("oversize_upload", ip=ip,
+                        detail={"bytes": n, "limit": limit, "path": u.path[:120]})
+            mb = limit // (1024 * 1024)
+            self._refuse_unread(page("Too large", (
+                '<h1>That file is too large.</h1>'
+                f'<p>Uploads are capped at {mb} MB. In Square, export a shorter date range '
+                '- the last two years is plenty - and upload that instead.</p>'
+                '<p style="margin-top:30px"><a class="btn" href="/">Back to Setup</a></p>')
+                if upload else '<h1>That request is too large.</h1>'), 413)
+            return
+        if upload and n:
+            # The only big body: refuse it unread unless the owner is signed in.
+            # (Its CSRF token is inside the body, so that's checked after.)
+            if unclaimed():
+                self._refuse_unread(welcome_page.unclaimed_page().body, 403)
+                return
+            if not demo_mode() and self._session() is None:
+                self._refuse_unread(page("Sign in", '<h1>Session required.</h1><p>Your '
+                                         'session expired or you are not signed in.</p>'
+                                         '<p><a class="btn" href="/login">Sign in</a></p>'), 403)
+                return
         raw = self.rfile.read(n) if n else b""
         ctype = self.headers.get("Content-Type", "")
         if "multipart/form-data" in ctype:

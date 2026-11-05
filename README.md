@@ -254,8 +254,10 @@ One instance = one venue, and the app assumes it is the only tenant:
   front, and then only the entry that proxy added counts, so a visitor can't
   dodge the lockout or pose as localhost by writing their own.
 - **Outside-attack detection.** Per-IP rate limits (120 POST/min, 600 GET/min),
-  an 8 MB upload cap, forged-OAuth-callback rejection — all refused *and*
-  written to the audit log, all visible on the Security screen.
+  size caps decided from the headers before anything is read (50 MB for a CSV
+  upload, which only a signed-in owner can send; 1 MB for every other form),
+  forged-OAuth-callback rejection — all refused *and* written to the audit
+  log, all visible on the Security screen.
 - **Tamper-evident audit log.** Every login, config change, approval, export,
   upload, reset and OAuth event is hash-chained to the entry before it. Edit or
   delete one line and **Verify chain integrity** says exactly where the log
@@ -302,9 +304,13 @@ and times the real code paths (measured 2026-11-05, one CPU core of a cloud VM):
 
 What this means today:
 
-- **The 8 MB upload cap blocks venues above roughly 1,500 customers** sending
-  their full history (at the demo's order rate). Gate 2 makes the cap
-  configurable; Gate 3 makes large imports practical.
+- **Uploads are capped at 50 MB** (`REGULARS_MAX_UPLOAD_MB`), about 9,500
+  customers' full history at the demo's order rate. Measured through the real
+  upload path: a 43 MB Square export (8,367 customers, 130,527 orders)
+  imported in 17 s, and the server's memory **peaked at 823 MB** - about 19
+  times the file - and held 672 MB afterwards. Until Gate 3's leaner import,
+  size the server for the biggest venue's upload, and keep in mind several
+  venues uploading at once.
 - **Every page view re-runs the engine**, so at 20,000 customers each screen
   takes 3-5 seconds. Gate 3 caches the result between changes.
 - **The Messages screen shows the first 120 messages only.** The export carries
