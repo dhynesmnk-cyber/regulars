@@ -1753,5 +1753,143 @@ class TestBusinessIdentity(_HTTPHarness, unittest.TestCase):
         self.assertTrue(saved)
 
 
+# ---------------------------------------------------------------------------
+# owner setup link: a provisioned instance is shut until its owner claims it
+# ---------------------------------------------------------------------------
+
+SETUP_TOKEN = "test-setup-token-Zq8LxWm3kP0vRt7yHn2c"
+
+
+class TestSetupLink(_HTTPHarness, unittest.TestCase):
+    PASSWORD = "correct horse battery"
+
+    def setUp(self):
+        super().setUp()
+        os.environ["REGULARS_SETUP_TOKEN"] = SETUP_TOKEN
+        for d in (S.GUARD.locked, S.GUARD.fails, S.GUARD.hits):
+            d.clear()
+
+    def tearDown(self):
+        os.environ.pop("REGULARS_SETUP_TOKEN", None)
+        for d in (S.GUARD.locked, S.GUARD.fails, S.GUARD.hits):
+            d.clear()
+        super().tearDown()
+
+    def call(self, method, path, cookie=None, **form):
+        data = parse.urlencode(form, doseq=True).encode() if method == "POST" else None
+        req = request.Request(self.base + path, data=data, method=method)
+        if cookie:
+            req.add_header("Cookie", cookie)
+        opener = request.build_opener(_NoRedirect)
+        try:
+            with opener.open(req, timeout=60) as r:
+                return r.status, r.read().decode(), r.headers
+        except HTTPError as err:
+            return err.code, err.read().decode(), err.headers
+
+    def claim(self, token=SETUP_TOKEN, pw=None, pw2=None):
+        pw = pw or self.PASSWORD
+        return self.call("POST", "/welcome", token=token, password=pw,
+                         password2=pw2 if pw2 is not None else pw)
+
+    def test_unclaimed_instance_is_shut(self):
+        for path in ("/", "/inbox", "/goals", "/export.csv", "/sample/simple.csv", "/login",
+                     "/security"):
+            st, body, _ = self.call("GET", path)
+            self.assertEqual(st, 403, path)
+            self.assertIn("set up yet", body, path)
+            self.assertNotIn("Marlow", body, path)        # no demo name, no menu
+            self.assertNotIn('href="/goals"', body, path)
+        st, body, _ = self.call("GET", "/healthz")
+        self.assertEqual(st, 200)
+        for path, form in (("/goals", {"priority": "fill_quiet"}), ("/connect", {}),
+                           ("/login", {"password": "x" * 12, "password2": "x" * 12})):
+            st, _, _ = self.call("POST", path, **form)
+            self.assertEqual(st, 403, path)
+        self.assertIsNone(S.STATE["password_hash"])      # localhost can't bypass it
+        self.assertEqual(S.STATE["goals"]["priority"], "repeat")
+
+    def test_wrong_token_is_refused_audited_and_locks_out(self):
+        st, body, _ = self.call("GET", "/welcome?token=nope")
+        self.assertEqual(st, 403)
+        self.assertIn("isn&rsquo;t valid", body)
+        st, _, _ = self.claim(token=SETUP_TOKEN[:-1] + "X")
+        self.assertEqual(st, 403)
+        self.assertIsNone(S.STATE["password_hash"])
+        events = [ev["event"] for ev in S.AUDIT.read(500)]
+        self.assertIn("setup_fail", events)
+        for _ in range(SEC.LOGIN_MAX_FAILS):
+            self.call("GET", "/welcome?token=guess")
+        st, _, _ = self.call("GET", "/welcome?token=" + SETUP_TOKEN)
+        self.assertEqual(st, 429)                         # even the right one, once locked
+
+    def test_link_sets_password_signs_in_and_burns(self):
+        st, body, _ = self.call("GET", "/welcome?token=" + SETUP_TOKEN)
+        self.assertEqual(st, 200)
+        self.assertIn('action="/welcome"', body)
+        self.assertNotIn("Marlow", body)
+        st, _, hdr = self.claim()
+        self.assertEqual((st, hdr["Location"]), (303, "/"))
+        cookie = hdr["Set-Cookie"].split(";")[0]
+        self.assertTrue(cookie.startswith("REGULARS_SID="))
+        self.assertTrue(SEC.verify_secret(self.PASSWORD, S.STATE["password_hash"]))
+        self.assertTrue(store.load()["setup_burned"])
+        st, body, _ = self.call("GET", "/", cookie=cookie)
+        self.assertEqual(st, 200)
+        self.assertIn("Next: add your business details", body)
+        st, _, _ = self.call("GET", "/")                  # no cookie: now a normal gate
+        self.assertEqual(st, 303)
+        events = [ev for ev in S.AUDIT.read(500) if ev["event"] == "setup_ok"]
+        self.assertEqual(events[-1]["detail"]["via"], "setup_link")
+        # the link is spent: no form, and a second claim changes nothing
+        before = S.STATE["password_hash"]
+        st, body, _ = self.call("GET", "/welcome?token=" + SETUP_TOKEN)
+        self.assertIn("already set up", body)
+        self.assertNotIn('name="password"', body)
+        self.claim(pw="another password!")
+        self.assertEqual(S.STATE["password_hash"], before)
+
+    def test_burned_token_cannot_reopen_a_reset_instance(self):
+        self.claim()
+        S.STATE["password_hash"] = None                   # operator recovery on the server
+        S.STATE["sessions"] = {}
+        st, _, _ = self.call("GET", "/welcome?token=" + SETUP_TOKEN)
+        self.assertEqual(st, 403)                         # same token: burned
+        os.environ["REGULARS_SETUP_TOKEN"] = SETUP_TOKEN + "-new"
+        st, _, hdr = self.claim(token=SETUP_TOKEN + "-new")
+        self.assertEqual((st, hdr["Location"]), (303, "/"))
+
+    def test_weak_password_keeps_the_link_live(self):
+        st, body, _ = self.claim(pw="short")
+        self.assertEqual(st, 200)
+        self.assertIn("Password not set", body)
+        st, body, _ = self.claim(pw2="something else entirely")
+        self.assertIn("Password not set", body)
+        self.assertIsNone(S.STATE["password_hash"])
+        st, _, _ = self.claim()
+        self.assertEqual(st, 303)
+
+    def test_token_never_reaches_the_logs(self):
+        err = io.StringIO()
+        old = sys.stderr
+        sys.stderr = err
+        try:
+            self.call("GET", "/welcome?token=" + SETUP_TOKEN)
+            self.call("GET", "/welcome?token=wrong-guess")
+        finally:
+            sys.stderr = old
+        self.assertNotIn(SETUP_TOKEN, err.getvalue())
+        self.assertIn("token=[redacted]", err.getvalue())
+        with open(S.AUDIT.path, encoding="utf-8") as f:
+            self.assertNotIn(SETUP_TOKEN, f.read())
+
+    def test_no_token_configured_changes_nothing(self):
+        os.environ.pop("REGULARS_SETUP_TOKEN", None)
+        st, _, _ = self.call("GET", "/")
+        self.assertEqual(st, 200)                         # open demo mode, as before
+        st, _, hdr = self.call("GET", "/welcome?token=anything")
+        self.assertEqual((st, hdr["Location"]), (303, "/login"))
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

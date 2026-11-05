@@ -41,10 +41,27 @@ docker run -d --name regulars \
   -p 127.0.0.1:8010:8010 \
   -v regulars-data:/data \
   -e REGULARS_MASTER_KEY="$(openssl rand -hex 32)" \
+  -e REGULARS_SETUP_TOKEN="$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')" \
   -e SQUARE_CLIENT_ID=... -e SQUARE_CLIENT_SECRET=... \
   -e REGULARS_REDIRECT_URI=https://regulars.yourvenue.com/oauth/callback \
   regulars:0.5.0
 ```
+
+**Handing it to the owner.** With `REGULARS_SETUP_TOKEN` set, the instance
+is *unclaimed*: every screen answers "this instance hasn't been set up yet"
+except `/healthz` and the owner's one-time link. Send the owner:
+
+```
+https://regulars.yourvenue.com/welcome?token=<the REGULARS_SETUP_TOKEN value>
+```
+
+Opening it lets them choose their password; they're signed in and the link is
+burned (its hash is kept in the state file, so it never works again, even if
+the variable stays set). Wrong tokens count towards the normal sign-in
+lockout and are audited as `setup_fail`. The token is masked as
+`token=[redacted]` in the server log and never written to the audit log. To
+issue a new link later (say, after a server-side password reset), start the
+container with a new token. Tokens shorter than 24 characters stop start-up.
 
 Reverse proxy (Caddy example — automatic HTTPS):
 
@@ -75,7 +92,8 @@ OAuth endpoints during connect/refresh/revoke.
 | `REGULARS_MASTER_KEY` | *(unset)* | Token-encryption key from the environment. If unset, a 0600 keyfile is auto-generated at `REGULARS_KEYFILE` |
 | `REGULARS_KEYFILE` | `app/regulars-master.key` | Keyfile location |
 | `REGULARS_TLS` | *(unset)* | Set to `1` behind HTTPS: adds HSTS, marks cookies `Secure` |
-| `REGULARS_OPEN_FIRST_RUN` | *(unset)* | `1` = allow creating the first password from a non-localhost address. Use once, behind TLS, then unset |
+| `REGULARS_SETUP_TOKEN` | *(unset)* | One-time owner setup link (`/welcome?token=...`). While set and no password exists, the whole app is closed except that link and `/healthz`. At least 24 characters. **Use this for every instance you hand to a venue** |
+| `REGULARS_OPEN_FIRST_RUN` | *(unset)* | `1` = allow creating the first password from a non-localhost address. Use once, behind TLS, then unset. Ignored while `REGULARS_SETUP_TOKEN` is set |
 | `SQUARE_CLIENT_ID` / `SQUARE_CLIENT_SECRET` | *(unset)* | Square OAuth application credentials. Unset = the connect button explains setup instead of failing |
 | `REGULARS_REDIRECT_URI` | `http://localhost:8010/oauth/callback` | Must match the redirect URL registered in the Square Developer Dashboard exactly |
 | `SQUARE_OAUTH_BASE` | `https://connect.squareup.com` | **Tests only.** Never set in production |
@@ -98,7 +116,7 @@ credentials) — useful for staging.
 ## 6. First-run checklist
 
 - [ ] App reachable over HTTPS; `REGULARS_TLS=1`
-- [ ] Operator password created (Security screen stops showing the demo-mode warning)
+- [ ] Owner opened their setup link and chose a password (Security screen: "Claimed by its owner through the one-time setup link"), or the operator password was created from localhost
 - [ ] `REGULARS_MASTER_KEY` set from the environment (Security screen → Credentials shows "environment")
 - [ ] Square OAuth configured, or the venue is on CSV upload
 - [ ] Business name, suburb and ABN (or US postal address) saved under **Your business** on Setup; approving and exporting real data stay off until they are

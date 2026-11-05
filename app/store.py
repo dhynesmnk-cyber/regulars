@@ -16,8 +16,8 @@ PATH = os.environ.get("REGULARS_STATE") or os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "regulars-state.json")
 
 KEYS = ("connected", "source", "goals", "enabled", "thresholds", "sender",
-        "sent", "sent_history", "approved", "sessions", "password_hash", "region",
-        "venue_address", "business", "oauth_tokens_enc", "schema")
+        "sent", "sent_history", "approved", "sessions", "password_hash", "setup_burned",
+        "region", "venue_address", "business", "oauth_tokens_enc", "schema")
 
 
 def load():

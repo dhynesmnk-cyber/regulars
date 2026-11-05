@@ -11,6 +11,8 @@ changes).
 """
 
 import copy
+import hashlib
+import hmac
 import json
 import os
 import threading
@@ -94,6 +96,41 @@ def _load_tokens():
         AUDIT.write("secret_read", detail={"ok": False, "what": "oauth_tokens",
                                            "note": "decrypt/verify failed - treated as absent"})
         return None
+
+
+# ---------------------------------------------------------------- setup link
+# Provisioning puts a one-time token in REGULARS_SETUP_TOKEN and sends the
+# owner https://<their host>/welcome?token=<it>. Until they use it, the
+# instance is "unclaimed": every screen is shut except that link and the
+# health check, so nobody who stumbles on the address gets an open app.
+
+SETUP_TOKEN_MIN = 24
+
+
+def setup_token():
+    return (os.environ.get("REGULARS_SETUP_TOKEN") or "").strip() or None
+
+
+def _token_digest(token):
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
+def unclaimed():
+    return setup_token() is not None and demo_mode()
+
+
+def setup_token_matches(candidate):
+    """Constant-time check of a presented token; burned tokens never match."""
+    tok = setup_token()
+    if not tok or not candidate:
+        return False
+    if _token_digest(tok) in (STATE.get("setup_burned") or []):
+        return False
+    return hmac.compare_digest(tok.encode("utf-8"), str(candidate).encode("utf-8"))
+
+
+def burn_setup_token():
+    STATE.setdefault("setup_burned", []).append(_token_digest(setup_token()))
 
 
 def demo_mode():
@@ -191,6 +228,8 @@ def fresh_state():
         # who the messages come from: signs every email and fills the legal footer
         "business": {"name": "", "suburb": "", "abn": ""},
         "password_hash": None,
+        # sha256 of setup tokens already used, so a link never works twice
+        "setup_burned": [],
         "sessions": {},
         "oauth_tokens_enc": None,
         "oauth_pending": {},

@@ -244,8 +244,11 @@ One instance = one venue, and the app assumes it is the only tenant:
 
 - **Password gate.** PBKDF2-SHA256 (210k iterations), 12-hour HttpOnly
   SameSite=Lax sessions, CSRF tokens on every form, five bad passwords →
-  15-minute per-address lockout. The first password can only be set from
-  localhost (or `REGULARS_OPEN_FIRST_RUN=1`, once, behind TLS).
+  15-minute per-address lockout. A provisioned instance stays closed until
+  its owner opens a one-time setup link (`REGULARS_SETUP_TOKEN`,
+  `/welcome?token=...`) and chooses the password; the link then stops working.
+  Without a token, the first password can only be set from localhost (or
+  `REGULARS_OPEN_FIRST_RUN=1`, once, behind TLS).
 - **Outside-attack detection.** Per-IP rate limits (120 POST/min, 600 GET/min),
   an 8 MB upload cap, forged-OAuth-callback rejection — all refused *and*
   written to the audit log, all visible on the Security screen.

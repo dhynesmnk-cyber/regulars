@@ -4,6 +4,28 @@ Versioning: the state file carries a `schema` number; the server migrates older
 state on boot and writes a `config_change` audit entry when it does. Bump
 `VERSION` and `SCHEMA` in `app/server.py` for every release.
 
+## Unreleased - Gate 2.1: owner setup link
+
+A provisioned instance used to start in open demo mode: until someone set a
+password, every screen was reachable by whoever found the address first, and
+the first password could only be set from the server itself (or by opening
+that up to the network with `REGULARS_OPEN_FIRST_RUN=1`).
+
+- **`REGULARS_SETUP_TOKEN`**: provisioning sets it and sends the owner
+  `/welcome?token=...`. The owner chooses a password there and is signed in.
+- **Closed until claimed**: while the token is set and no password exists,
+  every screen and form answers "this instance hasn't been set up yet", except
+  the link and `/healthz`. That includes the localhost first-password path.
+- **One use**: setting the password burns the token (its sha256 is kept in
+  state), so the link never works again, even if the variable stays set.
+- Wrong tokens are audited (`setup_fail`) and count towards the sign-in
+  lockout. Tokens are compared in constant time, masked in the server log,
+  and never written to the audit log. Tokens under 24 characters stop
+  start-up with instructions to generate one.
+- Pre-sign-in screens use a bare header: no business name, no menu.
+- Security checklist shows whether the owner has claimed the instance.
+- 7 new tests.
+
 ## Unreleased - Gate 2.0: business identity
 
 **Fixes a first-sale blocker.** Every message used to be signed "Marlow &

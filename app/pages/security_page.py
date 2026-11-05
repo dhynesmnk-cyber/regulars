@@ -7,7 +7,8 @@ from datetime import datetime, timezone
 import oauth as OAUTH
 import security as SEC
 from state import (AUDIT, BUILD_DATE, GUARD, HERE, SCHEMA, STATE, VERSION, _load_tokens,
-                   business_complete, demo_mode, expire_cookie, flash, kill_sessions)
+                   business_complete, demo_mode, expire_cookie, flash, kill_sessions,
+                   setup_token)
 from ui import e, page, stat
 from views import _flash_html
 from web import download, html, redirect
@@ -97,7 +98,7 @@ def page_security():
                     'Dashboard). Credentials never live in the state file.</p>')
 
     body.append('<h2>Deployment checklist</h2><div class="card"><table>')
-    for label, done in [
+    checks = [
         ("Operator password set", not demo_mode()),
         ("Served over HTTPS (set REGULARS_TLS=1 behind your proxy to add HSTS)",
          bool(os.environ.get("REGULARS_TLS"))),
@@ -109,7 +110,11 @@ def page_security():
         ("US market: postal address recorded" if STATE.get("region") == "US"
          else "AU market selected (no postal-address requirement)",
          STATE.get("region") != "US" or bool(STATE.get("venue_address"))),
-    ]:
+    ]
+    if setup_token():
+        checks.insert(1, ("Claimed by its owner through the one-time setup link",
+                          bool(STATE.get("setup_burned")) and not demo_mode()))
+    for label, done in checks:
         mark = "&#10003;" if done else "&#9888;"
         cls = "good" if done else "warn"
         body.append(f'<tr><td><span class="{cls}">{mark}</span> {e(label)}</td>'

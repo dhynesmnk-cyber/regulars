@@ -80,7 +80,7 @@ def post_login(req):
                              '<p>This instance is in open demo mode and the first '
                              'password can only be created from the machine it runs on '
                              '(or with REGULARS_OPEN_FIRST_RUN=1).</p>'), 403)
-        if len(pw) < 10 or pw != (req.one("password2", "") or ""):
+        if not SEC.password_ok(pw, req.one("password2", "") or ""):
             flash("Password not set: use at least 10 characters, typed the same twice.")
             return redirect("/login")
         STATE["password_hash"] = SEC.hash_secret(pw)

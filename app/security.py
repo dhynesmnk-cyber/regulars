@@ -37,8 +37,15 @@ AUDIT_EVENTS = (
     "login_ok", "login_fail", "lockout", "logout", "csrf_reject", "rate_limit",
     "oversize_upload", "config_change", "approve", "export", "upload",
     "oauth_start", "oauth_ok", "oauth_fail", "oauth_revoke", "reset",
-    "audit_verify", "secret_read",
+    "audit_verify", "secret_read", "setup_ok", "setup_fail",
 )
+
+PASSWORD_MIN = 10
+
+
+def password_ok(password, again):
+    """The operator-password rule: long enough, and typed the same twice."""
+    return len(password or "") >= PASSWORD_MIN and password == again
 
 
 # ---------------------------------------------------------------------------

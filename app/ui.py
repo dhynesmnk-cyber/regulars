@@ -190,7 +190,11 @@ def venue_label():
     return ""
 
 
-def page(title, body, active="/", venue=None):
+def page(title, body, active="/", venue=None, bare=False):
+    """bare: no business name and no menu - for screens shown before anyone
+    has signed in, where the menu would only lead to closed doors."""
+    if bare:
+        return render(LAYOUT, title=e(title), css=CSS, nav="", body=body, venue="")
     nav = "".join(f'<a href="{h}" class="{"on" if h == active else ""}">{e(l)}</a>' for h, l in NAV)
     return render(LAYOUT, title=e(title), css=CSS, nav=nav, body=body,
                   venue=venue if venue is not None else venue_label())

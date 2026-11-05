@@ -22,9 +22,10 @@ import exports
 import security as SEC
 import store
 from pages import (data_page, goals_page, login_page, messages_page, security_page,
-                   sending_page, sent_page, setup_page, triggers_page)
-from state import (AUDIT, CTX, DS, GUARD, LOCK, SCHEMA, STATE, VERSION, demo_mode,
-                   local_request_allowed, result, session_from_token)
+                   sending_page, sent_page, setup_page, triggers_page, welcome_page)
+from state import (AUDIT, CTX, DS, GUARD, LOCK, SCHEMA, SETUP_TOKEN_MIN, STATE, VERSION,
+                   demo_mode, local_request_allowed, result, session_from_token,
+                   setup_token, unclaimed)
 from ui import e, page
 from upload import parse_multipart
 from web import Req, send
@@ -64,10 +65,14 @@ GET_ROUTES = {
     "/sample/square-transactions.csv": exports.get_sample_square_transactions,
     "/sample/square-customers.csv": exports.get_sample_square_customers,
     "/healthz": get_healthz,
+    "/welcome": welcome_page.get_welcome,
 }
 
 # Reachable without signing in.
-PUBLIC_GET = {"/login", "/healthz", "/oauth/callback"}
+PUBLIC_GET = {"/login", "/healthz", "/oauth/callback", "/welcome"}
+
+# All an unclaimed instance answers (see state.unclaimed).
+UNCLAIMED_OPEN = {"/welcome", "/healthz"}
 
 POST_ROUTES = {
     "/connect": setup_page.post_connect,
@@ -93,6 +98,11 @@ POST_ROUTES = {
 SELF_LOCKING = {"/upload", "/sending/test"}
 
 
+def _redact(path):
+    """Setup tokens are secrets: keep them out of logs and the audit trail."""
+    return re.sub(r"(token=)[^&\s]*", r"\1[redacted]", path)
+
+
 def _not_found(req):
     return send(page("Not found", '<h1>Not found.</h1>'
                      '<p style="margin-top:30px"><a href="/">Home</a></p>'), 404)
@@ -102,7 +112,7 @@ class Handler(BaseHTTPRequestHandler):
     server_version = "Regulars/" + VERSION
 
     def log_message(self, fmt, *args):
-        sys.stderr.write(f"[{datetime.now().strftime('%H:%M:%S')}] {fmt % args}\n")
+        sys.stderr.write(f"[{datetime.now().strftime('%H:%M:%S')}] {_redact(fmt % args)}\n")
 
     def _send(self, body, status=200, ctype="text/html; charset=utf-8", extra=None,
               cookie=None):
@@ -170,7 +180,7 @@ class Handler(BaseHTTPRequestHandler):
         ip = self._ip()
         if not GUARD.allow(ip, "GET", SEC.RATE_GET):
             AUDIT.write("rate_limit", ip=ip,
-                        detail={"bucket": "GET", "path": self.path[:120]})
+                        detail={"bucket": "GET", "path": _redact(self.path)[:120]})
             if GUARD.locked_until(ip):
                 self._send(login_page.lockout_page(ip), 429)
             else:
@@ -180,6 +190,9 @@ class Handler(BaseHTTPRequestHandler):
             return
         u = urlparse(self.path)
         q = {k: v[0] for k, v in parse_qs(u.query).items()}
+        if unclaimed() and u.path not in UNCLAIMED_OPEN:
+            self._respond(welcome_page.unclaimed_page())
+            return
         if u.path not in PUBLIC_GET and not self._authorized():
             self._redirect("/login" if u.path == "/" else "/login?next=" + u.path)
             return
@@ -205,7 +218,7 @@ class Handler(BaseHTTPRequestHandler):
         ip = self._ip()
         if not GUARD.allow(ip, "POST", SEC.RATE_POST):
             AUDIT.write("rate_limit", ip=ip,
-                        detail={"bucket": "POST", "path": self.path[:120]})
+                        detail={"bucket": "POST", "path": _redact(self.path)[:120]})
             self._send(page("Too many requests", '<h1>Slow down.</h1><p>Too many '
                             'requests from this address. Wait a minute and try again.</p>'),
                        429)
@@ -234,6 +247,14 @@ class Handler(BaseHTTPRequestHandler):
         req = Req(ip, u.path, q, form=form, fields=fields, files=files,
                   cookie_token=self._cookie_token())
 
+        if u.path == "/welcome":
+            with LOCK:
+                resp = welcome_page.post_welcome(req)
+            self._respond(resp)
+            return
+        if unclaimed():
+            self._respond(welcome_page.unclaimed_page())
+            return
         if u.path == "/login":
             with LOCK:
                 resp = login_page.post_login(req)
@@ -275,6 +296,11 @@ class Server(ThreadingHTTPServer):
 
 def main():
     port = int(sys.argv[1]) if len(sys.argv) > 1 else int(os.environ.get("PORT", 8000))
+    token = setup_token()
+    if token and len(token) < SETUP_TOKEN_MIN:
+        sys.exit(f"REGULARS_SETUP_TOKEN is too short ({len(token)} characters; at least "
+                 f"{SETUP_TOKEN_MIN}). Generate one with:\n  python3 -c \"import secrets; "
+                 f"print(secrets.token_urlsafe(32))\"")
     mode = "OPEN DEMO MODE - no operator password set" if demo_mode() else "password gated"
     print(f"Regulars {VERSION} -> http://0.0.0.0:{port}")
     print(f"  market: {STATE.get('region', 'AU')} | auth: {mode}")
@@ -283,6 +309,9 @@ def main():
     print(f"  {DS['stats']['customers']} demo customers, {DS['stats']['orders']:,} orders -> "
           f"{r['summary']['ready']} messages ready")
     print(f"  state file: {store.PATH}")
+    if unclaimed():
+        print("  setup: waiting for the owner - send them https://<this host>/welcome?token="
+              "<the value of REGULARS_SETUP_TOKEN>")
     Server(("0.0.0.0", port), Handler).serve_forever()
 
 

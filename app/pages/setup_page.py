@@ -182,9 +182,9 @@ def post_upload(req):
 
 
 def post_reset(req):
-    keep = {k: STATE.get(k) for k in ("password_hash", "sessions", "region",
-                                      "venue_address", "business", "oauth_tokens_enc",
-                                      "oauth_pending", "schema")}
+    keep = {k: STATE.get(k) for k in ("password_hash", "setup_burned", "sessions",
+                                      "region", "venue_address", "business",
+                                      "oauth_tokens_enc", "oauth_pending", "schema")}
     STATE.update(fresh_state())
     STATE.update({k: v for k, v in keep.items() if v is not None})
     AUDIT.write("reset", ip=req.ip,
