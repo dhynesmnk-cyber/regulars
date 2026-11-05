@@ -323,6 +323,9 @@ app/packs/        industry packs (REGULARS_INDUSTRY, default restaurant): profil
 app/core.py       industry-neutral wording: vague timing, seasons, US spelling
 app/abn.py        ABN check-digit validation and formatting
 tools/bench.py    timings and memory at 2k-50k customers (see Performance)
+deploy/regularsctl.py  run many venues on one server: provision, status, upgrade,
+                  backup, restore, link (see DEPLOYMENT.md)
+app/admin.py      in-container operator commands: reset-owner, verify-audit
 app/importer.py   Square-format and simple-format CSV parsing, menu inference
 app/security.py   passwords, sessions, CSRF, rate limits, audit chain, secret box, headers
 app/oauth.py      Square authorization-code flow: authorize, exchange, refresh, revoke

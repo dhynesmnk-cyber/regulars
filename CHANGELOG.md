@@ -4,6 +4,31 @@ Versioning: the state file carries a `schema` number; the server migrates older
 state on boot and writes a `config_change` audit entry when it does. Bump
 `VERSION` and `SCHEMA` in `app/server.py` for every release.
 
+## Unreleased - Gate 2.3: provisioning and ops
+
+Handing a venue its own instance used to take about a dozen manual steps
+(keys, token, port, volume, container, Caddy site, reload, health check,
+link), and upgrades, backups and restores weren't scripted at all.
+
+- **`deploy/regularsctl.py`** (stdlib Python, runs as root on the server):
+  `init`, `provision <slug>` (container, volume, loopback port, Caddy site,
+  health wait, then prints the owner's link, the uptime URL and the master
+  key; undoes itself if the venue never comes up), `status [--quiet]`
+  (cron-friendly alerting), `upgrade` (rebuild, recreate, roll the first
+  venue back and stop if it isn't healthy), `backup` (settings and audit log
+  only, 0600, pruned), `restore --yes` (safety copy first, audit chain
+  verified after), `link [--reset-owner]`. All take `--dry-run`.
+- Secrets live in `/etc/regulars/venues/<slug>.env` (0600), outside the data
+  volumes, so backups never hold the master key.
+- **`app/admin.py`**: `reset-owner` (audited `owner_reset`) and
+  `verify-audit`, run inside a venue's container.
+- DEPLOYMENT.md: one-time server setup, cron lines, day-to-day commands;
+  the hand-edit-the-state-file password reset is replaced by
+  `link --reset-owner`.
+- 22 new tests against a fake Docker; plus a full drill on real Docker with
+  Caddy over HTTPS (25 checks: claim, backup, restore, upgrade, forced
+  rollback, owner reset, down alert).
+
 ## Unreleased - Gate 2.2: network hardening
 
 **Fixes two security holes.** The app believed the first entry of any

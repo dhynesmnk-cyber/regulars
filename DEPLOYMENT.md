@@ -18,6 +18,11 @@ attacker could want is either hashed, encrypted, or not stored at all.
 Uploaded CSV data is deliberately **not** persisted: it lives in RAM for the
 process lifetime and is gone on restart. That is a privacy feature, not a bug.
 
+With `regularsctl` (section 3) the first two files live in each venue's Docker
+volume and the master key lives in `/etc/regulars/venues/<slug>.env`, outside
+the volume, so data backups never contain it. Keep a copy of every venue's
+key in your password manager.
+
 ## 2. Run it locally (evaluation / single machine)
 
 ```bash
@@ -34,7 +39,59 @@ It listens on `127.0.0.1` only, so nothing else on your network can reach it.
 To try it from a phone on the same Wi-Fi, start it with `REGULARS_BIND=0.0.0.0`
 (evaluation only: that's plain HTTP).
 
-## 3. Run it on a server (the recommended shape)
+## 3. Run venues on a server
+
+One Ubuntu VPS (AU region for Australian venues), Docker, and Caddy in front
+for HTTPS. Each venue is its own container, volume and port, at
+`https://<venue>.<your domain>`. `deploy/regularsctl.py` does every step; the
+rest of this section is what it does, for when you need to know.
+
+### Set up the server once
+
+```bash
+# Docker, plus Caddy from caddyserver.com/docs/install (Debian/Ubuntu section)
+apt install -y docker.io
+# Only SSH and the web reach the box. (Venue ports are published on
+# 127.0.0.1, so Docker's firewall bypass doesn't expose them.)
+ufw allow OpenSSH && ufw allow 80 && ufw allow 443 && ufw enable
+git clone https://github.com/dhynesmnk-cyber/regulars /opt/regulars
+ln -s /opt/regulars/deploy/regularsctl.py /usr/local/bin/regularsctl
+regularsctl init --domain regulars.example.com.au
+echo 'import /etc/caddy/regulars/*.caddy' >> /etc/caddy/Caddyfile && systemctl reload caddy
+```
+
+At your DNS provider, add one wildcard record: `*.regulars.example.com.au` →
+the server's IP. Caddy fetches each venue's certificate as soon as
+`provision` adds its site. Square credentials, once you have them, go in
+`/etc/regulars/shared.env` (`SQUARE_CLIENT_ID=...`, `SQUARE_CLIENT_SECRET=...`).
+New venues pick them up straight away; existing ones when their containers are
+next recreated (`regularsctl upgrade` does every venue).
+
+Then `/etc/cron.d/regulars`:
+
+```
+MAILTO=you@example.com
+# nightly backup, then copy it off the box (rclone works with B2, S3, Drive...)
+15 3 * * * root regularsctl backup && rclone copy /var/backups/regulars offsite:regulars
+# every 5 minutes: silent unless a venue is down, then cron emails you
+*/5 * * * * root regularsctl status --quiet
+```
+
+### Day to day
+
+| Task | Command |
+|---|---|
+| New venue | `regularsctl provision juniper-co` - prints the owner's one-time link, the uptime-monitor URL and the master key to save |
+| What's running | `regularsctl status` |
+| Ship a new version | `git pull && regularsctl upgrade` - rebuilds, recreates each venue, and if the first venue doesn't come back healthy, rolls it back and stops |
+| Back up now | `regularsctl backup` (settings and audit log; never keys) |
+| Restore a venue | `regularsctl restore juniper-co /var/backups/regulars/<archive> --yes` - takes a safety copy first, then checks the audit chain |
+| Owner lost their link | `regularsctl link juniper-co` |
+| Owner forgot their password | `regularsctl link juniper-co --reset-owner` - clears it (audited) and prints a new link |
+
+Every command takes `--dry-run`.
+
+### Doing it by hand (one venue)
 
 Docker + a TLS-terminating reverse proxy. The app itself speaks plain HTTP and
 expects the proxy to handle certificates.
@@ -140,6 +197,8 @@ credentials) — useful for staging.
 ## 6. First-run checklist
 
 - [ ] App reachable over HTTPS; `REGULARS_TLS=1`
+- [ ] Venue provisioned with `regularsctl provision`, its master key saved in your password manager, and its `/healthz` added to your uptime monitor
+- [ ] `/etc/cron.d/regulars` installed (nightly backup copied off the box; `status --quiet` every 5 minutes)
 - [ ] Owner opened their setup link and chose a password (Security screen: "Claimed by its owner through the one-time setup link"), or the operator password was created from localhost
 - [ ] `REGULARS_MASTER_KEY` set from the environment (Security screen → Credentials shows "environment")
 - [ ] Square OAuth configured, or the venue is on CSV upload
@@ -150,21 +209,22 @@ credentials) — useful for staging.
 
 ## 7. Patching and releasing
 
-- **Patch:** build a new image tag, `docker stop regulars && docker rm regulars`, run the new tag against the same `/data` volume. State schema migrations run automatically on boot and are written to the audit log.
-- **Roll back:** run the previous image tag; state files are forward- and backward-tolerant within the same schema version.
-- **Never** edit `regulars-state.json` or `regulars-audit.log` by hand on a live instance — the audit log is hash-chained and manual edits will (correctly) show up as tampering on the Security screen.
-- Tests: `cd tests && python3 -m unittest discover -s . -t ..` — 112 tests, no dependencies.
+- **Patch:** `git pull && regularsctl upgrade`. It builds the image from the checkout, keeps the old one as `regulars:previous`, and recreates each venue on the new one. State schema migrations run on boot and are written to the audit log. If the first venue isn't healthy within a minute it goes back to `:previous`, `:current` is pointed back at the old image, and nothing else is touched.
+- **Roll back on purpose:** `regularsctl upgrade --tag previous` (or any earlier tag in `docker image ls regulars`).
+- **Never** edit `regulars-state.json` or `regulars-audit.log` by hand on a live instance — the audit log is hash-chained and manual edits will (correctly) show up as tampering on the Security screen. `regularsctl restore` and `link --reset-owner` stop the app first and leave an audit trail.
+- **Tests:** from the repository root, `python3 -m unittest discover -s tests -t .` (no dependencies). CI runs them on every pull request.
 
 ## 8. Monitoring and incident response
 
-- `GET /healthz` — version, schema, region, whether auth is enabled. Alert on non-200 or on `auth_enabled:false` in production.
+- `GET /healthz` — version, schema, region, whether auth is enabled. Put each venue's `https://<venue>.<domain>/healthz` in an uptime monitor; the `status --quiet` cron line is the free fallback. `auth_enabled:false` on a venue that's been live a while means the owner never claimed it.
 - **Security screen** (`/security`) — audit chain status, active sessions, rate-limit lockouts, recent flags, deployment checklist. Check it weekly.
 - Symptom → response:
   - **`Audit chain BROKEN`** → treat as an incident: preserve the log file, find who/what touched it, rotate the master key, force logout everywhere (button on the Security screen), reset the password.
   - **Unknown address lockouts in the log** → someone is brute-forcing the password. Lockouts contain it; consider firewalling the address. The password gate + 15-minute lockouts make dictionary attacks impractical, but nobody should be finding your login page at all — keep the hostname unlisted.
   - **`oauth_fail` with state mismatch** → a forged or stale Square callback was rejected. Single occurrences are noise; a burst is someone probing.
   - **Lost master key** → stored Square tokens are unrecoverable by design. Have the venue revoke the grant in their Square Dashboard and reconnect.
-  - **Forgotten operator password** → there is no reset flow (by design, it would be an attack vector). Stop the app, delete `password_hash` from the state file *on the server* (or delete the state file and reconfigure), restart, set a new password from localhost. The audit log keeps the history.
+  - **Forgotten operator password** → there is no self-service reset (by design: a reset channel is an attack vector). On the server: `regularsctl link <venue> --reset-owner` clears the password and sessions, writes `owner_reset` to the audit log, and prints a new one-time link for the owner.
+  - **Owner never used their link, or lost it** → `regularsctl link <venue>`. The old link stops working.
 
 ## 9. Known limits (honest list)
 
