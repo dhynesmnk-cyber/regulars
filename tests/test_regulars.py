@@ -37,6 +37,7 @@ import store               # noqa: E402
 import oauth as OAUTH      # noqa: E402
 import security as SEC     # noqa: E402
 import server as S         # noqa: E402
+import state as ST         # noqa: E402
 
 
 class _NoRedirect(request.HTTPRedirectHandler):
@@ -1299,11 +1300,11 @@ class TestHTTPOAuthFlow(unittest.TestCase):
         S.persist()
         _MockSquare.fail = False
         _MockSquare.revoked = []
-        self._old_box = S._BOX
-        S._BOX = SEC.SecretBox(master="test-master-key")
+        self._old_box = ST._BOX
+        ST._BOX = SEC.SecretBox(master="test-master-key")
 
     def tearDown(self):
-        S._BOX = self._old_box
+        ST._BOX = self._old_box
         S.STATE.update(S.fresh_state())
         S.persist()
 

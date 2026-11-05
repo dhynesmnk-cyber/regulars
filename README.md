@@ -291,11 +291,20 @@ app/security.py   passwords, sessions, CSRF, rate limits, audit chain, secret bo
 app/oauth.py      Square authorization-code flow: authorize, exchange, refresh, revoke
 app/store.py      the JSON state file (schema-versioned, migrated on boot)
 app/ui.py         editorial CSS and layout helpers; <details>-based, zero JavaScript
-app/server.py     eight screens, exports, samples, multipart upload, in-memory imports
+app/server.py     HTTP layer only: rate limits, sign-in, CSRF, the GET/POST route tables
+app/state.py      the venue's settings (STATE), audit log, guard, secret box, LOCK,
+                  sessions, persistence, and the engine run every screen shares
+app/web.py        Req / Resp values passed between the handler and the screens
+app/views.py      HTML fragments shared by several screens
+app/pages/        one module per screen (setup, goals, triggers, messages, sending,
+                  sent, data, security, login): its page plus its form actions
+app/exports.py    audience CSV, copy-paste text, sample input files
+app/upload.py     multipart parsing and CSV-to-dataset import
 Dockerfile        python:3.12-slim, non-root, /data volume, healthcheck
 DEPLOYMENT.md     operator guide: run, proxy, env, Square app, backups, incidents
 CHANGELOG.md      release history and state-schema migrations
-tests/            112 tests: dataset, one-message-per-person, offer/behaviour match,
+.github/          CI: the full test suite on every push and pull request
+tests/            124 tests: dataset, one-message-per-person, offer/behaviour match,
                   the copy rule, suppression, Spam Act/CAN-SPAM footers, regions,
                   goals/threshold/catalogue sensitivity, import, persistence, HTTP
                   routes, security primitives, auth/CSRF/lockouts, OAuth roundtrip

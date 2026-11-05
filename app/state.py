@@ -1,0 +1,251 @@
+"""
+Process-wide state for one Regulars instance: the venue's saved settings
+(STATE), the demo dataset, the audit log, the request guard and the secret
+box, plus the helpers every screen shares (sessions, persistence, the engine
+run). One instance serves one venue.
+
+LOCK serialises every read-modify-write of STATE. The HTTP server is
+threaded, so two requests can arrive at once; the handler holds LOCK while a
+route runs (long imports and network checks take it only around their STATE
+changes).
+"""
+
+import copy
+import json
+import os
+import threading
+from datetime import datetime, timezone
+
+import data as D
+import engine as E
+import security as SEC
+import store
+
+
+VERSION = "0.6.0"
+SCHEMA = 2
+BUILD_DATE = "2026-11-05"
+HERE = os.path.dirname(os.path.abspath(__file__))
+
+DS = D.build()
+
+# ---------------------------------------------------------------- security
+# Single-instance threat model: one venue, one operator, one server process.
+# Everything below fails safe - if a check can't run, access is refused.
+
+AUDIT = SEC.AuditLog(os.environ.get("REGULARS_AUDIT_LOG")
+                     or os.path.join(HERE, "regulars-audit.log"))
+GUARD = SEC.Guard()
+FLASH = []
+CTX = threading.local()
+LOCK = threading.RLock()
+_BOX = None
+
+
+def _guard_flag(ip, what):
+    AUDIT.write("rate_limit", ip=ip, detail={"flagged": what})
+
+
+_orig_flag = GUARD.flag
+
+
+def _flag_and_audit(ip, what, now=None):
+    _orig_flag(ip, what, now)
+    AUDIT.write("rate_limit", ip=ip, detail={"flag": what})
+
+
+GUARD.flag = _flag_and_audit
+
+
+def flash(msg):
+    FLASH.append(msg)
+
+
+def take_flash():
+    items, FLASH[:] = list(FLASH), []
+    return items
+
+
+def now_utc():
+    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+
+def box():
+    """Lazy so a fresh install never creates a keyfile until a secret exists."""
+    global _BOX
+    if _BOX is None:
+        _BOX = SEC.SecretBox(master=os.environ.get("REGULARS_MASTER_KEY"),
+                             keyfile=os.environ.get("REGULARS_KEYFILE"))
+    return _BOX
+
+
+def _store_tokens(tokens):
+    STATE["oauth_tokens_enc"] = box().encrypt(json.dumps(tokens)) if tokens else None
+    persist()
+
+
+def _load_tokens():
+    enc = STATE.get("oauth_tokens_enc")
+    if not enc:
+        return None
+    try:
+        return json.loads(box().decrypt(enc))
+    except Exception:
+        AUDIT.write("secret_read", detail={"ok": False, "what": "oauth_tokens",
+                                           "note": "decrypt/verify failed - treated as absent"})
+        return None
+
+
+def demo_mode():
+    """No operator password configured yet - the prototype's open mode."""
+    return not STATE.get("password_hash")
+
+
+def session_from_token(token):
+    if not token:
+        return None
+    return (STATE.get("sessions") or {}).get(token)
+
+
+def create_session(ip):
+    sess = SEC.new_session()
+    sess["ip"] = ip
+    STATE.setdefault("sessions", {})[sess["token"]] = sess
+    if len(STATE["sessions"]) > 50:
+        for t in sorted(STATE["sessions"],
+                        key=lambda t: STATE["sessions"][t].get("created", 0))[:-50]:
+            STATE["sessions"].pop(t, None)
+    persist()
+    return sess["token"]
+
+
+def kill_sessions():
+    STATE["sessions"] = {}
+    persist()
+
+
+def cookie_for(token):
+    sec = "; Secure" if os.environ.get("REGULARS_TLS") else ""
+    return (f"REGULARS_SID={token}; Path=/; HttpOnly; SameSite=Lax; "
+            f"Max-Age={SEC.SESSION_TTL_SECONDS}{sec}")
+
+
+def expire_cookie():
+    return "REGULARS_SID=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0"
+
+
+def local_request_allowed(ip):
+    """First password may only be set from the box itself (or with the env
+    override, for headless deploys where the operator accepts the risk)."""
+    return (ip in ("127.0.0.1", "::1")
+            or os.environ.get("REGULARS_OPEN_FIRST_RUN") == "1")
+
+CAT_LABEL = {k: v for k, v, _ in E.OFFER_CATEGORIES}
+CAT_HELP = {k: h for k, _, h in E.OFFER_CATEGORIES}
+
+# Where the messages will actually go out from. The unsubscribe merge tag is
+# different in every tool; writing the wrong one means a broken unsubscribe,
+# which is a Spam Act problem, not a cosmetic one.
+ESP = {
+    "square":     ("Square Marketing", None, "https://squareup.com/au/en/marketing",
+                   "Already in your Square Dashboard under Marketing. Square appends its "
+                   "own unsubscribe footer to campaigns, so we leave a placeholder in "
+                   "previews and strip it from exports."),
+    "mailchimp":  ("Mailchimp", "*|UNSUB|*", "https://mailchimp.com",
+                   "Free to 500 contacts. The most familiar choice; paste our CSV straight "
+                   "into an audience."),
+    "klaviyo":    ("Klaviyo", "{% unsubscribe %}", "https://www.klaviyo.com",
+                   "Free to 250 contacts. Strongest flows and hospitality templates; "
+                   "steeper learning curve."),
+    "brevo":      ("Brevo", "{{{unsubscribe}}}", "https://www.brevo.com",
+                   "300 emails a day free, then cheap per-email. Good once you're sending "
+                   "weekly to a few thousand."),
+    "mailerlite": ("MailerLite", "{$unsubscribe}", "https://www.mailerlite.com",
+                   "Free to 1,000 subscribers. The simplest editor of the four."),
+    "smtp":       ("Your own SMTP server", "{{unsubscribe_url}}", None,
+                   "If the venue already sends mail through their own host or another "
+                   "provider, we store the settings here so sending can be switched on "
+                   "later. The prototype never transmits."),
+    "none":       ("Nothing yet", "{{unsubscribe_url}}", None,
+                   "No sender configured. The links above are the usual starting points; "
+                   "all four have a free tier big enough for one venue's list."),
+}
+
+
+def fresh_state():
+    return {
+        "connected": False,
+        "source": "demo",
+        "goals": copy.deepcopy(D.DEFAULT_GOALS),
+        "enabled": {t["id"] for t in E.TRIGGERS},
+        "thresholds": {},
+        "sender": {"tool": "none", "smtp_host": "", "smtp_port": 587, "smtp_user": "",
+                   "smtp_pass": "", "from_addr": "", "reply_to": ""},
+        "sent": [],
+        "sent_history": {},
+        "approved": set(),
+        "dataset": None,
+        "import_report": None,
+        "region": "AU",
+        "venue_address": "",
+        "password_hash": None,
+        "sessions": {},
+        "oauth_tokens_enc": None,
+        "oauth_pending": {},
+        "schema": SCHEMA,
+    }
+
+
+STATE = fresh_state()
+_saved = store.load()
+for k, v in _saved.items():
+    if k in STATE:
+        STATE[k] = v
+STATE["approved"] = set(STATE.get("approved") or [])
+STATE["dataset"] = None          # imports are deliberately not persisted
+STATE["import_report"] = None
+STATE["source"] = "demo"         # every start begins on the demo; an import is
+                                 # only real while this process holds it
+
+_MIGRATED_FROM = int(_saved.get("schema", 1)) if _saved else None
+STATE["schema"] = SCHEMA
+for _t in list(STATE.get("sessions") or {}):
+    if not SEC.session_valid(STATE["sessions"][_t]):
+        STATE["sessions"].pop(_t, None)
+STATE.setdefault("oauth_pending", {})
+_now_ts = datetime.now(timezone.utc).timestamp()
+for _st in list(STATE["oauth_pending"]):
+    try:
+        if _now_ts - float(STATE["oauth_pending"][_st]) > 900:
+            STATE["oauth_pending"].pop(_st, None)
+    except (TypeError, ValueError):
+        STATE["oauth_pending"].pop(_st, None)
+if _MIGRATED_FROM is not None and _MIGRATED_FROM < SCHEMA:
+    AUDIT.write("config_change",
+                detail={"what": "schema_migration", "from": _MIGRATED_FROM,
+                        "to": SCHEMA, "version": VERSION})
+
+
+def persist():
+    store.save(STATE)
+
+
+def dataset():
+    return STATE["dataset"] or DS
+
+
+def now():
+    return E._dt(dataset()["now"])
+
+
+def result():
+    g = dict(STATE["goals"])
+    g["_region"] = STATE.get("region", "AU")
+    g["_address"] = STATE.get("venue_address", "")
+    return E.run(dataset(), g, g, STATE["sent_history"],
+                 now(), STATE["enabled"], STATE["thresholds"])
+
+
+def th():
+    return {**E.DEFAULT_THRESHOLDS, **STATE["thresholds"]}
+
