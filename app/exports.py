@@ -4,7 +4,7 @@ import csv
 import io
 from datetime import datetime
 
-import data as D
+import engine as E
 from state import AUDIT, CAT_LABEL, ESP, STATE, dataset, result
 from web import download
 
@@ -75,15 +75,15 @@ def get_export_copy(req):
 
 
 def get_sample_simple(req):
-    return download(D.sample_simple(), "text/csv; charset=utf-8",
+    return download(E.PACK.sample_simple(), "text/csv; charset=utf-8",
                     "regulars-sample-simple.csv")
 
 
 def get_sample_square_transactions(req):
-    tx, _ = D.sample_square()
+    tx, _ = E.PACK.sample_square()
     return download(tx, "text/csv; charset=utf-8", "sample-square-transactions.csv")
 
 
 def get_sample_square_customers(req):
-    _, cu = D.sample_square()
+    _, cu = E.PACK.sample_square()
     return download(cu, "text/csv; charset=utf-8", "sample-square-customers.csv")

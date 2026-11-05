@@ -4,6 +4,29 @@ Versioning: the state file carries a `schema` number; the server migrates older
 state on boot and writes a `config_change` audit entry when it does. Bump
 `VERSION` and `SCHEMA` in `app/server.py` for every release.
 
+## Unreleased - Gate 1: safe to change
+
+No change to what the app shows or sends: the old and new versions return
+identical responses across 46 GET/POST steps, and identical engine output
+(messages, evidence, profiles, suppressions) across 40 goal, tone, region
+and threshold variants.
+
+- **CI**: the full test suite runs on every push and pull request (Python
+  3.11 and 3.12).
+- **server.py split** into `state.py` (settings, audit, guard, secrets),
+  `pages/` (one module per screen with its form actions), `web.py`
+  (request/response values), `views.py`, `exports.py` and `upload.py`.
+  `server.py` is now the HTTP layer only: checks, then a route table.
+- **Concurrency fix**: a lock now serialises changes to the saved settings.
+  Before, two form posts at once could race on `regulars-state.json.tmp`,
+  failing one request and risking a half-written state file. The listen
+  queue is raised from 5 to 64, which stops connection resets under bursts.
+- **Industry packs**: everything restaurant-specific (profile, triggers,
+  thresholds, offer categories, email templates, demo venue) moved to
+  `packs/restaurant.py` behind a documented interface (`packs/__init__.py`).
+  `REGULARS_INDUSTRY` picks the pack; `restaurant` is the default and the
+  only one so far.
+
 ## 0.6.0 - 2026-11-05 - specificity & tone
 
 **Modifier-level personalisation (Square modifiers end to end)**

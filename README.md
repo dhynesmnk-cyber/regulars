@@ -285,7 +285,11 @@ States**, and the product changes where the law says it must:
 
 ```
 app/data.py       synthetic venue: menu, 11 archetypes, order generator, sample exports
-app/engine.py     profile → suppress → trigger → render; thresholds; catalogue; regions
+app/engine.py     the pipeline every industry shares: suppress → order triggers → pick
+                  offer → copy → tone, regional spelling, legal footer
+app/packs/        industry packs (REGULARS_INDUSTRY, default restaurant): profile,
+                  triggers, thresholds, offer categories, email templates
+app/core.py       industry-neutral wording: vague timing, seasons, US spelling
 app/importer.py   Square-format and simple-format CSV parsing, menu inference
 app/security.py   passwords, sessions, CSRF, rate limits, audit chain, secret box, headers
 app/oauth.py      Square authorization-code flow: authorize, exchange, refresh, revoke

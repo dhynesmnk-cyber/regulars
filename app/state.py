@@ -16,7 +16,6 @@ import os
 import threading
 from datetime import datetime, timezone
 
-import data as D
 import engine as E
 import security as SEC
 import store
@@ -27,7 +26,7 @@ SCHEMA = 2
 BUILD_DATE = "2026-11-05"
 HERE = os.path.dirname(os.path.abspath(__file__))
 
-DS = D.build()
+DS = E.PACK.demo_dataset()
 
 # ---------------------------------------------------------------- security
 # Single-instance threat model: one venue, one operator, one server process.
@@ -176,7 +175,7 @@ def fresh_state():
     return {
         "connected": False,
         "source": "demo",
-        "goals": copy.deepcopy(D.DEFAULT_GOALS),
+        "goals": copy.deepcopy(E.PACK.DEFAULT_GOALS),
         "enabled": {t["id"] for t in E.TRIGGERS},
         "thresholds": {},
         "sender": {"tool": "none", "smtp_host": "", "smtp_port": 587, "smtp_user": "",
