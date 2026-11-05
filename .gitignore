@@ -13,3 +13,6 @@ __pycache__/
 
 # OS
 .DS_Store
+
+# Private business working files: never publish (the repo is public)
+PROBLEM-SCORE.md
