@@ -2289,6 +2289,23 @@ class TestSquareDashboardImport(unittest.TestCase):
         self.assertEqual(rep["mode"], "square")
         self.assertTrue(all(c["email"] is None for c in ds["customers"]))
 
+    def test_two_square_profiles_for_one_email_are_one_person(self):
+        tx = ("Date,Time,Item,Qty,Transaction ID,Customer ID\n"
+              "2026-08-01,09:10:00,Flat White,1,t1,A1\n"
+              "2026-09-01,09:10:00,Flat White,1,t2,A2\n"
+              "2026-09-20,09:10:00,Flat White,1,t3,A3\n")
+        cu = ("First Name,Surname,Email Address,Square Customer ID,Email Subscription Status\n"
+              "Sam,Lee,sam@t.com,A1,subscribed\nSam,Lee,SAM@t.com,A2,subscribed\n"
+              "Ana,Ruiz,,A3,\n")
+        visits, people, _ = IMP.parse_square(tx, cu, [])
+        ds = IMP.to_dataset(visits, people, IMP.build_menu(visits), datetime(2026, 11, 1))
+        sam = [c for c in ds["customers"] if c["email"] == "sam@t.com"]
+        self.assertEqual(len(sam), 1)                      # one message, not two
+        self.assertEqual(len(sam[0]["orders"]), 2)
+        self.assertTrue(sam[0]["email_consent"])
+        ana = [c for c in ds["customers"] if c["name"] == "Ana Ruiz"]
+        self.assertEqual((len(ana), ana[0]["email"]), (1, None))
+
     def test_blank_reference_ids_do_not_merge_the_directory(self):
         _, cu = D.sample_square_dashboard(customers=30, ds=self.src)
         people, by_name, shared = IMP._directory(cu)

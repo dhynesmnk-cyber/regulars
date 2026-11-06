@@ -446,15 +446,16 @@ def build_menu(visits):
 
 # ---------------------------------------------------------------------------
 def to_dataset(visits, people, menu, now, attested_consent=False, venue=None):
-    """Fold visits into the dataset shape the engine expects. Customers are
-    grouped by their key (Square customer ID, or email); a customer without a
-    usable email address is kept, so they count, but can't be messaged."""
+    """Fold visits into the dataset shape the engine expects. One customer per
+    email address, so two Square profiles for the same person (common) still
+    get one message; a customer with no usable email is grouped by their
+    Square ID or name, and kept so they count, though they can't be messaged."""
     # The business identity comes from the owner's Setup details, never from
     # the file; this is only a neutral label for the dataset itself.
     venue = venue or {"name": "", "suburb": "", "abn": ""}
     groups = {}
     for v in visits:
-        key = v.get("key") or v.get("email")
+        key = _email(v.get("email")) or v.get("key") or v.get("email")
         if key:
             groups.setdefault(key, []).append(v)
     by_key, by_email = {}, {}
@@ -473,7 +474,8 @@ def to_dataset(visits, people, menu, now, attested_consent=False, venue=None):
     dropped = 0
     for i, (key, vs) in enumerate(ordered):
         email = email_of(vs)
-        person = by_key.get(key) or (by_email.get(email) if email else None)
+        person = (by_key.get(vs[0].get("key")) or by_key.get(key)
+                  or (by_email.get(email) if email else None))
         name = ((person or {}).get("name") or vs[0].get("name")
                 or (email or key).split("@")[0])
         orders = []
