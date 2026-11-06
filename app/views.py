@@ -4,6 +4,7 @@ import os
 from datetime import timedelta
 
 import billing as BILL
+import core
 import engine as E
 import ui
 from state import (CTX, IDENTITY_MISSING_MSG, OFFERS_UNCHECKED_MSG, STATE, VERSION,
@@ -13,7 +14,8 @@ from ui import e
 
 
 def money(v, dp=0):
-    return f"${v:,.{dp}f}"
+    """A figure in the venue's market currency (A$ or US$)."""
+    return core.money(v, dp, STATE.get("region", "AU"))
 
 
 EV_LABEL = {

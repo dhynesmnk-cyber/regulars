@@ -19,6 +19,7 @@ import threading
 from datetime import datetime, timezone
 
 import billing as BILL
+import core
 import engine as E
 import security as SEC
 import store
@@ -377,6 +378,7 @@ def header_label():
 
 
 ui.venue_label = header_label
+ui.lang = lambda: core.lang(STATE.get("region", "AU"))
 
 
 def identity_missing():

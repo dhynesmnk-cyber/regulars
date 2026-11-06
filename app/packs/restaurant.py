@@ -14,7 +14,7 @@ See packs/__init__.py for the interface a pack provides.
 from collections import Counter, defaultdict
 
 import data as D
-from core import DAY_NAMES, _dt, _median, _season_phrase, _vague, _vague_future
+from core import DAY_NAMES, _dt, _median, _season_phrase, _vague, _vague_future, money
 
 NAME = "restaurant"
 LABEL = "Cafes, restaurants & bars"
@@ -621,7 +621,8 @@ def copy(trigger_id, ev, c, p, goals, stats=None, now=None, offer=None, offer_no
                 f"end of the month, and your usual table is exactly where you left it.\n\n"
                 f"- {v['name']}")
         why = (f"<b>{ev['since']} days</b> since their last visit, after <b>{ev['visits']}</b> "
-               f"visits totalling <b>${ev['spend']:,.0f}</b> - top <b>{100 - ev['pct']}%</b> by "
+               f"visits totalling <b>{money(ev['spend'], 0, goals.get('_region', 'AU'))}</b> - "
+               f"top <b>{100 - ev['pct']}%</b> by "
                f"lifetime spend. Reactivating an existing regular costs far less than "
                f"acquiring a replacement. The email says &ldquo;{when}&rdquo;, not the day count.")
 

@@ -3,6 +3,7 @@ type, generous air, no rounded corners, no shadows, no gradients. One accent,
 used rarely."""
 
 import html as _h
+import os
 
 ACCENT = "#8a3413"   # rust - used for rules, active states, primary buttons only
 INK = "#191714"
@@ -172,7 +173,7 @@ NAV = [
     ("/security", "Security"),
 ]
 
-LAYOUT = """<!doctype html><html lang="en-AU"><head><meta charset="utf-8">
+LAYOUT = """<!doctype html><html lang="{{lang}}"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{{title}} &middot; Regulars</title><style>{{css}}</style></head><body>
 <header><div class="hin">
@@ -200,16 +201,49 @@ def footer():
     return "Regulars"
 
 
+# The page language, from the venue's market. state.py points this at the
+# saved region; it reads as Australian until one is chosen.
+def lang():
+    return "en-AU"
+
+
+def _legal_url(var):
+    """An https address from the environment, or "" if it isn't a plain one.
+    A typo can't turn into a javascript: or odd-scheme link."""
+    url = (os.environ.get(var) or "").strip()
+    if not url.startswith("https://") or len(url) <= len("https://"):
+        return ""
+    if any(c.isspace() or c in '"\'<>`\\' or ord(c) < 32 for c in url):
+        return ""
+    return url
+
+
+def legal_links():
+    """'Terms - Privacy' for the foot of every page, from REGULARS_TERMS_URL
+    and REGULARS_PRIVACY_URL (the same for every venue; set them in the
+    shared settings). Each shows only when its address is usable."""
+    links = [f'<a href="{e(url)}" target="_blank" rel="noopener">{label}</a>'
+             for var, label in (("REGULARS_TERMS_URL", "Terms"),
+                                ("REGULARS_PRIVACY_URL", "Privacy"))
+             for url in [_legal_url(var)] if url]
+    return " &middot; ".join(links)
+
+
+def _foot(text):
+    links = legal_links()
+    return f"{text}<br>{links}" if links else text
+
+
 def page(title, body, active="/", venue=None, bare=False):
     """bare: no business name and no menu - for screens shown before anyone
     has signed in, where the menu would only lead to closed doors."""
     if bare:
         return render(LAYOUT, title=e(title), css=CSS, nav="", body=body, venue="",
-                      foot="Regulars")
+                      foot=_foot("Regulars"), lang=lang())
     body = notice(active) + body
     nav = "".join(f'<a href="{h}" class="{"on" if h == active else ""}">{e(l)}</a>' for h, l in NAV)
-    return render(LAYOUT, title=e(title), css=CSS, nav=nav, body=body, foot=footer(),
-                  venue=venue if venue is not None else venue_label())
+    return render(LAYOUT, title=e(title), css=CSS, nav=nav, body=body, foot=_foot(footer()),
+                  venue=venue if venue is not None else venue_label(), lang=lang())
 
 
 def stat(label, value, note=""):

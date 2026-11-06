@@ -4,6 +4,23 @@ Versioning: the state file carries a `schema` number; the server migrates older
 state on boot and writes a `config_change` audit entry when it does. Bump
 `VERSION` and `SCHEMA` in `app/server.py` for every release.
 
+## Unreleased - Gate 2.7: the venue's market, and Terms and Privacy links
+
+Everything the owner reads now speaks their market; one place to link your legal pages.
+
+- **A$ / US$.** Figures on the owner's screens (offer costs, lifetime spend,
+  evidence lines) carry the market's currency symbol instead of a bare `$`.
+  Customer emails and the owner's own offer wording ("$15 off your bill") are
+  untouched.
+- **`<html lang>`** is `en-AU` or `en-US` by market (it was always `en-AU`).
+  Pages shown before sign-in read as Australian until a market is chosen.
+- **Terms and Privacy links** in the foot of every page, including the
+  set-a-password screen, from `REGULARS_TERMS_URL` / `REGULARS_PRIVACY_URL` in
+  `shared.env`. Nothing shows until you set them; an address that isn't a plain
+  `https://` URL is ignored.
+- Not changed: the importer still strips only `$` from amounts; an `A$12.50`
+  value would not parse. Square's real export format is unverified.
+
 ## Unreleased - Gate 2.6: guided onboarding, and real Square exports
 
 A stranger who claimed an instance landed on a Setup screen written for the

@@ -128,7 +128,14 @@ demo data can always be approved and exported, so owners can rehearse.
    REGULARS_PAY_URL_AU=https://buy.stripe.com/...
    REGULARS_PAY_URL_US=https://buy.stripe.com/...
    REGULARS_SUPPORT_EMAIL=you@example.com
+   REGULARS_TERMS_URL=https://yourdomain.example/terms
+   REGULARS_PRIVACY_URL=https://yourdomain.example/privacy
    ```
+
+   The last two put **Terms** and **Privacy** links in the foot of every page,
+   including the screen where an owner sets their password. Publish both pages
+   before your first paying venue; each link appears only when its address is
+   a plain `https://` URL, so a typo can't produce a broken or unsafe link.
 
    New venues get them straight away; existing ones at their next
    `regularsctl upgrade`. Each owner's **Pay** button adds
@@ -236,6 +243,7 @@ OAuth endpoints during connect/refresh/revoke.
 | `REGULARS_VENUE_ID` | *(unset)* | The venue's name in `regularsctl`; sent to Stripe as `client_reference_id` |
 | `REGULARS_PAY_URL_AU` / `REGULARS_PAY_URL_US` | *(unset)* | Your Stripe Payment Links, chosen by the venue's market |
 | `REGULARS_SUPPORT_EMAIL` | *(unset)* | Shown to owners in the page footer, beside the upload form (for exports that don't import), and in place of a missing pay link |
+| `REGULARS_TERMS_URL` / `REGULARS_PRIVACY_URL` | *(unset)* | Your Terms and Privacy pages, linked from the foot of every page. Each is used only if it is a plain `https://` address (no spaces, quotes or angle brackets); otherwise it is ignored |
 | `REGULARS_BILLING_FILE` | beside the state file | Where the paid-up date is read from (`regulars-billing.json`) |
 | `REGULARS_MAX_UPLOAD_MB` | `50` | Biggest CSV upload accepted (1-500). An upload needs roughly 20x its size in RAM while it's read (a 43 MB export peaked at 823 MB), so raise it only with memory to match. Every other form is capped at 1 MB |
 | `REGULARS_TRUST_PROXY` | *(unset)* | Number of reverse proxies in front (`1` for Caddy/nginx, `2` with a CDN too). Unset = `X-Forwarded-For` ignored. The Docker image sets `1` |

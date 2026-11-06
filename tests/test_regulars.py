@@ -2575,5 +2575,117 @@ class TestFooterAndLocalDemo(_HTTPHarness, unittest.TestCase):
         self.assertTrue(S.STATE["goals"]["push_products"])       # the demo's goals
 
 
+class TestMarketCurrencyLanguageAndLegalLinks(_HTTPHarness, unittest.TestCase):
+    """Gate 2.7: A$/US$ by market, <html lang> by market, Terms and Privacy
+    links from the environment."""
+
+    def tearDown(self):
+        os.environ.pop("REGULARS_SETUP_TOKEN", None)
+        super().tearDown()
+
+    @staticmethod
+    def _env(**kw):
+        """Terms/Privacy addresses exactly as given; any not given are unset."""
+        env = {k: v for k, v in os.environ.items()
+               if k not in ("REGULARS_TERMS_URL", "REGULARS_PRIVACY_URL")}
+        env.update(kw)
+        return mock.patch.dict(os.environ, env, clear=True)
+
+    def test_money_follows_the_market(self):
+        import core
+        self.assertEqual(core.money(1234), "A$1,234")
+        self.assertEqual(core.money(1234.5, 2, "US"), "US$1,234.50")
+        self.assertEqual(core.money(0.6, 2, "AU"), "A$0.60")
+        self.assertEqual(core.money(15, 0, "NZ"), "A$15")          # unknown reads as AU
+        self.assertEqual(core.lang("US"), "en-US")
+        self.assertEqual(core.lang("AU"), "en-AU")
+        self.assertEqual(core.lang("NZ"), "en-AU")
+
+    def test_owner_screens_use_the_market_symbol(self):
+        S.STATE["region"] = "AU"
+        goals = self.get("/goals")[1]
+        self.assertIn("A$15.00)", goals)                     # "$15 off your bill (A$15.00)"
+        self.assertNotIn("(US$", goals)
+        S.STATE["region"] = "US"
+        goals = self.get("/goals")[1]
+        self.assertIn("US$15.00)", goals)
+        self.assertNotIn("(A$", goals)
+        self.assertIn("US$", self.get("/inbox")[1])          # the cost-if-redeemed stat
+
+    def test_evidence_line_uses_the_market_symbol(self):
+        ds = D.build()
+        for region, sym in (("AU", "A$"), ("US", "US$")):
+            g = dict(D.DEFAULT_GOALS)
+            g["_region"] = region
+            r = E.run(ds, g, g)
+            why = [m["why"] for m in r["messages"] if m["trigger_id"] == "lapsed_big_spender"]
+            self.assertTrue(why)
+            for w in why:
+                self.assertRegex(w, r"totalling <b>" + re.escape(sym) + r"[\d,]+</b>")
+
+    def test_customer_emails_keep_the_plain_dollar_sign(self):
+        S.STATE["region"] = "US"
+        r = S.result()
+        bodies = " ".join(m["body"] for m in r["messages"])
+        self.assertNotIn("US$", bodies)
+        self.assertNotIn("A$", bodies)
+
+    def test_html_lang_follows_the_market(self):
+        S.STATE["region"] = "AU"
+        self.assertIn('<html lang="en-AU">', self.get("/")[1])
+        S.STATE["region"] = "US"
+        self.assertIn('<html lang="en-US">', self.get("/")[1])
+        self.assertIn('<html lang="en-US">', self.get("/inbox")[1])
+
+    def test_html_lang_on_a_page_before_sign_in(self):
+        os.environ["REGULARS_SETUP_TOKEN"] = "test-setup-token-Zq8LxWm3kP0vRt7yHn2c"
+        st, body, _ = self.get("/login")
+        self.assertEqual(st, 403)                            # shut until claimed
+        self.assertIn('<html lang="en-AU">', body)
+        S.STATE["region"] = "US"
+        self.assertIn('<html lang="en-US">', self.get("/login")[1])
+
+    def test_no_legal_links_when_neither_is_set(self):
+        with self._env():
+            body = self.get("/")[1]
+        self.assertNotIn(">Terms<", body)
+        self.assertNotIn(">Privacy<", body)
+
+    def test_both_links_show_on_every_page(self):
+        with self._env(REGULARS_TERMS_URL="https://regulars.example/terms",
+                       REGULARS_PRIVACY_URL="https://regulars.example/privacy?v=2&x=1"):
+            for path in ("/", "/inbox", "/goals"):
+                body = self.get(path)[1]
+                self.assertIn('<a href="https://regulars.example/terms" target="_blank" '
+                              'rel="noopener">Terms</a>', body, path)
+                self.assertIn('href="https://regulars.example/privacy?v=2&amp;x=1"', body, path)
+                self.assertIn(">Privacy</a>", body, path)
+
+    def test_one_link_alone(self):
+        with self._env(REGULARS_PRIVACY_URL="https://regulars.example/privacy"):
+            body = self.get("/")[1]
+        self.assertIn(">Privacy</a>", body)
+        self.assertNotIn(">Terms</a>", body)
+
+    def test_unusable_addresses_are_ignored(self):
+        for bad in ("javascript:alert(1)", "http://regulars.example/terms", "ftp://x.example/t",
+                    "https://", "regulars.example/terms", 'https://x.example/"onmouseover="x',
+                    "https://x.example/a b", "https://x.example/<script>", "   "):
+            with self._env(REGULARS_TERMS_URL=bad, REGULARS_PRIVACY_URL=bad):
+                body = self.get("/")[1]
+            self.assertNotIn(">Terms</a>", body, bad)
+            self.assertNotIn(">Privacy</a>", body, bad)
+            self.assertNotIn("javascript:", body, bad)
+
+    def test_links_are_on_the_page_before_sign_in_too(self):
+        os.environ["REGULARS_SETUP_TOKEN"] = "test-setup-token-Zq8LxWm3kP0vRt7yHn2c"
+        with self._env(REGULARS_TERMS_URL="https://regulars.example/terms",
+                       REGULARS_PRIVACY_URL="https://regulars.example/privacy"):
+            st, body, _ = self.get("/login")
+        self.assertEqual(st, 403)
+        self.assertIn(">Terms</a>", body)
+        self.assertIn(">Privacy</a>", body)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

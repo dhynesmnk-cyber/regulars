@@ -65,6 +65,22 @@ _US_SPELLING = [("organising", "organizing"), ("organiser", "organizer"),
 
 
 
+# What the app shows the owner for each market: the currency symbol in front of
+# its own figures, and the page language. Unknown regions read as Australian,
+# like every STATE.get("region", "AU") in the app. Customer emails are not
+# touched: an offer such as "$15 off" is the owner's own wording.
+CURRENCY = {"AU": "A$", "US": "US$"}
+LANG = {"AU": "en-AU", "US": "en-US"}
+
+
+def money(v, dp=0, region="AU"):
+    return f"{CURRENCY.get(region, CURRENCY['AU'])}{v:,.{dp}f}"
+
+
+def lang(region="AU"):
+    return LANG.get(region, LANG["AU"])
+
+
 def _localise(text, region):
     if region != "US":
         return text
