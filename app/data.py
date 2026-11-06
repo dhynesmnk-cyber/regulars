@@ -474,3 +474,61 @@ def sample_square(customers=40, ds=None):
                              round(MENU_BY_NAME[i["name"]][2] * i["qty"], 2),
                              o["party_size"]])
     return tx.getvalue(), cu.getvalue()
+
+
+# What the Square Dashboard itself exports, going by Square's community posts
+# and its 2022 notice (no real file has been checked yet): the Items Detail
+# CSV (Transactions > Export) and the customer export (Customers > Directory).
+SQUARE_ITEMS_DETAIL_HEADERS = [
+    "Date", "Time", "Time Zone", "Category", "Item", "Qty", "Price Point Name", "SKU",
+    "Modifiers Applied", "Gross Sales", "Discounts", "Net Sales", "Tax", "Transaction ID",
+    "Payment ID", "Device Name", "Notes", "Details", "Event Type", "Location",
+    "Dining Option", "Customer ID", "Customer Name", "Customer Reference ID", "Unit",
+    "Count", "Itemization Type"]
+SQUARE_CUSTOMER_EXPORT_HEADERS = [
+    "Reference ID", "First Name", "Surname", "Email Address", "Phone Number", "Nickname",
+    "Company Name", "Street Address 1", "Street Address 2", "City", "State", "Postal Code",
+    "Birthday", "Memo", "Square Customer ID", "Creation Source", "First Visit",
+    "Last Visit", "Transaction Count", "Total Spend", "Email Subscription Status"]
+
+
+def _square_id(cid):
+    return "SQ" + "".join(ch for ch in cid.upper() if ch.isalnum()).rjust(14, "0")
+
+
+def sample_square_dashboard(customers=40, ds=None):
+    """The two files as the Square Dashboard exports them, for the sample
+    downloads and the import tests: separate Date and Time columns, money
+    written as "$12.50", the customer's email only in the customer export,
+    and a Reference ID column that is usually blank."""
+    import csv as _csv
+    import io as _io
+    ds = ds or build()
+    tx, cu = _io.StringIO(), _io.StringIO()
+    wt, wc = _csv.writer(tx), _csv.writer(cu)
+    wt.writerow(SQUARE_ITEMS_DETAIL_HEADERS)
+    wc.writerow(SQUARE_CUSTOMER_EXPORT_HEADERS)
+    for c in ds["customers"][:customers]:
+        sq = _square_id(c["id"])
+        first, _, last = c["name"].partition(" ")
+        status = ("unsubscribed" if c.get("unsubscribed")
+                  else "subscribed" if c["email_consent"] else "")
+        spend = sum(o["net"] for o in c["orders"])
+        wc.writerow(["", first, last, c["email"] or "", c.get("phone") or "", "", "", "", "",
+                     "", "", "", c.get("birthday") or "", "", sq, "Point of Sale",
+                     c["orders"][0]["date"] if c["orders"] else "",
+                     c["orders"][-1]["date"] if c["orders"] else "",
+                     len(c["orders"]), f"${spend:,.2f}", status])
+        for o in c["orders"]:
+            at = o["at"][11:19] if len(o["at"]) >= 19 else f'{o["hour"]:02d}:00:00'
+            for n, i in enumerate(o["items"]):
+                cat = MENU_BY_NAME[i["name"]][1]
+                gross = round(MENU_BY_NAME[i["name"]][2] * i["qty"], 2)
+                wt.writerow([o["date"], at, "Australia/Melbourne", cat, i["name"], i["qty"],
+                             "Regular", "", ", ".join(i.get("mods") or []), f"${gross:,.2f}",
+                             "$0.00", f"${gross:,.2f}", "$0.00", f"T{o['id']}",
+                             f"P{o['id']}{n}", "Front counter", "", "", "Payment",
+                             "Main location", "For Here", sq, c["name"], "", "", "",
+                             "Physical Item"])
+    return tx.getvalue(), cu.getvalue()
+

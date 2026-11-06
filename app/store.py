@@ -17,7 +17,8 @@ PATH = os.environ.get("REGULARS_STATE") or os.path.join(
 
 KEYS = ("connected", "source", "goals", "enabled", "thresholds", "sender",
         "sent", "sent_history", "approved", "sessions", "password_hash", "setup_burned",
-        "billing_seen", "region", "venue_address", "business", "oauth_tokens_enc", "schema")
+        "billing_seen", "milestones", "region", "venue_address", "business",
+        "oauth_tokens_enc", "schema")
 
 
 def load():

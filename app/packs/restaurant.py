@@ -24,7 +24,23 @@ VENUE = D.VENUE
 DEFAULT_GOALS = D.DEFAULT_GOALS
 demo_dataset = D.build
 sample_simple = D.sample_simple
-sample_square = D.sample_square
+sample_square = D.sample_square_dashboard   # what owners will actually upload
+
+# How the screens talk about this industry's people and visits.
+WORDS = {"customers": "customers", "orders": "orders", "example": "an example restaurant"}
+
+# Where an owner finds the files Regulars reads, in their Square Dashboard.
+# Square moves its menus from time to time; the import report catches it.
+EXPORT_STEPS = [
+    ("Your sales, item by item",
+     "Open <b>Transactions</b>, set the date range to the last 12 to 24 months, choose "
+     "<b>Export</b>, then <b>Items Detail CSV</b>. (The same file is under Reports &rsaquo; "
+     "Item Sales &rsaquo; Export &rsaquo; Detail CSV.)"),
+    ("Your customers",
+     "Open <b>Customers</b>, then <b>Directory</b>, choose <b>Import/Export</b> (or the "
+     "&hellip; menu), then <b>Export customers</b> and <b>All customers</b>. This is the "
+     "file with the email addresses, and who has unsubscribed."),
+]
 
 # Every number the triggers use, in one place, because the merchant gets to
 # change all of them. These are defaults, not laws.

@@ -3,7 +3,7 @@
 import re
 
 import engine as E
-from state import AUDIT, CAT_LABEL, STATE, dataset, persist, result
+from state import AUDIT, CAT_LABEL, STATE, dataset, mark, persist, result
 from ui import e, page
 from views import money
 from web import html, redirect
@@ -155,6 +155,7 @@ def get_goals(req):
 def post_goals(req):
     form, one = req.form, req.one
     g = STATE["goals"]
+    mark("goals_saved")            # the owner has seen and confirmed their offers
     g["push_times"] = []
     for sv in form.get("slot", []):
         dp, wd = sv.split("|")

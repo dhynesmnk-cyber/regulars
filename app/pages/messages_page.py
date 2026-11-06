@@ -171,6 +171,8 @@ def get_inbox(req):
 
 
 def get_message(req):
+    if STATE.get("dataset") is not None:
+        STATE["read_since_upload"] = True      # the checklist's "read your messages"
     return html(page_message(req.q.get("id", "")))
 
 

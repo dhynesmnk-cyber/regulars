@@ -8,6 +8,7 @@ the no-surveillance copy rule, suppression, Spam Act footer, goals/threshold/
 catalogue sensitivity, CSV import, persistence, and the HTTP routes end to end.
 """
 
+import copy
 import csv as _csv
 import html as _h
 import io
@@ -694,15 +695,16 @@ class TestHTTP(_HTTPHarness, unittest.TestCase):
         self.assertTrue("Import report" in body)
 
     def test_upload_without_consent_quarantines(self):
-        tx, _ = D.sample_square(15)
-        # strip the opt-in column so nobody has consent
-        rows = [r for r in _csv.reader(io.StringIO(tx))]
-        hdr = rows[0]
-        if "Marketing opt-in" in hdr:
-            i = hdr.index("Marketing opt-in")
-            rows = [r[:i] + r[i + 1:] for r in rows]
-        cleaned = "\n".join(",".join(r) for r in rows)
-        self.post_multipart("/upload", {}, {"f_main": ("t.csv", cleaned)})
+        # The opt-in column lives in the customer file, with the email
+        # addresses. (This test used to upload the transactions alone and see
+        # "no consent", because the importer took each Square customer ID for
+        # an email address; without the customer file nobody has one.)
+        tx, cu = D.sample_square(15)
+        rows = [r for r in _csv.reader(io.StringIO(cu))]
+        i = rows[0].index("Marketing opt-in")
+        cleaned = "\n".join(",".join(r[:i] + r[i + 1:]) for r in rows)
+        self.post_multipart("/upload", {}, {"f_main": ("t.csv", tx),
+                                            "f_cust": ("c.csv", cleaned)})
         self.assertEqual(S.result()["summary"]["ready"], 0)
         self.assertIn("no_consent", S.result()["summary"]["suppression_breakdown"])
 
@@ -1905,7 +1907,7 @@ class TestSetupLink(_HTTPHarness, unittest.TestCase):
         self.assertTrue(store.load()["setup_burned"])
         st, body, _ = self.call("GET", "/", cookie=cookie)
         self.assertEqual(st, 200)
-        self.assertIn("Next: add your business details", body)
+        self.assertIn("Your setup checklist is below", body)
         st, _, _ = self.call("GET", "/")                  # no cookie: now a normal gate
         self.assertEqual(st, 303)
         events = [ev for ev in S.AUDIT.read(500) if ev["event"] == "setup_ok"]
@@ -2203,6 +2205,357 @@ class TestBillingHTTP(_HTTPHarness, unittest.TestCase):
         mid = self.go_live()
         self.assertTrue(self.can_send(mid))
         self.assertNotIn("Your plan", self.get("/")[1])
+
+
+
+# ---------------------------------------------------------------------------
+# Square Dashboard exports (Gate 2.6)
+# ---------------------------------------------------------------------------
+
+import upload as UP        # noqa: E402
+
+
+def _dash_upload(customers=None, cust=True, consent="", region="AU", ds=None):
+    ds = ds or D.build()
+    tx, cu = D.sample_square_dashboard(customers=customers or len(ds["customers"]), ds=ds)
+    files = {"f_main": ("items.csv", tx.encode())}
+    if cust:
+        files["f_cust"] = ("customers.csv", cu.encode())
+    return UP.do_import({"consent": consent}, files, region)
+
+
+def _drop_columns(text, *names):
+    rows = list(_csv.reader(io.StringIO(text)))
+    keep = [i for i, h in enumerate(rows[0]) if h not in names]
+    out = io.StringIO()
+    _csv.writer(out).writerows([[r[i] for i in keep] for r in rows])
+    return out.getvalue()
+
+
+class TestSquareDashboardImport(unittest.TestCase):
+    """The files an owner actually gets from the Square Dashboard: the Items
+    Detail CSV and the customer export, laid out as Square's posts describe."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.src = D.build()
+        cls.ds, cls.rep = _dash_upload(ds=cls.src)
+
+    def test_recognised_as_square_with_times_of_day_kept(self):
+        self.assertEqual(self.rep["mode"], "square")
+        self.assertEqual(self.rep["fields_missing"], ["covers"])    # the Dashboard has none
+        got = Counter(o["daypart"] for c in self.ds["customers"] for o in c["orders"])
+        want = Counter(o["daypart"] for c in self.src["customers"] for o in c["orders"])
+        self.assertEqual(got, want)              # dinner customers stay dinner customers
+
+    def test_customers_link_by_square_id_with_real_names(self):
+        self.assertEqual(self.rep["customers"], len(self.src["customers"]))
+        src_emails = {c["email"] for c in self.src["customers"] if c["email"]}
+        got = {c["email"] for c in self.ds["customers"] if c["email"]}
+        self.assertEqual(got, src_emails)
+        self.assertEqual(self.rep["with_email"], len(src_emails))
+        names = {c["name"] for c in self.ds["customers"]}
+        self.assertEqual(names, {c["name"] for c in self.src["customers"]})
+        self.assertFalse(any(re.search(r"\d", n) for n in names))   # never a date or an ID
+
+    def test_consent_and_unsubscribes_come_from_the_subscription_column(self):
+        by_email = {c["email"]: c for c in self.ds["customers"] if c["email"]}
+        for c in self.src["customers"]:
+            if not c["email"]:
+                continue
+            mine = by_email[c["email"]]
+            self.assertEqual(mine["unsubscribed"], bool(c["unsubscribed"]), c["email"])
+            self.assertEqual(mine["email_consent"],
+                             bool(c["email_consent"]) and not c["unsubscribed"], c["email"])
+
+    def test_attestation_never_overrides_an_unsubscribe(self):
+        ds, _ = _dash_upload(consent="1", ds=self.src)
+        r = E.run(ds, D.DEFAULT_GOALS, D.DEFAULT_GOALS)
+        unsub = {c["id"] for c in ds["customers"] if c["unsubscribed"]}
+        self.assertTrue(unsub)
+        self.assertFalse(unsub & {m["customer_id"] for m in r["messages"]})
+
+    def test_a_customer_id_is_never_taken_for_an_email(self):
+        ds, rep = _dash_upload(cust=False, consent="1", ds=self.src)
+        self.assertEqual(rep["with_email"], 0)
+        self.assertTrue(all(c["email"] is None for c in ds["customers"]))
+        self.assertIn("Upload your customer export too", rep["warning"])
+        r = E.run(ds, D.DEFAULT_GOALS, D.DEFAULT_GOALS)
+        self.assertEqual(r["summary"]["ready"], 0)
+
+    def test_the_old_api_style_export_has_the_same_fix(self):
+        tx, _ = D.sample_square(10)
+        ds, rep = UP.do_import({"consent": "1"}, {"f_main": ("t.csv", tx.encode())})
+        self.assertEqual(rep["mode"], "square")
+        self.assertTrue(all(c["email"] is None for c in ds["customers"]))
+
+    def test_blank_reference_ids_do_not_merge_the_directory(self):
+        _, cu = D.sample_square_dashboard(customers=30, ds=self.src)
+        people, by_name, shared = IMP._directory(cu)
+        self.assertEqual(len(people), 30)
+        self.assertTrue(all(k.startswith("sq") for k in people))
+
+    def test_visit_columns_are_never_names(self):
+        cu = ("Reference ID,First Name,Email Address,First Visit,Last Visit\n"
+              ",Sam,sam@t.com,2025-01-02,2026-09-01\n")
+        people, _, _ = IMP._directory(cu)
+        self.assertEqual([p["name"] for p in people.values()], ["Sam"])
+
+    def test_orders_with_only_a_customer_name_link_by_name(self):
+        tx, cu = D.sample_square_dashboard(customers=40, ds=self.src)
+        tx = _drop_columns(tx, "Customer ID")
+        ds, rep = UP.do_import({}, {"f_main": ("t.csv", tx.encode()),
+                                    "f_cust": ("c.csv", cu.encode())})
+        src = {c["name"]: c for c in self.src["customers"][:40]}
+        for c in ds["customers"]:
+            self.assertEqual(c["email"], src[c["name"]]["email"] or None, c["name"])
+
+    def test_two_customers_with_one_name_are_left_unlinked(self):
+        tx = ("Date,Time,Item,Qty,Transaction ID,Customer Name\n"
+              "2026-09-01,09:10:00,Flat White,1,t1,Sam Lee\n"
+              "2026-09-02,09:10:00,Flat White,1,t2,Ana Ruiz\n")
+        cu = ("First Name,Surname,Email Address,Square Customer ID\n"
+              "Sam,Lee,sam1@t.com,A1\nSam,Lee,sam2@t.com,A2\nAna,Ruiz,ana@t.com,A3\n")
+        visits, people, rep = IMP.parse_square(tx, cu, [])
+        self.assertEqual(rep["ambiguous_orders"], 1)
+        linked = {v["email"] for v in visits if v["email"]}
+        self.assertEqual(linked, {"ana@t.com"})            # no guessing which Sam
+
+    def test_a_single_customer_column_is_read_as_names_or_ids(self):
+        names = "Date,Item,Qty,Customer\n2026-09-01,Flat White,1,Sam Lee\n"
+        ids = "Date,Item,Qty,Customer\n2026-09-01,Flat White,1,A1B2C3\n"
+        cu = "First Name,Surname,Email Address,Square Customer ID\nSam,Lee,sam@t.com,A1B2C3\n"
+        for tx in (names, ids):
+            visits, _, _ = IMP.parse_square(tx, cu, [])
+            self.assertEqual(visits[0]["email"], "sam@t.com", tx)
+
+    def test_day_month_order_comes_from_the_file_then_the_market(self):
+        self.assertEqual(IMP._slash_order(["05/06/2026", "13/06/2026"]), "dmy")
+        self.assertEqual(IMP._slash_order(["05/06/2026", "06/13/2026"], "AU"), "mdy")
+        self.assertEqual(IMP._slash_order(["05/06/2026"], "AU"), "dmy")
+        self.assertEqual(IMP._slash_order(["05/06/2026"], "US"), "mdy")
+        tx = "Date,Time,Item,Qty,Transaction ID\n05/06/2026,18:30,Flat White,1,t1\n"
+        au, _, _ = IMP.parse_square(tx, "", [], "AU")
+        us, _, _ = IMP.parse_square(tx, "", [], "US")
+        self.assertEqual(au[0]["when"], datetime(2026, 6, 5, 18, 30))
+        self.assertEqual(us[0]["when"], datetime(2026, 5, 6, 18, 30))
+
+    def test_times_with_am_pm_and_never_the_time_zone(self):
+        self.assertEqual(IMP._parse_time("6:42 pm"), (18, 42))
+        self.assertEqual(IMP._parse_time("12:05 AM"), (0, 5))
+        self.assertEqual(IMP._parse_time("18:42:10"), (18, 42))
+        self.assertIsNone(IMP._parse_time("Australia/Melbourne"))
+        tx = ("Date,Time Zone,Item,Qty,Transaction ID\n"
+              "2026-09-01,Australia/Melbourne,Flat White,1,t1\n")
+        visits, _, rep = IMP.parse_square(tx, "", [])
+        self.assertEqual(visits[0]["when"].hour, 0)
+        self.assertIn("time of day", rep["fields_missing"])
+
+    def test_customer_export_in_the_first_box_is_explained(self):
+        _, cu = D.sample_square_dashboard(customers=5, ds=self.src)
+        ds, rep = UP.do_import({}, {"f_main": ("c.csv", cu.encode())})
+        self.assertIsNone(ds)
+        self.assertIn("looks like your customer export", rep["error"])
+
+    def test_sample_downloads_use_the_dashboard_layout(self):
+        tx, cu = E.PACK.sample_square()
+        self.assertEqual(IMP.header_row(tx)[:2], ["Date", "Time"])
+        self.assertIn("Email Subscription Status", IMP.header_row(cu))
+
+
+# ---------------------------------------------------------------------------
+# A venue's own instance: the setup checklist (Gate 2.6)
+# ---------------------------------------------------------------------------
+
+class TestVenueOnboarding(_HTTPHarness, unittest.TestCase):
+    PASSWORD = "correct horse battery"
+
+    def setUp(self):
+        os.environ["REGULARS_SETUP_TOKEN"] = SETUP_TOKEN    # before fresh_state()
+        for d in (S.GUARD.locked, S.GUARD.fails, S.GUARD.hits):
+            d.clear()
+        super().setUp()
+        ST.take_flash()
+        st, _, hdr = self.vcall("POST", "/welcome", token=SETUP_TOKEN, password=self.PASSWORD,
+                                password2=self.PASSWORD)
+        self.assertEqual(st, 303)
+        self.cookie = hdr["Set-Cookie"].split(";")[0]
+        self.csrf = re.search(r'name="csrf" value="([^"]+)"', self.vget("/")[1]).group(1)
+
+    def tearDown(self):
+        os.environ.pop("REGULARS_SETUP_TOKEN", None)
+        for d in (S.GUARD.locked, S.GUARD.fails, S.GUARD.hits):
+            d.clear()
+        ST.take_flash()
+        super().tearDown()
+
+    # -- a signed-in owner's browser
+    def vcall(self, method, path, raw=None, ctype=None, **form):
+        data = raw if raw is not None else (
+            parse.urlencode(form, doseq=True).encode() if method == "POST" else None)
+        req = request.Request(self.base + path, data=data, method=method)
+        if getattr(self, "cookie", None):
+            req.add_header("Cookie", self.cookie)
+        if ctype:
+            req.add_header("Content-Type", ctype)
+        try:
+            with request.build_opener(_NoRedirect).open(req, timeout=60) as r:
+                return r.status, r.read().decode(), r.headers
+        except HTTPError as err:
+            return err.code, err.read().decode(), err.headers
+
+    def vget(self, path):
+        return self.vcall("GET", path)
+
+    def vpost(self, path, **form):
+        return self.vcall("POST", path, csrf=self.csrf, **form)
+
+    def vupload(self, consent="1", customers=60):
+        tx, cu = D.sample_square_dashboard(customers=customers)
+        b = "----venueboundary"
+        parts = [f'--{b}\r\nContent-Disposition: form-data; name="csrf"\r\n\r\n{self.csrf}\r\n',
+                 f'--{b}\r\nContent-Disposition: form-data; name="consent"\r\n\r\n{consent}\r\n']
+        for name, text in (("f_main", tx), ("f_cust", cu)):
+            parts.append(f'--{b}\r\nContent-Disposition: form-data; name="{name}"; '
+                         f'filename="{name}.csv"\r\nContent-Type: text/csv\r\n\r\n{text}\r\n')
+        raw = ("".join(parts) + f"--{b}--\r\n").encode()
+        return self.vcall("POST", "/upload", raw=raw,
+                          ctype=f"multipart/form-data; boundary={b}")
+
+    def next_step(self):
+        body = self.vget("/")[1]
+        m = re.search(r'<b>([^<]+?) <span class="pill p-acc"[^>]*>Next</span>', body)
+        return _h.unescape(m.group(1)) if m else None
+
+    def save_business(self):
+        st, _, _ = self.vpost("/business", biz_name="Juniper & Co",
+                              biz_suburb="Brunswick, Melbourne", region="AU",
+                              biz_abn="51824753556")
+        self.assertEqual(st, 303)
+
+    # -- tests
+    def test_a_new_venue_starts_at_its_business_details(self):
+        st, body, _ = self.vget("/")
+        self.assertEqual(st, 200)
+        self.assertIn("Let&rsquo;s write your first messages.", body)
+        self.assertEqual(self.next_step(), "Your business")
+        self.assertNotIn("Marlow", body)                    # not even in the header
+        self.assertIn("<small></small>", body)
+        self.assertNotIn('action="/connect"', body)          # no demo "Connect Square"
+        self.assertIn("Items Detail CSV", body)              # how to export, from the pack
+        self.assertEqual((S.STATE["goals"]["push_times"], S.STATE["goals"]["push_products"]),
+                         ([], []))                           # not the example's goals
+        self.assertIn("Example data.", self.vget("/inbox")[1])
+        self.assertNotIn("Example data.", body)
+
+    def test_every_step_in_order_to_the_first_export(self):
+        self.save_business()
+        self.assertEqual(self.next_step(), "Upload your Square export")
+
+        st, _, hdr = self.vupload()
+        self.assertEqual((st, hdr["Location"]), (303, "/"))
+        self.assertTrue(S.STATE["milestones"]["first_upload"])
+        self.assertEqual(self.next_step(), "Your goals and offers")
+        self.assertNotIn("Example data.", self.vget("/inbox")[1])
+        self.assertIn("have an email address", self.vget("/")[1])
+
+        # nothing goes out on the example restaurant's offers
+        st, _, hdr = self.vget("/export.csv")
+        self.assertEqual((st, hdr["Location"]), (303, "/"))
+        self.assertIn("Check your goals and offers", self.vget("/")[1])
+        self.assertIsNone(S.STATE["milestones"]["first_export"])
+        mid = S.result()["messages"][0]["id"]
+        self.vpost("/approve?id=" + parse.quote(mid))
+        self.assertEqual(S.STATE["sent"], [])
+
+        self.vpost("/goals", priority="repeat", tone="warm")
+        self.assertTrue(S.STATE["milestones"]["goals_saved"])
+        self.assertEqual(self.next_step(), "Read your messages")
+
+        self.vget("/m?id=" + parse.quote(mid))
+        self.assertEqual(self.next_step(), "Where they’ll go out from")
+
+        self.vpost("/sending", tool="mailchimp")
+        self.assertEqual(self.next_step(), "Export your first batch")
+
+        st, csv_text, _ = self.vget("/export.csv")
+        self.assertEqual(st, 200)
+        self.assertIn("Juniper & Co", csv_text)
+        self.assertNotIn("Marlow", csv_text)
+        self.assertTrue(store.load()["milestones"]["first_export"])
+        self.assertIsNone(self.next_step())
+        self.assertIn("You&rsquo;re set.", self.vget("/")[1])
+
+        # a restart: the upload and the "read" flag go; everything else stays
+        S.STATE["dataset"], S.STATE["read_since_upload"] = None, False
+        body = self.vget("/")[1]
+        self.assertIn("Upload your latest export.", body)
+        self.assertIn("doesn&rsquo;t keep your customer list", body)
+        self.assertNotIn("Your messages are ready", body)
+        self.assertEqual(self.next_step(), "Upload your Square export")
+        self.assertEqual(S.STATE["sender"]["tool"], "mailchimp")
+        self.assertTrue(S.STATE["milestones"]["first_export"])
+
+    def test_plan_step_appears_with_billing(self):
+        with tempfile.TemporaryDirectory() as tmp, mock.patch.dict(os.environ, {
+                "REGULARS_BILLING": "on", "REGULARS_VENUE_ID": "juniper-co",
+                "REGULARS_PAY_URL_AU": "https://buy.stripe.com/test_au",
+                "REGULARS_BILLING_FILE": os.path.join(tmp, "billing.json")}):
+            import billing
+            self.save_business()
+            self.vupload()
+            self.vpost("/goals", priority="repeat")
+            self.vget("/m?id=" + parse.quote(S.result()["messages"][0]["id"]))
+            self.vpost("/sending", tool="brevo")
+            self.assertEqual(self.next_step(), "Your plan")
+            body = self.vget("/")[1]
+            self.assertIn("test_au?client_reference_id=juniper-co", body)
+            self.assertEqual(self.vget("/export.csv")[0], 303)      # preview: not yet
+            billing.write(billing.today() + timedelta(days=30))
+            self.assertEqual(self.next_step(), "Export your first batch")
+            self.assertEqual(self.vget("/export.csv")[0], 200)
+
+    def test_connect_never_swaps_an_upload_for_the_example(self):
+        self.vupload()
+        st, _, hdr = self.vpost("/connect")
+        self.assertEqual((st, hdr["Location"]), (303, "/"))
+        self.assertIsNotNone(S.STATE["dataset"])
+        self.assertIn("Upload your Square export", self.vget("/")[1])
+
+    def test_start_over_asks_for_the_offers_again(self):
+        self.vupload()
+        self.vpost("/goals", priority="repeat")
+        self.vpost("/reset")
+        self.assertIsNone(S.STATE["milestones"]["goals_saved"])
+        self.assertTrue(S.STATE["milestones"]["first_upload"])
+        self.assertEqual(S.STATE["goals"]["push_products"], [])
+
+    def test_example_goals_are_dropped_from_a_venue_that_never_saved_any(self):
+        st = {"goals": copy.deepcopy(D.DEFAULT_GOALS),
+              "milestones": {"goals_saved": None}}
+        self.assertTrue(ST.drop_example_goals(st))
+        self.assertEqual((st["goals"]["push_times"], st["goals"]["push_products"]), ([], []))
+        mine = {"goals": copy.deepcopy(D.DEFAULT_GOALS),
+                "milestones": {"goals_saved": "2026-11-06T00:00:00+00:00"}}
+        self.assertFalse(ST.drop_example_goals(mine))         # the owner's own choice stays
+
+
+class TestFooterAndLocalDemo(_HTTPHarness, unittest.TestCase):
+    def test_footer_names_the_version_not_a_prototype(self):
+        body = self.get("/")[1]
+        self.assertNotIn("working prototype", body)
+        self.assertIn(f"Regulars {ST.VERSION}", body)
+        self.assertIn("The example data is made up", body)
+        with mock.patch.dict(os.environ, {"REGULARS_SUPPORT_EMAIL": "help@regulars.test"}):
+            self.assertIn('href="mailto:help@regulars.test"', self.get("/inbox")[1])
+
+    def test_local_demo_keeps_its_screens(self):
+        S.STATE["connected"] = False
+        body = self.get("/")[1]
+        self.assertIn('action="/connect"', body)
+        self.assertNotIn("Your checklist", body)
+        self.assertNotIn("Example data.", self.get("/inbox")[1])
+        self.assertTrue(S.STATE["goals"]["push_products"])       # the demo's goals
 
 
 if __name__ == "__main__":

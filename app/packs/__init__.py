@@ -13,6 +13,10 @@ A pack is a module that provides:
     DEFAULT_GOALS           goals, offer catalogue and trigger->offer pairing
     demo_dataset()          a synthetic business to explore before importing
     sample_simple(), sample_square()   example upload files
+    WORDS                   {"customers", "orders", "example"}: how the screens
+                            name this industry's people, visits and demo
+    EXPORT_STEPS            [(title, html)]: where the owner finds the files
+                            to upload, shown beside the upload form
     DEFAULT_THRESHOLDS      every number the triggers use, editable by the owner
     THRESHOLD_FIELDS        (key, label, help, step) for the tuning screen
     OFFER_CATEGORIES        (id, label, help) offer groups

@@ -105,6 +105,5 @@ def post_welcome(req):
                 detail={"what": "operator_password_created", "via": "setup_link",
                         "version": VERSION})
     session = create_session(req.ip)          # persists STATE, burned token included
-    flash("You're in. Next: add your business details below, then upload your Square "
-          "export.")
+    flash("You're in. Your setup checklist is below: start with your business details.")
     return redirect("/", cookie=cookie_for(session))

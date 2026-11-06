@@ -139,6 +139,24 @@ def demo_mode():
     return not STATE.get("password_hash")
 
 
+def venue_instance():
+    """Provisioned for a real venue: regularsctl always gives one a setup
+    token. Local runs and the demo have none, and keep the demo screens."""
+    return setup_token() is not None
+
+
+def on_example():
+    """No upload in memory, so every screen is showing the example data."""
+    return STATE.get("dataset") is None
+
+
+def mark(milestone):
+    """Record the first time a venue reached a milestone. Caller holds LOCK."""
+    if not STATE["milestones"].get(milestone):
+        STATE["milestones"][milestone] = now_utc()
+        persist()
+
+
 def session_from_token(token):
     if not token:
         return None
@@ -210,11 +228,35 @@ ESP = {
 }
 
 
+def _starting_goals():
+    """The demo's goals, minus its own choices on a venue's instance: the
+    example restaurant's quiet nights and products mean nothing there (a cafe
+    could end up inviting its regulars to a Tuesday dinner it doesn't serve).
+    The offer catalogue stays, as suggestions the owner confirms on Goals."""
+    g = copy.deepcopy(E.PACK.DEFAULT_GOALS)
+    if venue_instance():
+        g["push_times"], g["push_products"] = [], []
+    return g
+
+
+def drop_example_goals(st):
+    """A venue claimed before venues started without the example's goals,
+    which has never saved its own: clear the example restaurant's choices.
+    Returns True if it changed anything."""
+    g = st["goals"]
+    if (venue_instance() and not (st.get("milestones") or {}).get("goals_saved")
+            and g.get("push_times") == E.PACK.DEFAULT_GOALS["push_times"]
+            and g.get("push_products") == E.PACK.DEFAULT_GOALS["push_products"]):
+        g["push_times"], g["push_products"] = [], []
+        return True
+    return False
+
+
 def fresh_state():
     return {
         "connected": False,
         "source": "demo",
-        "goals": copy.deepcopy(E.PACK.DEFAULT_GOALS),
+        "goals": _starting_goals(),
         "enabled": {t["id"] for t in E.TRIGGERS},
         "thresholds": {},
         "sender": {"tool": "none", "smtp_host": "", "smtp_port": 587, "smtp_user": "",
@@ -233,6 +275,10 @@ def fresh_state():
         "setup_burned": [],
         # the last paid-until date the audit log recorded (billing.py)
         "billing_seen": None,
+        # when this venue first saved its goals and offers, uploaded and exported
+        "milestones": {"goals_saved": None, "first_upload": None, "first_export": None},
+        # a message has been opened since the last upload (memory only, like it)
+        "read_since_upload": False,
         "sessions": {},
         "oauth_tokens_enc": None,
         "oauth_pending": {},
@@ -247,6 +293,8 @@ for k, v in _saved.items():
         STATE[k] = v
 STATE["approved"] = set(STATE.get("approved") or [])
 STATE["business"] = {**fresh_state()["business"], **(STATE.get("business") or {})}
+STATE["milestones"] = {**fresh_state()["milestones"], **(STATE.get("milestones") or {})}
+drop_example_goals(STATE)
 STATE["dataset"] = None          # imports are deliberately not persisted
 STATE["import_report"] = None
 STATE["source"] = "demo"         # every start begins on the demo; an import is
@@ -289,6 +337,10 @@ def now():
 # demo venue; real data is never signed by anyone but the owner.
 
 PLACEHOLDER_IDENTITY = {"name": "[Your business name]", "suburb": "[Suburb]", "abn": "[ABN]"}
+OFFERS_UNCHECKED_MSG = ("Check your goals and offers on the Goals screen first, and save it. "
+                        "Every message promises an offer, and the starting list is only a "
+                        "suggestion (a free bottle of house wine, $15 off), so approving and "
+                        "exporting wait until you've confirmed what you'll give.")
 IDENTITY_MISSING_MSG = ("Add your business name, suburb and ABN under Your business on the "
                         "Setup screen first. Until then your messages are signed with "
                         "placeholders, so approving and exporting are switched off.")
@@ -315,7 +367,10 @@ def identity():
 
 
 def header_label():
-    """'Marlow &amp; Finch, Fitzroy' - the business and its suburb, for the page header."""
+    """'Marlow &amp; Finch, Fitzroy' - the business and its suburb, for the page header.
+    A venue's own instance never shows the example restaurant's name."""
+    if venue_instance() and not business_complete():
+        return ""
     v = identity()
     suburb = (v.get("suburb") or "").split(",")[0].strip()
     return ui.e(f"{v['name']}, {suburb}" if suburb else v["name"])
@@ -362,6 +417,13 @@ def billing_message(b):
     return None
 
 
+def offers_unchecked():
+    """A venue's real data, but the owner hasn't yet confirmed the offers
+    every message will promise at their till."""
+    return (venue_instance() and STATE.get("dataset") is not None
+            and not STATE["milestones"].get("goals_saved"))
+
+
 def send_block():
     """Why approving or exporting is refused right now, or None. Only real
     customer data is ever blocked; the demo can always be rehearsed."""
@@ -369,6 +431,8 @@ def send_block():
         return IDENTITY_MISSING_MSG
     if STATE.get("dataset") is None:
         return None
+    if offers_unchecked():
+        return OFFERS_UNCHECKED_MSG
     b = billing_state()
     return billing_message(b) if b["status"] in BILL.LOCKED else None
 

@@ -1,11 +1,14 @@
 """HTML fragments shared by several screens."""
 
+import os
 from datetime import timedelta
 
 import billing as BILL
+import engine as E
 import ui
-from state import (CTX, IDENTITY_MISSING_MSG, STATE, billing_message, billing_state,
-                   demo_mode, identity_missing, take_flash)
+from state import (CTX, IDENTITY_MISSING_MSG, OFFERS_UNCHECKED_MSG, STATE, VERSION,
+                   billing_message, billing_state, demo_mode, identity_missing, offers_unchecked,
+                   on_example, take_flash, venue_instance)
 from ui import e
 
 
@@ -157,6 +160,9 @@ def _send_banner():
         return _identity_banner()
     if STATE.get("dataset") is None:
         return ""
+    if offers_unchecked():
+        return (f'<div class="warn"><b>Check your offers first.</b> {e(OFFERS_UNCHECKED_MSG)} '
+                f'<a href="/goals">Goals &rarr;</a></div>')
     b = billing_state()
     if b["status"] != "preview":
         return ""
@@ -183,7 +189,37 @@ def _billing_notice():
     return f'<div class="warn"><b>{title}</b> {e(text)} <a href="/">Your plan &rarr;</a></div>'
 
 
-ui.notice = _billing_notice
+# Screens that show customers and messages: on a venue's own instance, say so
+# plainly while they're showing the example restaurant instead of its data.
+EXAMPLE_SCREENS = ("/goals", "/triggers", "/inbox", "/sent", "/data")
+
+
+def _example_notice(active):
+    if not (venue_instance() and on_example()) or active not in EXAMPLE_SCREENS:
+        return ""
+    return (f'<div class="note"><b>Example data.</b> You&rsquo;re looking at '
+            f'{e(E.PACK.WORDS["example"])} and its made-up {e(E.PACK.WORDS["customers"])}. '
+            f'<a href="/#upload">Upload your Square export on Setup &rarr;</a></div>')
+
+
+def _page_notice(active):
+    return _example_notice(active) + _billing_notice()
+
+
+def _footer():
+    support = (os.environ.get("REGULARS_SUPPORT_EMAIL") or "").strip()
+    out = f"Regulars {e(VERSION)}"
+    if support:
+        out += f' &middot; Questions? <a href="mailto:{e(support)}">{e(support)}</a>'
+    if on_example():
+        out += (f'<br>The example data is made up: {e(E.PACK.WORDS["example"])}, its '
+                f'{e(E.PACK.WORDS["customers"])} and their {e(E.PACK.WORDS["orders"])}.')
+    return (out + "<br>Every figure in every message traces to an order in the data; no "
+            "figure appears in a customer&rsquo;s email unless a human put it there.")
+
+
+ui.notice = _page_notice
+ui.footer = _footer
 
 
 def _plan_card():

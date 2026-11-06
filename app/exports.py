@@ -5,7 +5,8 @@ import io
 from datetime import datetime
 
 import engine as E
-from state import AUDIT, CAT_LABEL, ESP, STATE, flash, identity, result, send_block
+from state import (AUDIT, CAT_LABEL, ESP, STATE, flash, identity, mark, result,
+                   send_block)
 from web import download, redirect
 
 
@@ -66,6 +67,8 @@ def _refused():
     """Approve and export share one rule: state.send_block()."""
     msg = send_block()
     if not msg:
+        if STATE.get("dataset") is not None:
+            mark("first_export")           # the venue's first real batch out the door
         return None
     flash(msg)
     return redirect("/")

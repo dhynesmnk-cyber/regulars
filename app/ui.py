@@ -99,7 +99,7 @@ border-bottom:1px solid var(--hair)}}
 .steps li:last-child{{border:0}}
 .steps li:before{{content:counter(s,decimal-leading-zero);position:absolute;left:0;top:22px;
 font-size:13px;color:var(--acc);letter-spacing:.08em;font-weight:600}}
-.steps li b{{display:block;font-size:17px;font-weight:600;margin-bottom:4px}}
+.steps li>b{{display:block;font-size:17px;font-weight:600;margin-bottom:4px}}
 .steps li span{{color:var(--mid);font-size:15.5px}}
 details.msg{{border:0;border-bottom:1px solid var(--hair);margin:0}}
 details.msg:first-of-type{{border-top:1px solid var(--hair)}}
@@ -135,9 +135,10 @@ font-weight:600;margin-bottom:7px}}
 .chk{{display:flex;gap:16px;align-items:flex-start;padding:18px 0;border-bottom:1px solid var(--hair)}}
 .chk:last-child{{border:0}}
 .chk .ic{{width:22px;height:22px;flex:0 0 22px;display:flex;align-items:center;
-justify-content:center;font-size:12px;font-weight:700;margin-top:3px;
+justify-content:center;font-size:12px;font-weight:700;padding:0;margin:3px 0 0;
 border:1px solid var(--good);color:var(--good)}}
 .ic.warn{{border-color:var(--warn);color:var(--warn)}} .ic.block{{border-color:var(--bad);color:var(--bad)}}
+.ic.todo{{border-color:var(--hair);color:var(--soft)}} .ic.next{{border-color:var(--acc);color:var(--acc)}}
 .chk .t b{{display:block;font-size:16.5px;font-weight:600}}
 .chk .t span{{color:var(--mid);font-size:15px}}
 .chk .t i{{color:var(--soft);font-size:13px;font-style:italic;display:block;margin-top:3px}}
@@ -178,10 +179,7 @@ LAYOUT = """<!doctype html><html lang="en-AU"><head><meta charset="utf-8">
 <div class="logo"><b>Regulars</b><small>{{venue}}</small></div>
 <nav>{{nav}}</nav></div></header>
 <div class="wrap">{{body}}
-<div class="foot">A working prototype on synthetic Square-shaped data for one Melbourne
-restaurant. Python standard library only &mdash; no framework, no CDN, no build step.
-Every figure in every message traces to an order in the dataset; no figure appears in a
-customer&rsquo;s email unless a human put it there.</div></div></body></html>"""
+<div class="foot">{{foot}}</div></div></body></html>"""
 
 
 # The business named in the header. state.py points this at the saved
@@ -190,20 +188,27 @@ def venue_label():
     return ""
 
 
-# A banner for the top of every signed-in page (billing reminders).
-# views.py points this at the billing state.
-def notice():
+# Banners for the top of every signed-in page (billing reminders, "this is
+# the example data"), given the menu item the page sits under. views.py
+# points this at the real state.
+def notice(active):
     return ""
+
+
+# The line at the foot of every signed-in page. views.py fills it in.
+def footer():
+    return "Regulars"
 
 
 def page(title, body, active="/", venue=None, bare=False):
     """bare: no business name and no menu - for screens shown before anyone
     has signed in, where the menu would only lead to closed doors."""
     if bare:
-        return render(LAYOUT, title=e(title), css=CSS, nav="", body=body, venue="")
-    body = notice() + body
+        return render(LAYOUT, title=e(title), css=CSS, nav="", body=body, venue="",
+                      foot="Regulars")
+    body = notice(active) + body
     nav = "".join(f'<a href="{h}" class="{"on" if h == active else ""}">{e(l)}</a>' for h, l in NAV)
-    return render(LAYOUT, title=e(title), css=CSS, nav=nav, body=body,
+    return render(LAYOUT, title=e(title), css=CSS, nav=nav, body=body, foot=footer(),
                   venue=venue if venue is not None else venue_label())
 
 
