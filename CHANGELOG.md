@@ -4,6 +4,49 @@ Versioning: the state file carries a `schema` number; the server migrates older
 state on boot and writes a `config_change` audit entry when it does. Bump
 `VERSION` and `SCHEMA` in `app/server.py` for every release.
 
+## Unreleased - Gate 2.6: guided onboarding, and real Square exports
+
+A stranger who claimed an instance landed on a Setup screen written for the
+demo, and the file they'd bring from Square wouldn't have imported.
+
+- **Square Dashboard exports import.** The Items Detail CSV was refused
+  ("Simple format needs columns") and, even when forced through, every order
+  landed at midnight and a blank Reference ID collapsed the customer export
+  into one person. Now: separate Date and Time columns, Square Customer ID or
+  name linking (shared names left unlinked, not guessed), Surname, Email
+  Subscription Status as consent with unsubscribes permanent, day/month order
+  from the file then the market, and a clear message when the customer export
+  is put in the first box. The API-style names still work. Sample downloads
+  use the Dashboard layout. The column names come from public posts; check a
+  real header row before the first venue.
+- **Fixed: customer IDs used as email addresses.** A customer without an email
+  got their Square ID as one, so a transactions-only upload with consent
+  attested exported rows addressed to "cust_00000". Now they're "no email" and
+  the report says to upload the customer export. Two Square profiles with one
+  email are still one customer.
+- **Setup is a checklist on a venue's instance** (one with a setup token):
+  business, upload, goals and offers, read, sender, plan, first export, each
+  ticked from the saved state, the next one first. How to export from Square
+  comes from the pack (`EXPORT_STEPS`, `WORDS`).
+- **The example restaurant no longer acts on a venue's customers.** Venues
+  start without its quiet nights and products; **goals and offers are a
+  required step** (the starting offers, such as house wine and $15 off, are a
+  suggestion), so approving and exporting wait until Goals has been saved
+  once. The demo "Connect Square" button and the example's name in the header
+  are gone; screens showing example data say so.
+- **Uploads stay in memory only.** After a restart the checklist asks for the
+  latest export and says why. New persisted `milestones`: goals saved, first
+  upload, first export.
+- **Footer**: the "working prototype" text is replaced by the version, a
+  support address (`REGULARS_SUPPORT_EMAIL`) and a note on example data.
+- Import is faster: 20,475 profiles in 21 s, down from 31 s on the same
+  machine (dictionary lookups instead of list scans).
+- Local runs without a setup token are unchanged: all 20 demo pages, before
+  and after an upload, are identical apart from the footer and a CSS fix that
+  also straightens the Data screen's "!" icons.
+- 24 new tests; two changed (one encoded the customer-ID bug, one checked the
+  old welcome wording).
+
 ## Unreleased - Gate 2.5: upload limit
 
 The 8 MB cap turned away any venue with more than about 1,500 customers'

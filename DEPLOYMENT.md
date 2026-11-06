@@ -92,6 +92,26 @@ MAILTO=you@example.com
 
 Every command takes `--dry-run`.
 
+### What a new owner sees
+
+The setup link lands them on a **checklist** on the Setup screen: business
+details, upload their Square export (the Dashboard steps are beside the form),
+goals and offers, read the messages, sender, plan, first export. Each step ticks
+itself from the venue's saved state, and the next one is shown first. Approving
+and exporting stay off until the business details are saved and the Goals screen
+(where the offers live) has been saved once. Until the first upload, screens
+that show customers are labelled as an example restaurant's made-up data.
+
+Uploads are kept **in memory only**, so `regularsctl upgrade` (or any restart)
+drops each venue's current upload; the owner's checklist then asks for their
+latest export and says why, with everything else kept. Upgrade outside the
+venues' working hours.
+
+**Before the first real venue:** get the header row (the first line only, no
+customer data) of a real Items Detail CSV and a real customer export, from a
+venue or a free Square account, and check them against the importer. The
+column names it expects come from Square's community posts and its 2022 notice.
+
 ### Billing: free preview, pay to send
 
 A new venue can sign in, upload its Square export and read every message
@@ -215,11 +235,11 @@ OAuth endpoints during connect/refresh/revoke.
 | `REGULARS_BILLING` | *(unset)* | `on` = free preview, pay to send (see Billing). `regularsctl provision` sets it; `--no-billing` sets `off` |
 | `REGULARS_VENUE_ID` | *(unset)* | The venue's name in `regularsctl`; sent to Stripe as `client_reference_id` |
 | `REGULARS_PAY_URL_AU` / `REGULARS_PAY_URL_US` | *(unset)* | Your Stripe Payment Links, chosen by the venue's market |
-| `REGULARS_SUPPORT_EMAIL` | *(unset)* | Shown to owners when there's no pay link to show |
+| `REGULARS_SUPPORT_EMAIL` | *(unset)* | Shown to owners in the page footer, beside the upload form (for exports that don't import), and in place of a missing pay link |
 | `REGULARS_BILLING_FILE` | beside the state file | Where the paid-up date is read from (`regulars-billing.json`) |
 | `REGULARS_MAX_UPLOAD_MB` | `50` | Biggest CSV upload accepted (1-500). An upload needs roughly 20x its size in RAM while it's read (a 43 MB export peaked at 823 MB), so raise it only with memory to match. Every other form is capped at 1 MB |
 | `REGULARS_TRUST_PROXY` | *(unset)* | Number of reverse proxies in front (`1` for Caddy/nginx, `2` with a CDN too). Unset = `X-Forwarded-For` ignored. The Docker image sets `1` |
-| `REGULARS_SETUP_TOKEN` | *(unset)* | One-time owner setup link (`/welcome?token=...`). While set and no password exists, the whole app is closed except that link and `/healthz`. At least 24 characters. **Use this for every instance you hand to a venue** |
+| `REGULARS_SETUP_TOKEN` | *(unset)* | One-time owner setup link (`/welcome?token=...`). While set and no password exists, the whole app is closed except that link and `/healthz`. At least 24 characters. It also marks the instance as a venue's own: Setup becomes the onboarding checklist, the demo's goals and "Connect Square" button are left out, and offers must be confirmed before sending. **Use this for every instance you hand to a venue** |
 | `REGULARS_OPEN_FIRST_RUN` | *(unset)* | `1` = allow creating the first password from a non-localhost address. Use once, behind TLS, then unset. Ignored while `REGULARS_SETUP_TOKEN` is set |
 | `SQUARE_CLIENT_ID` / `SQUARE_CLIENT_SECRET` | *(unset)* | Square OAuth application credentials. Unset = the connect button explains setup instead of failing |
 | `REGULARS_REDIRECT_URI` | `http://localhost:8010/oauth/callback` | Must match the redirect URL registered in the Square Developer Dashboard exactly |
@@ -248,14 +268,14 @@ credentials) — useful for staging.
 - [ ] Owner opened their setup link and chose a password (Security screen: "Claimed by its owner through the one-time setup link"), or the operator password was created from localhost
 - [ ] `REGULARS_MASTER_KEY` set from the environment (Security screen → Credentials shows "environment")
 - [ ] Square OAuth configured, or the venue is on CSV upload
-- [ ] Business name, suburb and ABN (or US postal address) saved under **Your business** on Setup; approving and exporting real data stay off until they are
+- [ ] The owner's Setup checklist is all ticked: business name, suburb and ABN (or US postal address) saved, export uploaded, goals and offers saved, sender chosen, plan paid, first batch exported. Approving and exporting real data stay off until the business details and the offers are saved
 - [ ] `/healthz` returns `{"status":"ok","version":...}` and your uptime monitor watches it
 - [ ] `/data` volume (or the three files) included in backups
 - [ ] You know where the audit log is and have clicked **Verify chain integrity** once
 
 ## 7. Patching and releasing
 
-- **Patch:** `git pull && regularsctl upgrade`. It builds the image from the checkout, keeps the old one as `regulars:previous`, and recreates each venue on the new one. State schema migrations run on boot and are written to the audit log. If the first venue isn't healthy within a minute it goes back to `:previous`, `:current` is pointed back at the old image, and nothing else is touched.
+- **Patch:** `git pull && regularsctl upgrade`. It builds the image from the checkout, keeps the old one as `regulars:previous`, and recreates each venue on the new one. Each venue's current upload is dropped (uploads live in memory only), so owners upload again; do it outside their working hours. State schema migrations run on boot and are written to the audit log. If the first venue isn't healthy within a minute it goes back to `:previous`, `:current` is pointed back at the old image, and nothing else is touched.
 - **Roll back on purpose:** `regularsctl upgrade --tag previous` (or any earlier tag in `docker image ls regulars`).
 - **Never** edit `regulars-state.json` or `regulars-audit.log` by hand on a live instance — the audit log is hash-chained and manual edits will (correctly) show up as tampering on the Security screen. `regularsctl restore` and `link --reset-owner` stop the app first and leave an audit trail.
 - **Tests:** from the repository root, `python3 -m unittest discover -s tests -t .` (no dependencies). CI runs them on every pull request.
@@ -281,4 +301,6 @@ These are documented in `../04-COMMERCIAL-READINESS-TEARDOWN.md` with the plan:
 - The stdlib HTTP server is fine behind a proxy for one venue's traffic; it is not a hardened production WSGI server.
 - OAuth tokens are obtained and stored, but live Square API data pulls (Orders/Customers sync) are not wired yet — the app runs on demo data or CSV uploads. This is the first production feature.
 - No email transmission: exports go to the venue's own sender, as designed.
+- The Square Dashboard export columns the importer expects (Items Detail CSV, customer export) come from Square's community posts and 2022 notice; no real export has been checked yet. Check a real header row before the first venue (see "What a new owner sees").
+- Uploads don't survive a restart, by design: Regulars never writes a venue's customer list to disk, so owners upload a fresh export for each batch.
 - Client addresses come from `X-Forwarded-For` only when `REGULARS_TRUST_PROXY` says a proxy is in front, and then only the entry that proxy added. If the app's port is reachable from the internet with that setting on, the header can be forged: keep the port on loopback and let the proxy face the internet.

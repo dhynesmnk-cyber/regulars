@@ -13,7 +13,7 @@ cd app
 python3 server.py 8010          # http://localhost:8010
 
 cd ..
-python3 -m unittest discover -s tests -t .    # 124 tests
+python3 -m unittest discover -s tests -t .    # 219 tests
 ```
 
 Python 3.11 standard library only. No framework, no CDN, no build step, no internet.
@@ -25,7 +25,7 @@ On macOS you can double-click `start.command` instead.
 
 | Screen | What it does |
 |---|---|
-| **Setup** | Connect Square (real OAuth when the server has credentials) **or upload CSVs**; your business details (name, suburb, ABN, or a US postal address) and market (AU/US); your plan (pay or renew); where you are in onboarding; who we deliberately did *not* contact |
+| **Setup** | On a venue's own instance, **a checklist from first sign-in to first export** (below). On a local run, the demo's connect-or-upload screen. Either way: your business details (name, suburb, ABN, or a US postal address) and market (AU/US), the CSV upload, your plan (pay or renew), and who we deliberately did *not* contact |
 | **Goals** | Three questions — times you want busier, products you want to sell, what you're optimising for — plus the **message tone** (warm / punchy / polished / playful), the offer catalogue, and which offer each rule uses |
 | **Triggers** | All ten rules in priority order with live people-counts, a switch each, and **every threshold editable** with a reset |
 | **Messages** | The product. Every message, expandable: the email, the evidence numbers behind it, and why that person got that offer |
@@ -41,17 +41,57 @@ recipient redeemed (in practice roughly a fifth do).
 
 ---
 
+## A venue's first ten minutes
+
+An instance provisioned for a venue (it has a setup token; see DEPLOYMENT.md)
+opens on a **checklist**. Each step knows from the saved state whether it's
+done, and the first one that isn't is marked **Next** and shown first:
+
+1. **Your business**: name, suburb, ABN (or a US postal address). Approving and
+   exporting stay off until it's saved.
+2. **Upload your Square export**, with the Dashboard steps beside the form.
+3. **Your goals and offers.** Required: every message promises an offer, and the
+   starting catalogue is only a suggestion (a free bottle of house wine, $15 off),
+   so approving and exporting wait until the owner has saved Goals once. A venue
+   starts without the example restaurant's quiet nights and products.
+4. **Read your messages**: done once one has been opened since the upload.
+5. **Where they'll go out from**: the sender, so the export carries its unsubscribe tag.
+6. **Your plan**, when billing is on.
+7. **Export your first batch.**
+
+Until the first upload, every screen that shows customers says it's showing an
+example restaurant's made-up data, and the header never shows its name. The
+demo's "Connect Square" button isn't offered (it would swap an upload for the
+example). A local run without a setup token keeps the demo screens exactly as
+they were.
+
+**Regulars doesn't keep a venue's customer list.** An upload lives in memory, so
+a restart (including every upgrade) drops it; the checklist then asks for the
+latest export and says why. Settings, approvals, the sent history and the
+milestones (goals saved, first upload, first export) are kept. In practice an
+owner uploads a fresh export for each batch, roughly monthly.
+
 ## Two ways in
 
-**Connect Square** — read-only Orders, Customers, Catalogue. In production this is
-Square's OAuth screen; here it's a button that loads the demo venue.
+**Connect Square** — read-only Orders, Customers, Catalogue, through Square's
+OAuth screen when the server has credentials (Sending screen). Pulling live
+data through it is not built yet. On a local run, the demo's Setup button
+loads the demo venue.
 
-**Upload CSVs** — for venues that don't want anything connected. Two shapes accepted:
+**Upload CSVs** — what venues do today. Two shapes accepted:
 
-- **Square's own dashboard exports**: a transactions / item-sales CSV (one row per line
-  item) plus, optionally, the customer directory. Headers are matched tolerantly
-  (`Created at`, `Item variation name`, `Sold count`, `Covers`, `Gross money amount`…),
-  because Square has renamed columns over the years.
+- **Square's own Dashboard exports**: the **Items Detail CSV** (Transactions ›
+  Export › Items Detail CSV; one row per line item, with separate Date and Time
+  columns) plus the **customer export** (Customers › Directory › Export
+  customers), which is where the email addresses and the subscription status
+  live. Orders link to customers by Square customer ID, or by name when that's
+  all the file has (a name shared by two customers is left unlinked rather than
+  guessed). Two Square profiles with one email address are one customer.
+  `Email Subscription Status` sets consent, and an unsubscribe is permanent. Day/month order for
+  slashed dates comes from the file, then the market. The older API-style names
+  (`Created at`, `Item variation name`, `Sold count`, `Covers`, `Gross money
+  amount`…) are still accepted. **Caveat:** the Dashboard column names come
+  from Square's community posts and its 2022 notice, not from a real file yet.
 - **A simple documented format**, one row per visit:
   `date, time, email, name, items, party_size, channel` where items is
   `2x Flat White; 1x Garlic Bread`.
@@ -68,11 +108,14 @@ recorded as *merchant attested at import*. If nobody has consent, everything is
 quarantined and the report says so.
 
 Sample files for both formats are linked on the setup screen
-(`/sample/simple.csv`, `/sample/square-transactions.csv`, `/sample/square-customers.csv`).
+(`/sample/simple.csv`, `/sample/square-transactions.csv`, `/sample/square-customers.csv`;
+the Square ones are in the Dashboard layout).
 The simple sample is a 700-visit slice across ~88 customers — their most recent visits,
 spread across the directory, the way a real date-range export looks.
 
 Imports live **in memory only**. Restarting drops them; configuration does not.
+The report also says how many customers have an email address, and when none
+do, that the customer export is missing.
 
 ---
 
@@ -163,8 +206,9 @@ problem, not a cosmetic one — so the tag is chosen for you, not typed.
 ## What persists
 
 Goals, the catalogue and trigger pairings, enabled rules, tuned thresholds, the sending
-setup, the approval ledger and the frequency-cap history are written to
-`regulars-state.json` beside the app, so a restart doesn't wipe an afternoon of setup.
+setup, the approval ledger, the frequency-cap history and the onboarding milestones are
+written to `regulars-state.json` beside the app, so a restart doesn't wipe an afternoon
+of setup.
 Uploaded customer data is deliberately excluded. Delete the file to start clean, or use
 **Start over** on the setup screen.
 
@@ -304,13 +348,21 @@ and times the real code paths (measured 2026-11-05, one CPU core of a cloud VM):
 
 What this means today:
 
-- **Uploads are capped at 50 MB** (`REGULARS_MAX_UPLOAD_MB`), about 9,500
-  customers' full history at the demo's order rate. Measured through the real
-  upload path: a 43 MB Square export (8,367 customers, 130,527 orders)
-  imported in 17 s, and the server's memory **peaked at 823 MB** - about 19
-  times the file - and held 672 MB afterwards. Until Gate 3's leaner import,
-  size the server for the biggest venue's upload, and keep in mind several
-  venues uploading at once.
+- **Uploads are capped at 50 MB** (`REGULARS_MAX_UPLOAD_MB`). In the Square
+  Dashboard's Items Detail layout (27 columns a line) that's about **4,200
+  customers'** full history at the demo's order rate; in the leaner API-style
+  layout, about 9,500. A bigger venue picks a shorter date range in Square,
+  as the upload form says. Measured through the real upload path:
+  - a 24.8 MB Items Detail export plus a 0.3 MB customer export (2,100
+    customers) imported in 7-8 s, and the container held 342 MiB afterwards;
+  - a 43 MB API-style export (8,367 customers, 130,527 orders) imported in
+    17 s, **peaked at 823 MB** - about 19 times the file - and held 672 MB.
+
+  Until Gate 3's leaner import, size the server for the biggest venue's
+  upload, and keep in mind several venues uploading at once.
+- **Import got faster in Gate 2.6** (customer and menu lookups no longer scan
+  lists): on the same machine on 2026-11-06, the 20,475-profile file above
+  imports in 21 s, down from 31 s. The table's 49.7 s was a slower run.
 - **Every page view re-runs the engine**, so at 20,000 customers each screen
   takes 3-5 seconds. Gate 3 caches the result between changes.
 - **The Messages screen shows the first 120 messages only.** The export carries
@@ -333,7 +385,8 @@ tools/bench.py    timings and memory at 2k-50k customers (see Performance)
 deploy/regularsctl.py  run many venues on one server: provision, status, upgrade,
                   backup, restore, link (see DEPLOYMENT.md)
 app/admin.py      in-container operator commands: reset-owner, verify-audit
-app/importer.py   Square-format and simple-format CSV parsing, menu inference
+app/importer.py   Square Dashboard / API-style exports and the simple format: column
+                  matching, customer linking, dates and times, menu inference
 app/security.py   passwords, sessions, CSRF, rate limits, audit chain, secret box, headers
 app/oauth.py      Square authorization-code flow: authorize, exchange, refresh, revoke
 app/store.py      the JSON state file (schema-versioned, migrated on boot)
@@ -343,19 +396,22 @@ app/state.py      the venue's settings (STATE), audit log, guard, secret box, LO
                   sessions, persistence, and the engine run every screen shares
 app/web.py        Req / Resp values passed between the handler and the screens
 app/views.py      HTML fragments shared by several screens
-app/pages/        one module per screen (setup, goals, triggers, messages, sending,
-                  sent, data, security, login): its page plus its form actions
+app/pages/        one module per screen (setup and its venue checklist, goals,
+                  triggers, messages, sending, sent, data, security, login, welcome):
+                  its page plus its form actions
 app/exports.py    audience CSV, copy-paste text, sample input files
 app/upload.py     multipart parsing and CSV-to-dataset import
 Dockerfile        python:3.12-slim, non-root, /data volume, healthcheck
 DEPLOYMENT.md     operator guide: run, proxy, env, Square app, backups, incidents
 CHANGELOG.md      release history and state-schema migrations
 .github/          CI: the full test suite on every push and pull request
-tests/            124 tests: dataset, one-message-per-person, offer/behaviour match,
+tests/            219 tests: dataset, one-message-per-person, offer/behaviour match,
                   the copy rule, suppression, Spam Act/CAN-SPAM footers, regions,
-                  goals/threshold/catalogue sensitivity, import, persistence, HTTP
-                  routes, security primitives, auth/CSRF/lockouts, OAuth roundtrip
-                  against a mock Square token server
+                  goals/threshold/catalogue sensitivity, import (incl. Square
+                  Dashboard exports), persistence, HTTP routes, security primitives,
+                  auth/CSRF/lockouts, OAuth against a mock Square token server, the
+                  setup link, billing, the venue checklist, and regularsctl against a
+                  fake Docker
 ```
 
 The earlier, much larger analytics prototype (`deep-analytics-v1`) is kept separately,
