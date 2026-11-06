@@ -140,10 +140,18 @@ def demo_mode():
     return not STATE.get("password_hash")
 
 
+def demo_instance():
+    """A hosted sales demo (regularsctl provision --demo): set up and closed
+    behind a password like a venue, but showing the example restaurant and
+    its made-up customers, so it keeps the demo screens."""
+    return (os.environ.get("REGULARS_DEMO") or "").strip().lower() in ("1", "on", "yes", "true")
+
+
 def venue_instance():
     """Provisioned for a real venue: regularsctl always gives one a setup
-    token. Local runs and the demo have none, and keep the demo screens."""
-    return setup_token() is not None
+    token. Local runs and the demo have none, and keep the demo screens; so
+    does a hosted demo, which has a token but is not a venue."""
+    return setup_token() is not None and not demo_instance()
 
 
 def on_example():

@@ -208,7 +208,7 @@ def industries():
 def billing_line(meta, on_day):
     """What `status` says about a venue's plan."""
     if meta.get("billing", "on") != "on":
-        return "no billing"
+        return "demo, no billing" if meta.get("demo") else "no billing"
     bill = app_module("billing")
     paid = date.fromisoformat(meta["paid_until"]) if meta.get("paid_until") else None
     st = bill.status(paid, on_day)
@@ -324,18 +324,23 @@ def cmd_provision(ctx, a):
     master = secrets.token_hex(32)
     meta = {"slug": slug, "port": port, "industry": a.industry, "host": host(cfg, slug),
             "created": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-            "billing": "off" if a.no_billing else "on"}
+            "billing": "off" if (a.no_billing or a.demo) else "on"}
+    if a.demo:
+        meta["demo"] = True
     caddy_file = os.path.join(ctx.p(cfg["caddy_dir"]), slug + ".caddy")
     written = []
     try:
         ctx.r.write(os.path.join(ctx.venues_dir, slug + ".json"),
                     json.dumps(meta, indent=2) + "\n", 0o600)
         written.append(os.path.join(ctx.venues_dir, slug + ".json"))
-        ctx.write_env(slug, {"REGULARS_MASTER_KEY": master, "REGULARS_SETUP_TOKEN": token,
-                             "REGULARS_INDUSTRY": a.industry,
-                             "REGULARS_REDIRECT_URI": f"https://{meta['host']}/oauth/callback",
-                             "REGULARS_VENUE_ID": slug,
-                             "REGULARS_BILLING": meta["billing"]})
+        env = {"REGULARS_MASTER_KEY": master, "REGULARS_SETUP_TOKEN": token,
+               "REGULARS_INDUSTRY": a.industry,
+               "REGULARS_REDIRECT_URI": f"https://{meta['host']}/oauth/callback",
+               "REGULARS_VENUE_ID": slug,
+               "REGULARS_BILLING": meta["billing"]}
+        if a.demo:
+            env["REGULARS_DEMO"] = "1"
+        ctx.write_env(slug, env)
         written.append(ctx.env_path(slug))
         run_container(ctx, slug, meta=meta)
         ctx.r.write(caddy_file, caddy_site(cfg, slug, port))
@@ -353,10 +358,16 @@ def cmd_provision(ctx, a):
             ctx.r.run(list(cfg["caddy_reload"]), check=False)
         raise
 
+    if a.demo:
+        first = ("Open your one-time setup link and set your own password. That password is "
+                 "the demo's only gate, so screen-share it or give it only to people you "
+                 "trust: everyone signed in shares one state. Uploads are switched off.")
+    else:
+        first = "Send the owner their one-time setup link:"
     ctx.r.say(f"""
-{slug} is up at https://{meta['host']} (port {port}, {a.industry}).
+{slug} is up at https://{meta['host']} (port {port}, {a.industry}{', demo' if a.demo else ''}).
 
-1. Send the owner their one-time setup link:
+1. {first}
      https://{meta['host']}/welcome?token={token}
 2. Add this to your uptime monitor:
      https://{meta['host']}/healthz
@@ -546,6 +557,9 @@ def parser():
     p = sub.add_parser("provision", help="create a venue and print its setup link")
     p.add_argument("slug")
     p.add_argument("--industry", default="restaurant")
+    p.add_argument("--demo", action="store_true",
+                   help="a sales demo: the example restaurant, uploads off, never billed. "
+                        "You set its password from the setup link")
     p.add_argument("--no-billing", action="store_true",
                    help="never ask this venue to pay (demo or friends-and-family instances)")
     p = sub.add_parser("paid", help="record a payment, e.g. --months 1")

@@ -4,6 +4,25 @@ Versioning: the state file carries a `schema` number; the server migrates older
 state on boot and writes a `config_change` audit entry when it does. Bump
 `VERSION` and `SCHEMA` in `app/server.py` for every release.
 
+## Unreleased - Gate 2.8: a sales demo instance
+
+A provisioned instance always behaved like a venue, so a hosted demo would have
+hidden the example restaurant, stripped its goals and demanded Goals first.
+
+- **`REGULARS_DEMO=1`**: an instance with a setup token that is a demo, not a
+  venue. It is still shut until you open the one-time link and set a password
+  (that password is the only gate), then shows the example restaurant, its goals
+  and the connect-or-upload Setup screen, and never asks for Goals first.
+- **Uploads are off on a demo**: the form is replaced by a sentence and
+  `POST /upload` is refused, because uploads sit in memory shared by everyone
+  signed in and a real customer file would show to the next visitor.
+- **`regularsctl provision <slug> --demo`**: implies billing off, writes
+  `REGULARS_DEMO=1` to the env file (kept by `link`, `upgrade`, `restore`),
+  tells you to set your own password rather than hand the link to an owner, and
+  `status` shows `demo, no billing`.
+- Not done: a public, no-password demo (it would need a read-only mode), and a
+  real Docker/Caddy/TLS run, which is the Gate 2 exit drill.
+
 ## Unreleased - Gate 2.7: the venue's market, and Terms and Privacy links
 
 Everything the owner reads now speaks their market; one place to link your legal pages.

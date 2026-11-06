@@ -11,7 +11,8 @@ first. Wrong tokens count towards the same lockout as wrong passwords.
 import security as SEC
 from pages.login_page import lockout_page
 from state import (AUDIT, GUARD, STATE, VERSION, burn_setup_token, cookie_for,
-                   create_session, demo_mode, flash, setup_token, setup_token_matches)
+                   create_session, demo_instance, demo_mode, flash, setup_token,
+                   setup_token_matches)
 from ui import e, page
 from web import html, redirect, send
 
@@ -105,5 +106,8 @@ def post_welcome(req):
                 detail={"what": "operator_password_created", "via": "setup_link",
                         "version": VERSION})
     session = create_session(req.ip)          # persists STATE, burned token included
-    flash("You're in. Your setup checklist is below: start with your business details.")
+    if demo_instance():
+        flash("You're in. This is the demo: an example restaurant with made-up customers.")
+    else:
+        flash("You're in. Your setup checklist is below: start with your business details.")
     return redirect("/", cookie=cookie_for(session))

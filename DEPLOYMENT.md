@@ -152,11 +152,32 @@ demo data can always be approved and exported, so owners can rehearse.
    A cancellation needs nothing from you: just don't extend it.
 
 `regularsctl status` shows each venue's plan (preview, paid to, due, GRACE,
-LAPSED). Demo and friends-and-family instances: `provision --no-billing`.
+LAPSED). Friends-and-family instances: `provision --no-billing`. A sales demo:
+`provision --demo` (below).
 The paid-up date lives in `/data/regulars-billing.json`, written only by
 `regularsctl paid`; the app re-reads it when it changes and records each new
 date in the audit log. (A Stripe webhook can replace step 3 once there are
 enough venues for it to matter.)
+
+### A sales demo
+
+```
+regularsctl provision demo --demo
+```
+
+This makes a normal instance behind its own address (`demo.<your domain>`) that
+shows the **example restaurant and its made-up customers**, not a venue's setup
+checklist. It is never billed. Open the one-time link it prints and **set your
+own password**: that password is the demo's only gate, so screen-share it, or
+give it only to people you trust. Everyone signed in shares one state (goals
+and settings changes show to the next person), and **uploads are switched
+off**, so nobody's real customer file can land where the next visitor sees it.
+To let a prospect try their own data, `provision` them a normal venue: the
+free preview is exactly that. `regularsctl status` lists it as
+`demo, no billing`; `link`, `upgrade`, `backup` and `restore` treat it like any
+other instance. To undo changes made during a demo, use **Start over** on the
+Setup screen: it clears goals, triggers, sender settings and the sent history
+and keeps your password.
 
 ### Doing it by hand (one venue)
 
@@ -248,6 +269,7 @@ OAuth endpoints during connect/refresh/revoke.
 | `REGULARS_MAX_UPLOAD_MB` | `50` | Biggest CSV upload accepted (1-500). An upload needs roughly 20x its size in RAM while it's read (a 43 MB export peaked at 823 MB), so raise it only with memory to match. Every other form is capped at 1 MB |
 | `REGULARS_TRUST_PROXY` | *(unset)* | Number of reverse proxies in front (`1` for Caddy/nginx, `2` with a CDN too). Unset = `X-Forwarded-For` ignored. The Docker image sets `1` |
 | `REGULARS_SETUP_TOKEN` | *(unset)* | One-time owner setup link (`/welcome?token=...`). While set and no password exists, the whole app is closed except that link and `/healthz`. At least 24 characters. It also marks the instance as a venue's own: Setup becomes the onboarding checklist, the demo's goals and "Connect Square" button are left out, and offers must be confirmed before sending. **Use this for every instance you hand to a venue** |
+| `REGULARS_DEMO` | *(unset)* | `1` = a hosted sales demo: with a setup token it is still closed until claimed, but it shows the example restaurant like a local run (not a venue's checklist) and refuses uploads. `regularsctl provision --demo` sets it |
 | `REGULARS_OPEN_FIRST_RUN` | *(unset)* | `1` = allow creating the first password from a non-localhost address. Use once, behind TLS, then unset. Ignored while `REGULARS_SETUP_TOKEN` is set |
 | `SQUARE_CLIENT_ID` / `SQUARE_CLIENT_SECRET` | *(unset)* | Square OAuth application credentials. Unset = the connect button explains setup instead of failing |
 | `REGULARS_REDIRECT_URI` | `http://localhost:8010/oauth/callback` | Must match the redirect URL registered in the Square Developer Dashboard exactly |

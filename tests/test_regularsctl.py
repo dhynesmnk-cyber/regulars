@@ -405,6 +405,58 @@ class TestBillingCommands(CtlCase):
         self.assertIn("LAPSED 2020-01-01", rows["gone-quiet"])
 
 
+class TestDemoProvision(CtlCase):
+    """Gate 2.8: `provision --demo` is a sales demo, not a venue."""
+
+    def setUp(self):
+        super().setUp()
+        self.assertEqual(self.ctl("provision", "demo", "--demo"), 0)
+        self.demo_out = self.d.output()
+
+    def test_demo_is_marked_billing_off_and_never_charged(self):
+        env = self.env("demo")
+        self.assertEqual(env["REGULARS_DEMO"], "1")
+        self.assertEqual(env["REGULARS_BILLING"], "off")
+        self.assertGreaterEqual(len(env["REGULARS_SETUP_TOKEN"]), 24)    # still closed until claimed
+        meta = self.meta("demo")
+        self.assertEqual((meta["demo"], meta["billing"]), (True, "off"))
+        self.assertEqual(self.ctl("paid", "demo", "--months", "1"), 1)
+
+    def test_demo_next_steps_say_set_your_own_password(self):
+        self.assertIn("set your own password", self.demo_out)
+        self.assertIn("welcome?token=" + self.env("demo")["REGULARS_SETUP_TOKEN"], self.demo_out)
+        self.assertNotIn("Send the owner", self.demo_out)
+
+    def test_a_normal_venue_is_not_a_demo(self):
+        self.assertEqual(self.ctl("provision", "juniper-co"), 0)
+        self.assertNotIn("REGULARS_DEMO", self.env("juniper-co"))
+        self.assertNotIn("demo", self.meta("juniper-co"))
+        self.assertNotIn("set your own password", self.d.output().split(self.demo_out)[-1])
+
+    def test_demo_flag_survives_link_and_upgrade(self):
+        self.assertEqual(self.ctl("link", "demo"), 0)
+        self.assertEqual(self.env("demo")["REGULARS_DEMO"], "1")
+        self.assertEqual(self.ctl("upgrade", "--tag", "v1"), 0)
+        self.assertEqual(self.env("demo")["REGULARS_DEMO"], "1")
+        run = self.d.docker_runs("regulars-demo")[-1]
+        self.assertEqual(run[run.index("--env-file") + 1], self.path("etc/regulars/venues/demo.env"))
+
+    def test_status_calls_it_a_demo(self):
+        self.d.out = io.StringIO()
+        self.ctl("status")
+        row = [ln for ln in self.d.output().splitlines() if ln.startswith("demo")][0]
+        self.assertIn("demo, no billing", row)
+
+    def test_no_billing_alone_is_not_a_demo(self):
+        self.ctl("provision", "friends", "--no-billing")
+        self.assertNotIn("REGULARS_DEMO", self.env("friends"))
+        self.d.out = io.StringIO()
+        self.ctl("status")
+        row = [ln for ln in self.d.output().splitlines() if ln.startswith("friends")][0]
+        self.assertIn("no billing", row)
+        self.assertNotIn("demo", row)
+
+
 class TestAdmin(unittest.TestCase):
     """app/admin.py run for real against a temp state file and audit log."""
 

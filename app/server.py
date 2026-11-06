@@ -26,7 +26,7 @@ import store
 from pages import (data_page, goals_page, login_page, messages_page, security_page,
                    sending_page, sent_page, setup_page, triggers_page, welcome_page)
 from state import (AUDIT, CTX, DS, GUARD, LOCK, SCHEMA, SETUP_TOKEN_MIN, STATE, VERSION,
-                   demo_mode, local_request_allowed, result, session_from_token,
+                   demo_instance, demo_mode, local_request_allowed, result, session_from_token,
                    setup_token, unclaimed)
 from ui import e, page
 from upload import parse_multipart
@@ -374,6 +374,8 @@ def main():
                  f"print(secrets.token_urlsafe(32))\"")
     mode = ("CLOSED until the owner uses their setup link" if unclaimed() else
             "OPEN DEMO MODE - no operator password set" if demo_mode() else "password gated")
+    if demo_instance():
+        mode += " | hosted DEMO: example data only, uploads off"
     bind = bind_address()
     print(f"Regulars {VERSION} -> http://{bind}:{port}")
     print(f"  market: {STATE.get('region', 'AU')} | auth: {mode}")

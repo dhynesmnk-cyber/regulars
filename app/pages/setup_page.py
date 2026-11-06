@@ -9,13 +9,16 @@ import billing as BILL
 import engine as E
 import security as SEC
 from state import (AUDIT, ESP, LOCK, STATE, VERSION, billing_state, business_complete,
-                   dataset, flash, fresh_state, mark, on_example, persist, result,
-                   venue_instance)
+                   dataset, demo_instance, flash, fresh_state, mark, on_example, persist,
+                   result, venue_instance)
 from ui import e, page, stat
 from upload import do_import
 from views import (_business_card, _flash_html, _plan_card, _security_banner,
                    _suppression_card)
 from web import html, redirect
+
+DEMO_NO_UPLOAD = ("This is a demo with made-up customers, so uploads are switched off. "
+                  "Ask for a free preview to try your own data.")
 
 CONSENT_HTML = (
     '<div class="row" style="align-items:flex-start;gap:12px">'
@@ -85,25 +88,34 @@ def page_setup():
                     '<form method="post" action="/connect">'
                     '<button class="btn big">Connect Square</button></form></div></div>')
 
-        body.append('<div class="card"><h3>Or upload exports</h3>'
-                    '<p class="sm muted">Prefer not to connect anything? Upload what you already '
-                    'have. Two shapes are accepted: your Square dashboard exports (transactions '
-                    'plus, optionally, the customer directory), or our simple one-row-per-visit '
-                    'format. Column names are matched tolerantly and you&rsquo;ll get a report of '
-                    'what was found and what wasn&rsquo;t.</p>'
-                    '<form method="post" action="/upload" enctype="multipart/form-data">'
-                    '<div class="filerow"><div class="field"><label>Square transactions / item '
-                    'sales CSV &mdash; or the simple format</label>'
-                    '<input type="file" name="f_main" accept=".csv,text/csv">'
-                    + _upload_limit_html() + '</div>'
-                    '<div class="field"><label>Square customer directory CSV (optional)</label>'
-                    '<input type="file" name="f_cust" accept=".csv,text/csv"></div>'
-                    + CONSENT_HTML + '</div>'
-                    '<div class="row between"><span class="sm muted">No file handy? Try a sample: '
-                    '<a href="/sample/simple.csv">simple format</a> &middot; '
-                    '<a href="/sample/square-transactions.csv">Square transactions</a> &middot; '
-                    '<a href="/sample/square-customers.csv">Square customers</a></span>'
-                    '<button class="btn" type="submit">Read the file</button></div></form></div>')
+        if demo_instance():
+            # Uploads sit in memory, shared by everyone signed in: a real
+            # customer file put here would show to the next visitor.
+            body.append(f'<div class="card"><h3>Your own data</h3>'
+                        f'<p class="sm muted">{e(DEMO_NO_UPLOAD)}</p></div>')
+        else:
+            body.append('<div class="card"><h3>Or upload exports</h3>'
+                        '<p class="sm muted">Prefer not to connect anything? Upload what you '
+                        'already have. Two shapes are accepted: your Square dashboard exports '
+                        '(transactions plus, optionally, the customer directory), or our simple '
+                        'one-row-per-visit format. Column names are matched tolerantly and '
+                        'you&rsquo;ll get a report of what was found and what wasn&rsquo;t.</p>'
+                        '<form method="post" action="/upload" enctype="multipart/form-data">'
+                        '<div class="filerow"><div class="field"><label>Square transactions / '
+                        'item sales CSV &mdash; or the simple format</label>'
+                        '<input type="file" name="f_main" accept=".csv,text/csv">'
+                        + _upload_limit_html() + '</div>'
+                        '<div class="field"><label>Square customer directory CSV '
+                        '(optional)</label>'
+                        '<input type="file" name="f_cust" accept=".csv,text/csv"></div>'
+                        + CONSENT_HTML + '</div>'
+                        '<div class="row between"><span class="sm muted">No file handy? Try a '
+                        'sample: <a href="/sample/simple.csv">simple format</a> &middot; '
+                        '<a href="/sample/square-transactions.csv">Square transactions</a> '
+                        '&middot; '
+                        '<a href="/sample/square-customers.csv">Square customers</a></span>'
+                        '<button class="btn" type="submit">Read the file</button></div></form>'
+                        '</div>')
 
         body.append('<h2>Then three questions</h2><ol class="steps">')
         for t, d in [("What do you want more of?",
@@ -435,6 +447,9 @@ def post_connect(req):
 def post_upload(req):
     """Parsing a big CSV can take a while, so it runs before taking the state
     lock; only the swap-in of the parsed dataset is serialised."""
+    if demo_instance():
+        flash(DEMO_NO_UPLOAD)
+        return redirect("/")
     ds, rep = do_import(req.fields, req.files, STATE.get("region", "AU"))
     with LOCK:
         if ds is None:

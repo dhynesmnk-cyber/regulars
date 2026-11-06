@@ -2384,11 +2384,15 @@ class TestSquareDashboardImport(unittest.TestCase):
 # A venue's own instance: the setup checklist (Gate 2.6)
 # ---------------------------------------------------------------------------
 
-class TestVenueOnboarding(_HTTPHarness, unittest.TestCase):
+class _SignedInVenue(_HTTPHarness):
+    """A provisioned instance whose owner has used the setup link and is
+    signed in. EXTRA_ENV adds settings (e.g. REGULARS_DEMO) before it starts."""
     PASSWORD = "correct horse battery"
+    EXTRA_ENV = {}
 
     def setUp(self):
         os.environ["REGULARS_SETUP_TOKEN"] = SETUP_TOKEN    # before fresh_state()
+        os.environ.update(self.EXTRA_ENV)
         for d in (S.GUARD.locked, S.GUARD.fails, S.GUARD.hits):
             d.clear()
         super().setUp()
@@ -2401,6 +2405,8 @@ class TestVenueOnboarding(_HTTPHarness, unittest.TestCase):
 
     def tearDown(self):
         os.environ.pop("REGULARS_SETUP_TOKEN", None)
+        for k in self.EXTRA_ENV:
+            os.environ.pop(k, None)
         for d in (S.GUARD.locked, S.GUARD.fails, S.GUARD.hits):
             d.clear()
         ST.take_flash()
@@ -2439,6 +2445,7 @@ class TestVenueOnboarding(_HTTPHarness, unittest.TestCase):
         return self.vcall("POST", "/upload", raw=raw,
                           ctype=f"multipart/form-data; boundary={b}")
 
+class TestVenueOnboarding(_SignedInVenue, unittest.TestCase):
     def next_step(self):
         body = self.vget("/")[1]
         m = re.search(r'<b>([^<]+?) <span class="pill p-acc"[^>]*>Next</span>', body)
@@ -2571,8 +2578,69 @@ class TestFooterAndLocalDemo(_HTTPHarness, unittest.TestCase):
         body = self.get("/")[1]
         self.assertIn('action="/connect"', body)
         self.assertNotIn("Your checklist", body)
+        self.assertIn('action="/upload"', body)                  # a local run still takes uploads
         self.assertNotIn("Example data.", self.get("/inbox")[1])
         self.assertTrue(S.STATE["goals"]["push_products"])       # the demo's goals
+
+
+class TestDemoInstance(_SignedInVenue, unittest.TestCase):
+    """Gate 2.8: a hosted sales demo is closed behind a password like a venue
+    but keeps the demo screens, and takes no uploads."""
+    EXTRA_ENV = {"REGULARS_DEMO": "1"}
+
+    def setUp(self):
+        super().setUp()
+        S.STATE["connected"] = False       # a fresh instance, as the harness otherwise skips it
+
+    def test_it_is_a_demo_not_a_venue(self):
+        self.assertTrue(ST.demo_instance())
+        self.assertFalse(ST.venue_instance())
+        self.assertIsNotNone(ST.setup_token())          # it is still claimed with a link
+
+    def test_it_starts_shut_and_stays_password_gated(self):
+        self.assertEqual(self.get("/")[0], 303)         # no cookie: the sign-in gate
+        S.STATE["password_hash"] = None                 # as if never claimed
+        S.STATE["setup_burned"] = []
+        S.STATE["sessions"] = {}
+        st, body, _ = self.get("/")
+        self.assertEqual(st, 403)
+        self.assertIn("set up yet", body)
+
+    def test_the_welcome_message_does_not_point_at_a_checklist(self):
+        S.STATE["password_hash"] = None                 # claim it again, to see the message
+        S.STATE["setup_burned"] = []
+        ST.take_flash()
+        st, _, _ = self.vcall("POST", "/welcome", token=SETUP_TOKEN, password=self.PASSWORD,
+                              password2=self.PASSWORD)
+        self.assertEqual(st, 303)
+        said = " ".join(ST.take_flash())
+        self.assertIn("This is the demo", said)
+        self.assertNotIn("checklist", said)
+
+    def test_setup_is_the_demo_screen_with_the_example_restaurant(self):
+        st, body, _ = self.vget("/")
+        self.assertEqual(st, 200)
+        self.assertIn('action="/connect"', body)
+        self.assertNotIn("Your setup checklist", body)
+        self.assertIn(_h.escape(E.PACK.VENUE["name"]), body)       # named in the header
+        self.assertNotIn("Example data.", self.vget("/inbox")[1])
+
+    def test_it_keeps_the_example_goals_and_never_demands_goals_first(self):
+        self.assertTrue(S.STATE["goals"]["push_products"])
+        S.STATE["dataset"] = D.build()                  # pretend real data were loaded
+        self.assertFalse(ST.offers_unchecked())         # a venue would be blocked here
+        S.STATE["dataset"] = None
+        self.assertIsNone(ST.send_block())              # the demo can always be rehearsed
+
+    def test_uploads_are_refused_and_the_form_is_gone(self):
+        body = self.vget("/")[1]
+        self.assertNotIn('action="/upload"', body)
+        self.assertIn("uploads are switched off", body)
+        st, _, hdr = self.vupload()
+        self.assertEqual((st, hdr["Location"]), (303, "/"))
+        self.assertIsNone(S.STATE["dataset"])
+        self.assertIn("uploads are switched off", " ".join(ST.take_flash()))
+        self.assertEqual(S.STATE["milestones"]["first_upload"], None)
 
 
 class TestMarketCurrencyLanguageAndLegalLinks(_HTTPHarness, unittest.TestCase):
