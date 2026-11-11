@@ -496,7 +496,8 @@ def cmd_paid(ctx, a):
     ctx.config()
     meta = ctx.meta(a.slug)
     if meta.get("billing", "on") != "on":
-        raise Fail(f"{a.slug} was set up with --no-billing")
+        raise Fail(f"{a.slug} was set up with {'--demo' if meta.get('demo') else '--no-billing'}"
+                   f", so it is never billed")
     today = datetime.now(timezone.utc).date()
     if a.until:
         try:

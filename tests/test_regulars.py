@@ -651,6 +651,25 @@ class TestHTTP(_HTTPHarness, unittest.TestCase):
         self.assertEqual(hz["status"], "ok")
         self.assertTrue(hz["version"])
 
+    def _head(self, path):
+        req = request.Request(self.base + path, method="HEAD")
+        try:
+            with request.build_opener(_NoRedirect).open(req, timeout=60) as r:
+                return r.status, r.read(), r.headers
+        except HTTPError as err:
+            return err.code, err.read(), err.headers
+
+    def test_head_answers_the_health_check_and_nothing_else(self):
+        st, body, hdr = self._head("/healthz")              # uptime monitors use HEAD
+        self.assertEqual((st, body), (200, b""))
+        self.assertEqual(hdr["Content-Type"], "application/json")
+        before = len(S.AUDIT.read(500))
+        for path in ("/", "/inbox", "/export.csv"):
+            st, body, hdr = self._head(path)
+            self.assertEqual((st, body, hdr["Allow"]), (405, b"", "GET, POST"), path)
+        self.assertEqual(len(S.AUDIT.read(500)), before)     # no export was logged
+        self.assertEqual(self.get("/healthz")[0], 200)       # GET still carries a body
+
     def test_unconnected_setup_offers_both_paths(self):
         S.STATE["connected"] = False
         _, body, _ = self.get("/")

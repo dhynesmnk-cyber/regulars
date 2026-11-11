@@ -129,7 +129,8 @@ class Handler(BaseHTTPRequestHandler):
         for k, v in (extra or {}).items():
             self.send_header(k, v)
         self.end_headers()
-        self.wfile.write(raw)
+        if self.command != "HEAD":
+            self.wfile.write(raw)
 
     def _redirect(self, loc, cookie=None):
         self.send_response(303)
@@ -195,6 +196,14 @@ class Handler(BaseHTTPRequestHandler):
 
     def _authorized(self):
         return demo_mode() or self._session() is not None
+
+    def do_HEAD(self):
+        """Uptime monitors often check with HEAD. Only the health check answers
+        it: every other page is a GET, so none can be triggered (an export
+        logged, a message marked read) by a request that shows nothing."""
+        if urlparse(self.path).path == "/healthz":
+            return self.do_GET()
+        self._send("", 405, extra={"Allow": "GET, POST"})
 
     def do_GET(self):
         ip = self._ip()

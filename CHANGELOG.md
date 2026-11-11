@@ -4,6 +4,15 @@ Versioning: the state file carries a `schema` number; the server migrates older
 state on boot and writes a `config_change` audit entry when it does. Bump
 `VERSION` and `SCHEMA` in `app/server.py` for every release.
 
+## Unreleased - Gate 2 rehearsal fixes
+
+Found by running the real stack (Docker, Caddy, TLS, `regularsctl`) end to end.
+
+- **`HEAD /healthz` answers 200** (it was 501), so uptime monitors that check
+  with HEAD see the venue as up. HEAD on any other page is 405: no page can be
+  triggered by a request that shows nothing.
+- `regularsctl paid` on a demo says it was set up with `--demo`.
+
 ## Unreleased - Gate 2.8: a sales demo instance
 
 A provisioned instance always behaved like a venue, so a hosted demo would have
