@@ -280,10 +280,12 @@ def _steps(r):
 
     exported = bool(miles.get("first_export"))
     st = (f'First batch exported on {_nice_ts(miles["first_export"])}.' if exported else
-          "Download the CSV and import it into your email tool. Leave out the rows marked "
-          "Holdout: they&rsquo;re how you&rsquo;ll see whether this worked.")
-    steps.append({"key": "export", "title": "Export your first batch", "done": exported,
-                  "status": st, "href": "/export.csv", "cta": "Download the CSV"})
+          "Approve the messages you want to send, export them, and import the file into "
+          "your email tool. Leave out the rows marked Holdout: they&rsquo;re how you&rsquo;ll "
+          "see whether this worked.")
+    steps.append({"key": "export", "title": "Approve and export your first batch",
+                  "done": exported, "status": st, "href": "/inbox",
+                  "cta": "Approve and export"})
     return steps
 
 
@@ -351,9 +353,8 @@ def _next_cta(nxt, r):
         return ('<p style="margin-top:34px"><a class="btn big" href="/sending">Choose where '
                 'they go out from &rarr;</a></p>')
     if nxt == "export":
-        return ('<p style="margin-top:34px"><a class="btn big" href="/export.csv">Download the '
-                f'CSV for {e(ESP[tool][0])}</a> <a class="btn ghost" href="/export-copy.txt">'
-                'Copy as plain text</a></p>')
+        return ('<p style="margin-top:34px"><a class="btn big" href="/inbox">Approve your '
+                f'messages and export them for {e(ESP[tool][0])} &rarr;</a></p>')
     return ""
 
 

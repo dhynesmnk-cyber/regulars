@@ -4,10 +4,10 @@ from collections import Counter
 from datetime import datetime
 
 import engine as E
-from state import (AUDIT, CAT_HELP, CAT_LABEL, STATE, flash, now, persist, result,
-                   send_block)
+from state import (AUDIT, CAT_HELP, CAT_LABEL, STATE, approval_for, approved_messages,
+                   fingerprint, flash, persist, result, send_block, unsub_tag)
 from ui import e, page, stat
-from views import _send_banner, evidence_html, money
+from views import _flash_html, _send_banner, evidence_html, money
 from web import html, redirect
 
 
@@ -18,7 +18,7 @@ def page_inbox(flt=None):
     if flt and flt != "all":
         msgs = [m for m in msgs if m["offer_cat"] == flt]
 
-    body = [_send_banner(), '<h1>Ready to send.</h1>',
+    body = [_send_banner(), _flash_html(), '<h1>Ready to send.</h1>',
             f'<p class="lead">{s["ready"]} messages written from your sales data, '
             f'{s["unique_subjects"]} different subject lines. Open any one to see the email, the '
             f'numbers behind it, and why that person got that offer.</p>']
@@ -48,19 +48,32 @@ def page_inbox(flt=None):
                     f'<div class="sm soft" style="margin:6px 0 10px">{e(CAT_HELP[k])}</div>{lines}</div>')
     body.append('</div></div>')
 
+    n_ok = len(approved_messages(r))
+    todo = sum(1 for m in msgs if not approval_for(m))
+    cat_q = f"?cat={e(flt)}" if flt and flt != "all" else ""
     body.append('<h2>The messages</h2>')
-    body.append('<div class="row between" style="margin:20px 0 30px">'
-                f'<span class="sm muted">Showing {len(msgs)}</span>'
-                '<span><a class="btn sm ghost" href="/export.csv">CSV for your sender</a> '
-                '<a class="btn sm ghost" href="/export-copy.txt">All copy as text</a></span></div>')
+    body.append('<div class="card tight"><div class="row between">'
+                f'<div><b>{n_ok} approved</b> <span class="sm muted">of {s["ready"]}. Approve '
+                f'the ones you want to send, then export them: the file carries only what '
+                f'you&rsquo;ve approved, and nothing leaves this app until you import it into '
+                f'your email tool.</span></div><span>'
+                + (f'<form method="post" action="/approve-all{cat_q}" style="display:inline">'
+                   f'<button class="btn sm ghost" type="submit">Approve all {todo}'
+                   f'{" shown" if cat_q else ""}</button></form> ' if todo else "")
+                + (f'<form method="post" action="/export" style="display:inline">'
+                   f'<button class="btn sm green" type="submit">Export these {n_ok}</button>'
+                   f'</form>' if n_ok else "")
+                + '</span></div></div>')
+    body.append(f'<p class="sm muted" style="margin:20px 0 30px">Showing {len(msgs)}</p>')
     for m in msgs[:120]:
         c = m["customer"]
-        ap = m["id"] in STATE["approved"]
+        ap = approval_for(m)
         initial = c["name"].split(" ", 1)[1][:1] + "." if " " in c["name"] else ""
-        ap_pill = '<span class="pill p-good">approved</span>' if ap else ""
-        dim = ' style="opacity:.5"' if ap else ""
+        ap_pill = ('<span class="pill p-good">approved</span>' if ap else
+                   '<span class="pill p-warn">changed since you approved</span>'
+                   if m["id"] in STATE["approved"] else "")
         body.append(
-            f'<details class="msg"{dim}><summary>'
+            f'<details class="msg"><summary>'
             f'<span class="who">{e(c["first_name"])} {e(initial)}</span>'
             f'<span class="subj">{e(m["subject"])}</span>{ap_pill}'
             f'<span class="pill p-acc">{e(CAT_LABEL.get(m["offer_cat"], m["offer_cat"]))}</span>'
@@ -68,12 +81,21 @@ def page_inbox(flt=None):
             f'</summary><div class="mbody">{_message_body(m)}</div></details>')
     if len(msgs) > 120:
         body.append(f'<p class="sm muted" style="margin-top:24px">Showing the first 120 of '
-                    f'{len(msgs)}. The CSV export carries all of them.</p>')
+                    f'{len(msgs)}. &ldquo;Approve all&rdquo; covers every one of them.</p>')
     return page("Messages", "".join(body), "/inbox")
 
 
 def _message_body(m):
     c = m["customer"]
+    ap = approval_for(m)
+    subject = (ap or {}).get("subject") or m["subject"]
+    text = (ap or {}).get("body") or m["body"]
+    if ap:
+        action = (f'<form method="post" action="/unapprove?id={e(m["id"])}" style="display:inline">'
+                  f'<button class="btn ghost sm" type="submit">Undo approval</button></form>')
+    else:
+        action = (f'<form method="post" action="/approve?id={e(m["id"])}" style="display:inline">'
+                  f'<button class="btn green sm" type="submit">Approve this one</button></form>')
     return (
         f'<div class="row between sm"><span class="muted">To: <b>{e(c["email"])}</b></span>'
         f'<span class="muted">Consent: {e(c.get("consent_source") or "unrecorded")}'
@@ -82,13 +104,12 @@ def _message_body(m):
         f'<div class="sm soft">These numbers are for you. None of them appear in the email below '
         f'&mdash; the customer gets their usual and a vague sense of time, never a ratio.</div>'
         f'<div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div>'
-        f'<b style="font-size:18px">{e(m["subject"])}</b></div>'
+        f'<b style="font-size:18px">{e(subject)}</b></div>'
         f'<span class="pill p-mute">{e(m["trigger_name"])}</span></div>'
-        f'<div class="email" style="margin-top:18px">{e(m["body"])}</div>'
+        f'<div class="email" style="margin-top:18px">{e(text)}</div>'
         f'<div class="why"><b>Why this person, why this offer:</b> {m["why"]}</div>'
         f'<div class="row" style="margin-top:26px">'
-        f'<form method="post" action="/approve?id={e(m["id"])}" style="display:inline">'
-        f'<button class="btn green sm" type="submit">Approve this one</button></form>'
+        f'{action}'
         f'<a class="btn ghost sm" href="/m?id={e(m["id"])}">Open &amp; edit</a>'
         f'<span class="sm soft">Offer: {e(m["offer_label"])} &mdash; costs '
         f'{money(m["offer_cost"], 2)} if redeemed</span></div>'
@@ -149,19 +170,27 @@ def page_message(mid):
     body.append(f'<div class="why" style="font-size:16px">{m["why"]}</div>')
     body.append(f'<div class="note sm"><b>The rule that fired:</b> {e(m["trigger_rule"])}</div>')
 
+    ap = approval_for(m)
     body.append('<h2>The message</h2>')
+    if ap:
+        body.append(f'<div class="good sm"><b>Approved</b> {e(ap.get("approved_at", ""))}. It '
+                    f'goes out with your next export. Change the wording below and approve '
+                    f'again to replace it.</div>')
     body.append('<form method="post" action="/approve-edit" class="card">')
     body.append(f'<input type="hidden" name="id" value="{e(m["id"])}">')
     body.append('<div class="field"><label>Subject line</label>'
-                f'<input type="text" name="subject" value="{e(m["subject"])}"></div>')
+                f'<input type="text" name="subject" '
+                f'value="{e((ap or {}).get("subject") or m["subject"])}"></div>')
     body.append('<div class="field"><label>Email body</label>'
-                f'<textarea name="body" rows="16">{e(m["body"])}</textarea></div>')
+                f'<textarea name="body" rows="16">'
+                f'{e((ap or {}).get("body") or m["body"])}</textarea></div>')
     body.append('<div class="warn sm">Edit freely &mdash; but keep the footer. It carries the venue '
                 'name, the ABN, the reason they&rsquo;re receiving this and the unsubscribe tag. '
                 'Those four things are what keep you on the right side of the Spam Act. And keep '
                 'the copy free of their numbers: no gaps, no counts, no ratios.</div>')
-    body.append('<div class="row"><button class="btn big green" type="submit">Approve and add to '
-                'the send list</button><a class="btn ghost" href="/inbox">Back</a></div>')
+    body.append('<div class="row"><button class="btn big green" type="submit">'
+                + ('Approve again with these words' if ap else 'Approve for the next export')
+                + '</button><a class="btn ghost" href="/inbox">Back</a></div>')
     body.append('</form>')
     return page(c["name"], "".join(body), "/inbox")
 
@@ -176,34 +205,64 @@ def get_message(req):
     return html(page_message(req.q.get("id", "")))
 
 
+def _approve(m, subject=None, body=None, approver=None):
+    """Mark one message ready for the next export. An edit is kept only if
+    it differs from the generated text."""
+    STATE["approved"][m["id"]] = {
+        "fingerprint": fingerprint(m),
+        "subject": subject if subject and subject != m["subject"] else None,
+        "body": body if body and body != m["body"] else None,
+        "approver": approver or "venue manager",
+        "unsub_tag": unsub_tag(),      # so an edited body can follow a change of email tool
+        "approved_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
+    }
+
+
 def post_approve(req):
     blocked = send_block()
     if blocked:
         flash(blocked)
         return redirect("/")
     one = req.one
-    r = result()
     mid = req.q.get("id") or one("id", "")
-    m = next((x for x in r["messages"] if x["id"] == mid), None)
+    m = next((x for x in result()["messages"] if x["id"] == mid), None)
     if m:
-        STATE["approved"].add(mid)
-        STATE["sent"].append({
-            "id": mid, "customer_id": m["customer_id"], "name": m["customer"]["name"],
-            "email": m["customer"]["email"], "trigger_name": m["trigger_name"],
-            "offer_label": m["offer_label"], "offer_cat": m["offer_cat"],
-            "offer_cost": m["offer_cost"],
-            "subject": one("subject") or m["subject"],
-            "body": one("body") or m["body"],
-            "approver": one("approver") or "venue manager",
-            "approved_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
-            "consent_basis": m["customer"].get("consent_source") or "unrecorded",
-        })
-        STATE["sent_history"][m["customer_id"]] = now().isoformat()
+        body = one("body")
+        _approve(m, one("subject"), body.replace("\r\n", "\n") if body else None,
+                 one("approver"))
         persist()
         AUDIT.write("approve", ip=req.ip,
                     detail={"message_id": mid,
                             "customer_id": m["customer_id"],
                             "trigger": m["trigger_name"],
                             "offer": m["offer_label"],
+                            "edited": bool(STATE["approved"][mid]["subject"]
+                                           or STATE["approved"][mid]["body"]),
                             "approver": one("approver") or "venue manager"})
     return redirect("/m?id=" + mid if req.path == "/approve-edit" else "/inbox")
+
+
+def post_approve_all(req):
+    blocked = send_block()
+    if blocked:
+        flash(blocked)
+        return redirect("/")
+    cat = req.q.get("cat")
+    todo = [m for m in result()["messages"]
+            if (not cat or m["offer_cat"] == cat) and not approval_for(m)]
+    for m in todo:
+        _approve(m)
+    if todo:
+        persist()
+        AUDIT.write("approve", ip=req.ip,
+                    detail={"what": "approve_all", "messages": len(todo), "category": cat or "all",
+                            "approver": "venue manager"})
+    return redirect("/inbox" + (f"?cat={cat}" if cat else ""))
+
+
+def post_unapprove(req):
+    mid = req.q.get("id") or req.one("id", "")
+    if STATE["approved"].pop(mid, None) is not None:
+        persist()
+        AUDIT.write("approve", ip=req.ip, detail={"what": "undo", "message_id": mid})
+    return redirect("/inbox")

@@ -4,6 +4,31 @@ Versioning: the state file carries a `schema` number; the server migrates older
 state on boot and writes a `config_change` audit entry when it does. Bump
 `VERSION` and `SCHEMA` in `app/server.py` for every release.
 
+## Unreleased - Approve, then export what was approved (schema 4)
+
+The rehearsal showed approve and export working against each other: approving
+recorded a message as sent and capped the customer at once, so the export held
+everyone *except* the approved people, needed no approval, and dropped edits.
+
+- **Approve marks a message ready** and nothing else. It stays in the list with
+  an "approved" pill and an Undo. **Approve all** covers everything, or one
+  offer category.
+- **Export these N** makes a batch from the approved messages. Only then are
+  they written to the Sent ledger and their frequency cap started. The file
+  holds exactly those messages, with the owner's edits.
+- **Batches live on Sent** and can be downloaded again, unchanged, any time
+  (`/export.csv?batch=...`; without `batch`, the latest). Holdout is every tenth
+  row of the batch, fixed when it is exported.
+- **An approval lapses if the message changes** (goals, offers, business
+  details, a new upload): it shows "changed since you approved" and is left out
+  until approved again. Choosing a different email tool only swaps the
+  unsubscribe tag and keeps approvals.
+- Preview, a lapsed plan, missing business details and unsaved Goals still block
+  both steps. The checklist's last step is "Approve and export your first batch".
+- **Schema 4**: `approved` is now a record per message. Old approvals were
+  already in the ledger, so the old list is dropped; the ledger is kept and
+  shown as "Approved before batches".
+
 ## Unreleased - Gate 2 rehearsal fixes
 
 Found by running the real stack (Docker, Caddy, TLS, `regularsctl`) end to end.

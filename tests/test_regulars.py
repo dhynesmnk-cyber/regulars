@@ -35,6 +35,7 @@ os.environ.setdefault("REGULARS_AUDIT_LOG", os.path.join(_AUDIT_TMP, "audit.log"
 
 import data as D           # noqa: E402
 import engine as E         # noqa: E402
+import exports as EX       # noqa: E402
 import importer as IMP     # noqa: E402
 import store               # noqa: E402
 import oauth as OAUTH      # noqa: E402
@@ -53,6 +54,13 @@ class _NoRedirect(request.HTTPRedirectHandler):
 DS = D.build()
 ALL_ORDERS = [o for c in DS["customers"] for o in c["orders"]]
 R = E.run(DS, D.DEFAULT_GOALS, D.DEFAULT_GOALS)
+
+
+def _batch_csv(messages=None):
+    """The export file for a batch of these messages, each approved as generated."""
+    msgs = R["messages"] if messages is None else messages
+    return EX.export_csv([EX.ledger_entry(m, {}, "t1", "2026-11-11 09:00", i)
+                          for i, m in enumerate(msgs)])
 
 
 def _goals(**kw):
@@ -369,13 +377,13 @@ class TestSpamActCompliance(unittest.TestCase):
                 self.assertNotIn(bad, m["body"].lower())
 
     def test_export_carries_consent_basis(self):
-        header = [ln for ln in S.export_csv().splitlines() if ln.startswith("Email,")][0]
+        header = [ln for ln in _batch_csv().splitlines() if ln.startswith("Email,")][0]
         for col in ("Email", "First Name", "Subject", "Body", "Offer", "Offer Category",
                     "Trigger", "Consent Source", "Consent Date", "Holdout"):
             self.assertIn(col, header)
 
     def test_export_holds_back_a_control_group(self):
-        rows = list(_csv.reader(io.StringIO(S.export_csv())))
+        rows = list(_csv.reader(io.StringIO(_batch_csv())))
         hdr = rows.index(["Email", "First Name", "Last Name", "Subject", "Body", "Offer",
                           "Offer Category", "Trigger", "Consent Source", "Consent Date",
                           "Holdout"])
@@ -385,7 +393,7 @@ class TestSpamActCompliance(unittest.TestCase):
         self.assertAlmostEqual(len(held) / len(body), 0.10, delta=0.03)
 
     def test_export_never_leaks_spend_or_phone(self):
-        csv_text = S.export_csv()
+        csv_text = _batch_csv()
         header = [ln for ln in csv_text.splitlines() if ln.startswith("Email,")][0]
         for col in ("Phone", "Spend", "Lifetime", "Card", "Order", "Items"):
             self.assertNotIn(col, header)
@@ -610,6 +618,12 @@ class _HTTPHarness:
         except HTTPError as err:
             return err.code, err.read().decode(), err.headers
 
+    def export_all(self, text=False):
+        """Approve every message, export them as a batch, download the file."""
+        self.post("/approve-all")
+        self.post("/export")
+        return self.get("/export-copy.txt" if text else "/export.csv")
+
     def post_multipart(self, path, fields, files):
         boundary = "----regularstestboundary"
         buf = io.BytesIO()
@@ -796,10 +810,9 @@ class TestHTTP(_HTTPHarness, unittest.TestCase):
         self.post("/sending", tool="mailchimp", smtp_host="", smtp_port="587")
         self.assertEqual(S.STATE["sender"]["tool"], "mailchimp")
         self.assertEqual(S.STATE["goals"]["unsub_tag"], "*|UNSUB|*")
-        _, body, _ = self.get("/export-copy.txt")
-        self.assertIn("*|UNSUB|*", S.export_csv())
+        self.assertIn("*|UNSUB|*", _batch_csv(S.result()["messages"]))
         self.post("/sending", tool="klaviyo")
-        self.assertIn("{% unsubscribe %}", S.export_csv())
+        self.assertIn("{% unsubscribe %}", _batch_csv(S.result()["messages"]))
         self.post("/sending", tool="none")
         self.assertEqual(S.STATE["goals"]["unsub_tag"], "{{unsubscribe_url}}")
 
@@ -817,31 +830,126 @@ class TestHTTP(_HTTPHarness, unittest.TestCase):
         _, body, _ = self.get("/sending")
         self.assertTrue("Connection test" in body)
 
-    def test_approve_adds_to_ledger_and_caps_that_person(self):
+    def test_approve_marks_ready_and_changes_nothing_else(self):
         m = R["messages"][0]
         st, _, hdr = self.post(f"/approve?id={m['id']}")
         self.assertEqual(hdr["Location"], "/inbox")
-        self.assertEqual(len(S.STATE["sent"]), 1)
-        rec = S.STATE["sent"][0]
-        self.assertEqual(rec["customer_id"], m["customer_id"])
-        self.assertIn("consent_basis", rec)
-        self.assertNotIn(m["customer_id"],
-                         {x["customer_id"] for x in S.result()["messages"]})
+        self.assertIn(m["id"], S.STATE["approved"])
+        self.assertEqual(S.STATE["sent"], [])                     # not sent until exported
+        self.assertEqual(S.STATE["sent_history"], {})             # and not capped
+        self.assertIn(m["customer_id"], {x["customer_id"] for x in S.result()["messages"]})
+        _, body, _ = self.get("/inbox")
+        self.assertIn("<b>1 approved</b>", body)
+        self.assertIn("Export these 1", body)
+        self.assertIn(f'action="/unapprove?id={m["id"]}"', body)
+        self.post(f"/unapprove?id={m['id']}")
+        self.assertEqual(S.STATE["approved"], {})
+        self.assertNotIn("Export these", self.get("/inbox")[1])
 
-    def test_approve_with_edit_keeps_the_edit(self):
+    def test_export_carries_exactly_what_was_approved(self):
+        picked = R["messages"][:3]
+        for m in picked:
+            self.post(f"/approve?id={m['id']}")
+        st, _, hdr = self.post("/export")
+        self.assertEqual((st, hdr["Location"]), (303, "/sent"))
+        st, body, hdr = self.get("/export.csv")
+        self.assertEqual(st, 200)
+        rows = [r for r in _csv.reader(io.StringIO(body)) if r and not r[0].startswith("#")]
+        self.assertEqual([r[0] for r in rows[1:]], [m["customer"]["email"] for m in picked])
+        # only now are they in the ledger, capped, and gone from the list
+        self.assertEqual([x["customer_id"] for x in S.STATE["sent"]],
+                         [m["customer_id"] for m in picked])
+        self.assertIn("consent_basis", S.STATE["sent"][0])
+        self.assertEqual(S.STATE["approved"], {})
+        left = {x["customer_id"] for x in S.result()["messages"]}
+        self.assertFalse(left & {m["customer_id"] for m in picked})
+        self.assertGreaterEqual(len(left), R["summary"]["ready"] - 3)   # the rest remain
+        detail = [ev for ev in S.AUDIT.read(500) if ev["event"] == "export"
+                  and ev["detail"].get("what") == "batch"][-1]["detail"]
+        self.assertEqual(detail["messages"], 3)
+
+    def test_export_with_nothing_approved_is_refused(self):
+        st, _, hdr = self.post("/export")
+        self.assertEqual((st, hdr["Location"]), (303, "/inbox"))
+        self.assertEqual(S.STATE["sent"], [])
+        self.assertIn("Approve at least one message first", self.get("/inbox")[1])
+        st, _, hdr = self.get("/export.csv")                      # and nothing to download
+        self.assertEqual((st, hdr["Location"]), (303, "/inbox"))
+
+    def test_approve_with_edit_keeps_the_edit_in_the_file(self):
         m = R["messages"][0]
-        self.post("/approve-edit", id=m["id"], subject="Mine", body="Mine too")
+        self.post("/approve-edit", id=m["id"], subject="Mine", body="Mine too\r\nline two")
+        self.assertEqual(S.STATE["approved"][m["id"]]["subject"], "Mine")
+        self.assertIn('value="Mine"', self.get(f"/m?id={m['id']}")[1])
+        self.post("/export")
         self.assertEqual(S.STATE["sent"][0]["subject"], "Mine")
+        rows = [r for r in _csv.reader(io.StringIO(self.get("/export.csv")[1]))
+                if r and r[0] == m["customer"]["email"]]
+        self.assertEqual((rows[0][3], rows[0][4]), ("Mine", "Mine too\nline two"))
+
+    def test_approve_all_and_by_category(self):
+        cat = R["messages"][0]["offer_cat"]
+        n_cat = sum(1 for m in R["messages"] if m["offer_cat"] == cat)
+        st, _, hdr = self.post(f"/approve-all?cat={cat}")
+        self.assertEqual(hdr["Location"], f"/inbox?cat={cat}")
+        self.assertEqual(len(S.STATE["approved"]), n_cat)
+        self.post("/approve-all")
+        self.assertEqual(len(S.STATE["approved"]), R["summary"]["ready"])
+        self.assertNotIn('action="/approve-all', self.get("/inbox")[1])
+
+    def test_an_approval_lapses_when_the_message_changes(self):
+        m = next(x for x in R["messages"] if x["offer_label"] == "$15 off your bill")
+        other = next(x for x in R["messages"] if x["offer_label"] != "$15 off your bill")
+        self.post(f"/approve?id={m['id']}")
+        self.post(f"/approve?id={other['id']}")
+        for o in S.STATE["goals"]["catalog"]:                     # the owner changes the offer
+            if o["label"] == "$15 off your bill":
+                o["label"] = "$20 off your bill"
+        now_ = next(x for x in S.result()["messages"] if x["id"] == m["id"])
+        self.assertIn("$20 off", now_["body"])
+        self.assertIsNone(ST.approval_for(now_))
+        self.assertIn("changed since you approved", self.get(f"/inbox?cat={m['offer_cat']}")[1])
+        self.post("/export")
+        self.assertEqual([x["id"] for x in S.STATE["sent"]], [other["id"]])
+        self.assertIn(m["id"], S.STATE["approved"])               # still waiting for a fresh yes
+
+    def test_choosing_an_email_tool_keeps_approvals_and_updates_the_tag(self):
+        m = R["messages"][0]
+        self.post(f"/approve?id={m['id']}")
+        self.post("/sending", tool="mailchimp", smtp_host="", smtp_port="587")
+        self.post("/export")
+        self.assertEqual(len(S.STATE["sent"]), 1)
+        self.assertIn("*|UNSUB|*", S.STATE["sent"][0]["body"])
+
+    def test_a_batch_downloads_again_unchanged_and_batches_stay_apart(self):
+        self.post(f"/approve?id={R['messages'][0]['id']}")
+        self.post("/export")
+        first = self.get("/export.csv")[1]
+        bid = S.STATE["sent"][0]["batch"]
+        self.post(f"/approve?id={R['messages'][5]['id']}")
+        time.sleep(1.1)                                           # batch ids are per second
+        self.post("/export")
+        self.assertEqual(len(EX.batches()), 2)
+        self.assertEqual(self.get(f"/export.csv?batch={bid}")[1], first)
+        latest = self.get("/export.csv")[1]
+        self.assertIn(R["messages"][5]["customer"]["email"], latest)
+        self.assertNotIn(R["messages"][0]["customer"]["email"], latest)
+        _, sent, _ = self.get("/sent")
+        self.assertEqual(sent.count("Download the CSV"), 2)
+        self.assertEqual(self.get("/export.csv?batch=nope")[0], 303)
 
     def test_sent_page_lists_the_ledger(self):
         m = R["messages"][0]
         self.post(f"/approve?id={m['id']}")
+        self.assertIn("Nothing exported yet", self.get("/sent")[1])
+        self.post("/export")
         _, body, _ = self.get("/sent")
+        self.assertIn("Batch of 1 exported.", body)
         self.assertTrue(_h.escape(m["customer"]["name"]) in body)
         self.assertTrue("append-only" in body)
 
     def test_csv_export(self):
-        st, body, hdr = self.get("/export.csv")
+        st, body, hdr = self.export_all()
         self.assertEqual(st, 200)
         self.assertIn("text/csv", hdr["Content-Type"])
         rows = [r for r in list(_csv.reader(io.StringIO(body))) if r and not r[0].startswith("#")]
@@ -849,7 +957,7 @@ class TestHTTP(_HTTPHarness, unittest.TestCase):
         self.assertEqual(len(rows), R["summary"]["ready"] + 1)
 
     def test_copy_export_has_a_preflight_checklist(self):
-        _, body, hdr = self.get("/export-copy.txt")
+        _, body, hdr = self.export_all(text=True)
         self.assertIn("text/plain", hdr["Content-Type"])
         self.assertIn("BEFORE YOU SEND", body)
         self.assertIn("holdout", body.lower())
@@ -1227,6 +1335,8 @@ class TestHTTPSecurity(unittest.TestCase):
         m = S.result()["messages"][0]
         self.assertIn("412 Smith St", m["body"])
         self.assertIn("commercial email", m["body"])
+        self.post("/approve-all", cookie, csrf=tok)
+        self.post("/export", cookie, csrf=tok)
         st, _, _ = self.get("/export.csv", cookie)      # exports audited
         self.assertEqual(st, 200)
         events = [ev["event"] for ev in S.AUDIT.read(500)]
@@ -1733,7 +1843,7 @@ class TestBusinessIdentity(_HTTPHarness, unittest.TestCase):
     def test_demo_data_keeps_the_demo_signature(self):
         for m in S.result()["messages"]:
             self.assertIn(f"- {self.DEMO_NAME}", m["body"])
-        st, _, _ = self.get("/export.csv")
+        st, _, _ = self.export_all()
         self.assertEqual(st, 200)
 
     def test_setup_shows_the_business_form(self):
@@ -1774,7 +1884,9 @@ class TestBusinessIdentity(_HTTPHarness, unittest.TestCase):
             self.assertIn("ABN 51 824 753 556", m["body"])
             self.assertNotIn("[Your business name]", m["body"])
             self.assertNoDemoIdentity(m["body"])
-        st, csv_text, _ = self.get("/export.csv")
+        st, _, hdr = self.post("/approve?id=" + parse.quote(msgs[0]["id"]), approver="Sam")
+        self.assertEqual(hdr["Location"], "/inbox")
+        st, csv_text, _ = self.export_all()
         self.assertEqual(st, 200)
         self.assertIn("Juniper & Co", csv_text)
         self.assertNoDemoIdentity(csv_text)
@@ -1782,9 +1894,8 @@ class TestBusinessIdentity(_HTTPHarness, unittest.TestCase):
         self.assertEqual(st, 200)
         self.assertIn("ABN in the footer is correct: 51 824 753 556", txt)
         self.assertNoDemoIdentity(txt)
-        st, _, hdr = self.post("/approve?id=" + parse.quote(msgs[0]["id"]), approver="Sam")
-        self.assertEqual(hdr["Location"], "/inbox")
-        self.assertEqual(len(S.STATE["sent"]), 1)
+        self.assertEqual(len(S.STATE["sent"]), len(msgs))
+        self.assertEqual(S.STATE["sent"][0]["approver"], "Sam")
         self.assertNoDemoIdentity(S.STATE["sent"][0]["body"])
 
     def test_bad_or_missing_details_are_refused_whole(self):
@@ -1808,7 +1919,7 @@ class TestBusinessIdentity(_HTTPHarness, unittest.TestCase):
         self.assertIn("- Juniper & Co", body)
         self.assertIn("1 Main St, Springfield IL 62701", body)
         self.assertNotIn("ABN", body)
-        st, _, _ = self.get("/export.csv")
+        st, _, _ = self.export_all()
         self.assertEqual(st, 200)
 
     def test_tone_sign_off_uses_the_saved_name(self):
@@ -2161,9 +2272,15 @@ class TestBillingHTTP(_HTTPHarness, unittest.TestCase):
         self.B.write(self.B.today() + timedelta(days=days_from_today))
 
     def can_send(self, mid):
+        """Approve one message and export it; False if either step is refused.
+        Each call uses up one message, so pass the next one's id."""
+        before = len(S.STATE["sent"])
+        mid = S.result()["messages"][0]["id"]
         st, _, hdr = self.post("/approve?id=" + parse.quote(mid))
+        _, _, out = self.post("/export")
         exp, _, _ = self.get("/export.csv")
-        return hdr["Location"] == "/inbox" and exp == 200
+        return (hdr["Location"] == "/inbox" and out["Location"] == "/sent" and exp == 200
+                and len(S.STATE["sent"]) == before + 1)
 
     def test_preview_shows_everything_but_sending_waits_for_payment(self):
         mid = self.go_live()
@@ -2509,7 +2626,9 @@ class TestVenueOnboarding(_SignedInVenue, unittest.TestCase):
         self.assertIsNone(S.STATE["milestones"]["first_export"])
         mid = S.result()["messages"][0]["id"]
         self.vpost("/approve?id=" + parse.quote(mid))
-        self.assertEqual(S.STATE["sent"], [])
+        st, _, hdr = self.vpost("/export")
+        self.assertEqual((st, hdr["Location"]), (303, "/"))
+        self.assertEqual((S.STATE["approved"], S.STATE["sent"]), ({}, []))
 
         self.vpost("/goals", priority="repeat", tone="warm")
         self.assertTrue(S.STATE["milestones"]["goals_saved"])
@@ -2519,8 +2638,14 @@ class TestVenueOnboarding(_SignedInVenue, unittest.TestCase):
         self.assertEqual(self.next_step(), "Where they’ll go out from")
 
         self.vpost("/sending", tool="mailchimp")
-        self.assertEqual(self.next_step(), "Export your first batch")
+        self.assertEqual(self.next_step(), "Approve and export your first batch")
 
+        st, _, hdr = self.vpost("/export")                   # nothing approved yet
+        self.assertEqual((st, hdr["Location"]), (303, "/inbox"))
+        self.assertIsNone(S.STATE["milestones"]["first_export"])
+        self.vpost("/approve-all")
+        st, _, hdr = self.vpost("/export")
+        self.assertEqual((st, hdr["Location"]), (303, "/sent"))
         st, csv_text, _ = self.vget("/export.csv")
         self.assertEqual(st, 200)
         self.assertIn("Juniper & Co", csv_text)
@@ -2553,9 +2678,12 @@ class TestVenueOnboarding(_SignedInVenue, unittest.TestCase):
             self.assertEqual(self.next_step(), "Your plan")
             body = self.vget("/")[1]
             self.assertIn("test_au?client_reference_id=juniper-co", body)
-            self.assertEqual(self.vget("/export.csv")[0], 303)      # preview: not yet
+            st, _, hdr = self.vpost("/approve-all")                  # preview: not yet
+            self.assertEqual((st, hdr["Location"], S.STATE["approved"]), (303, "/", {}))
             billing.write(billing.today() + timedelta(days=30))
-            self.assertEqual(self.next_step(), "Export your first batch")
+            self.assertEqual(self.next_step(), "Approve and export your first batch")
+            self.vpost("/approve-all")
+            self.vpost("/export")
             self.assertEqual(self.vget("/export.csv")[0], 200)
 
     def test_connect_never_swaps_an_upload_for_the_example(self):
@@ -2600,6 +2728,42 @@ class TestFooterAndLocalDemo(_HTTPHarness, unittest.TestCase):
         self.assertIn('action="/upload"', body)                  # a local run still takes uploads
         self.assertNotIn("Example data.", self.get("/inbox")[1])
         self.assertTrue(S.STATE["goals"]["push_products"])       # the demo's goals
+
+
+class TestSchema4Migration(unittest.TestCase):
+    """Before schema 4, approving wrote straight to the ledger and `approved`
+    was a list of ids. The ledger is kept; the old list means nothing now."""
+
+    def test_old_state_loads_with_its_ledger_and_no_stale_approvals(self):
+        import subprocess
+        old = {"schema": 3, "approved": ["c1_birthday"], "region": "AU",
+               "sent": [{"id": "c1_birthday", "customer_id": "c1", "name": "Ada Wong",
+                         "email": "ada@example.com", "trigger_name": "Birthday",
+                         "offer_label": "a free side", "offer_cat": "free_item",
+                         "offer_cost": 3.1, "subject": "Hi", "body": "Hello",
+                         "approver": "venue manager", "approved_at": "2026-11-01 10:00",
+                         "consent_basis": "POS opt-in"}],
+               "sent_history": {"c1": "2026-11-01T10:00:00"}}
+        with tempfile.TemporaryDirectory() as tmp:
+            path = os.path.join(tmp, "state.json")
+            with open(path, "w") as f:
+                json.dump(old, f)
+            env = dict(os.environ, REGULARS_STATE=path,
+                       REGULARS_AUDIT_LOG=os.path.join(tmp, "audit.log"),
+                       REGULARS_KEYFILE=os.path.join(tmp, "k.key"))
+            code = ("import json, state as s, exports, pages.sent_page as sp; "
+                    "print(json.dumps([s.STATE['approved'], len(s.STATE['sent']), "
+                    "s.STATE['schema'], len(exports.batches()), "
+                    "'Approved before batches' in sp.page_sent(), "
+                    "s.STATE['sent_history']]))")
+            out = subprocess.run([sys.executable, "-c", code], env=env, capture_output=True,
+                                 text=True, cwd=os.path.join(os.path.dirname(__file__), "..",
+                                                             "app"))
+            self.assertEqual(out.returncode, 0, out.stderr)
+            self.assertEqual(json.loads(out.stdout.strip().splitlines()[-1]),
+                             [{}, 1, 4, 0, True, {"c1": "2026-11-01T10:00:00"}])
+            with open(os.path.join(tmp, "audit.log")) as f:
+                self.assertIn('"from": 3', f.read())
 
 
 class TestDemoInstance(_SignedInVenue, unittest.TestCase):

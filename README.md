@@ -28,9 +28,9 @@ On macOS you can double-click `start.command` instead.
 | **Setup** | On a venue's own instance, **a checklist from first sign-in to first export** (below). On a local run, the demo's connect-or-upload screen. Either way: your business details (name, suburb, ABN, or a US postal address) and market (AU/US), the CSV upload, your plan (pay or renew), and who we deliberately did *not* contact |
 | **Goals** | Three questions — times you want busier, products you want to sell, what you're optimising for — plus the **message tone** (warm / punchy / polished / playful), the offer catalogue, and which offer each rule uses |
 | **Triggers** | All ten rules in priority order with live people-counts, a switch each, and **every threshold editable** with a reset |
-| **Messages** | The product. Every message, expandable: the email, the evidence numbers behind it, and why that person got that offer |
+| **Messages** | The product. Every message, expandable: the email, the evidence numbers behind it, and why that person got that offer. **Approve** the ones to send (one, a category, or all; edit the words first if you like), then **Export** them as a batch |
 | **Sending** | Pick your sender (Mailchimp / Klaviyo / Brevo / MailerLite / Square Marketing / your own SMTP), links if you have none, SMTP stored locally with a connection test |
-| **Sent** | Append-only ledger: who approved what, on what consent basis, when. Plus how measurement works |
+| **Sent** | Every exported batch with its file (downloadable again any time), and the append-only ledger behind it: who approved what, on what consent basis, when. Plus how measurement works |
 | **Data** | What Square gives you, what it doesn't, and the email-capture problem worth fixing first |
 | **Security** | Password/session state, rate-limit lockouts and flags, credential status, deployment checklist, and the hash-chained audit trail with one-click integrity verification |
 
@@ -57,7 +57,7 @@ done, and the first one that isn't is marked **Next** and shown first:
 4. **Read your messages**: done once one has been opened since the upload.
 5. **Where they'll go out from**: the sender, so the export carries its unsubscribe tag.
 6. **Your plan**, when billing is on.
-7. **Export your first batch.**
+7. **Approve and export your first batch.** The file carries only what was approved.
 
 Until the first upload, every screen that shows customers says it's showing an
 example restaurant's made-up data, and the header never shows its name. The
@@ -144,8 +144,8 @@ Three design rules worth naming:
    table for six" because you picked retention that week.
 2. **Upsells only go to people currently coming in.** Pitching a free side to someone
    absent four months is tone-deaf and wasted. They get a win-back.
-3. **Nothing sends automatically.** A named human approves each message or batch, and
-   the approval is written to the ledger.
+3. **Nothing sends automatically.** A named human approves each message or batch. Only
+   approved messages are exported, and the export is what writes them to the ledger.
 
 ### The copy rule
 

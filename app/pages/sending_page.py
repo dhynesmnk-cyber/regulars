@@ -99,8 +99,8 @@ def page_sending():
                 f'<p class="sm muted">The holdout column marks every tenth person. Do not send to '
                 f'them. They are the control group that lets you prove any of this worked, and '
                 f'comparing the venue total before-and-after without them overstates everything.</p>'
-                f'<div class="row"><a class="btn" href="/export.csv">Download the CSV</a>'
-                f'<a class="btn ghost" href="/export-copy.txt">Copy as plain text</a></div></div>')
+                f'<div class="row"><a class="btn" href="/inbox">Approve and export on Messages'
+                f'</a><a class="btn ghost" href="/sent">Earlier batches</a></div></div>')
     body.append(f'<div class="row between" style="margin-top:44px"><span></span>'
                 f'<button class="btn big" type="submit">Save sending setup</button></div>')
     body.append('</form>')

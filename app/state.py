@@ -27,7 +27,7 @@ import ui
 
 
 VERSION = "0.6.0"
-SCHEMA = 3
+SCHEMA = 4
 BUILD_DATE = "2026-11-05"
 HERE = os.path.dirname(os.path.abspath(__file__))
 
@@ -272,7 +272,9 @@ def fresh_state():
                    "smtp_pass": "", "from_addr": "", "reply_to": ""},
         "sent": [],
         "sent_history": {},
-        "approved": set(),
+        # message id -> the approval: what was approved (a fingerprint of the
+        # generated text), any edit, who and when. Exporting moves these to "sent".
+        "approved": {},
         "dataset": None,
         "import_report": None,
         "region": "AU",
@@ -300,7 +302,9 @@ _saved = store.load()
 for k, v in _saved.items():
     if k in STATE:
         STATE[k] = v
-STATE["approved"] = set(STATE.get("approved") or [])
+if not isinstance(STATE.get("approved"), dict):
+    # before schema 4 this was a list of ids already written to the ledger
+    STATE["approved"] = {}
 STATE["business"] = {**fresh_state()["business"], **(STATE.get("business") or {})}
 STATE["milestones"] = {**fresh_state()["milestones"], **(STATE.get("milestones") or {})}
 drop_example_goals(STATE)
@@ -454,6 +458,36 @@ def result():
     g["_venue"] = identity()
     return E.run(dataset(), g, g, STATE["sent_history"],
                  now(), STATE["enabled"], STATE["thresholds"])
+
+
+# ---------------------------------------------------------------- approvals
+# Approving marks a message ready; exporting (exports.py) sends the approved
+# ones out as a batch and only then records them as sent.
+
+def unsub_tag():
+    """The unsubscribe placeholder of the email tool chosen on Sending."""
+    return STATE["goals"].get("unsub_tag") or "{{unsubscribe_url}}"
+
+
+def fingerprint(m):
+    """What the owner saw when they approved. If goals, offers, business
+    details or the upload later change the message, the approval lapses.
+    Choosing a different email tool only swaps the unsubscribe tag, so it
+    doesn't."""
+    text = f"{m['subject']}\n{m['body']}".replace(unsub_tag(), "<unsubscribe>")
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()[:16]
+
+
+def approval_for(m):
+    """This message's approval, if it still matches the generated text."""
+    a = STATE["approved"].get(m["id"])
+    return a if a and a.get("fingerprint") == fingerprint(m) else None
+
+
+def approved_messages(r=None):
+    """(message, approval) for every message with a live approval, in list order."""
+    r = r or result()
+    return [(m, a) for m in r["messages"] for a in [approval_for(m)] if a]
 
 
 def th():
