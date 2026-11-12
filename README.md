@@ -1,100 +1,427 @@
-# regulars
+# Regulars
 
-Loads Square **Transactions CSV** and **Items Detail CSV** exports into SQLite so you can
-answer "what sells when, and what does it cost me in fees" per venue. Standard library only
-(Python 3.9+), no dependencies.
+**Version 0.6.0.** A Square wrapper for Australian and US restaurants. It reads your sales history, works out
+what each customer actually does, and writes them **one** message that fits — the same
+again, bring a friend, come back, try this, add a side, book a group.
 
-```bash
-python -m regulars demo --out demo                          # (re)write the synthetic demo pair
-python -m regulars load demo --db regulars.db --venue "Demo Wine Bar"
-python -m regulars check --db regulars.db                   # Transactions vs Items reconciliation
-python -m regulars summary --db regulars.db                 # headline numbers
-python -m unittest discover -s tests -t .                   # tests
+Not a blast. Not a blanket discount. One message per person, derived from their own
+orders. And the customer-facing copy never quotes their behaviour back at them: the
+numbers are yours, on the message page, not theirs.
+
+```
+cd app
+python3 server.py 8010          # http://localhost:8010
+
+cd ..
+python3 -m unittest discover -s tests -t .    # 262 tests
 ```
 
-`load` takes any mix of CSV files, ZIPs (Square bundles wide date ranges as monthly files)
-and folders. Loading the same file twice, or two exports that overlap, never double-counts.
+Python 3.11 standard library only. No framework, no CDN, no build step, no internet.
+On macOS you can double-click `start.command` instead.
 
-## What it does with the data
+---
 
-| Concern | Behaviour |
+## The screens
+
+| Screen | What it does |
 |---|---|
-| Columns | Matched by **header name**, never position. Reordered, missing or extra columns are fine; unknown columns are listed so you notice when Square adds one. |
-| Which file is which | Detected from the headers. The Items **Summary** CSV (aggregated, no timestamps) is recognised and skipped with a message. |
-| Money | Integer cents (`*_c` columns), so sums are exact. Understands `$1,234.56`, `-$3.20`, `($3.20)`, `A$5`. |
-| Dates | ISO, or slash dates read **day-first** (Australian). Month-first dates are refused rather than guessed. |
-| Time | Venue **local wall-clock**, not converted to UTC (hour-of-day analysis wants the venue's clock; DST makes local→UTC ambiguous). `local_dow` is Monday = 0. |
-| Joining the files | On **Transaction ID and refund-or-not**, with both sides aggregated first (`v_txn_items`). Joining on Transaction ID alone would attach a refund to the original sale's items and multiply money. |
-| Which file owns the money | Fees, tips, tender and totals come from the **Transactions** file only. Categories come from **Items** only. Never sum sale-level values out of item rows. |
-| Bad data | A bad cell is blanked and reported; a bad date/time skips that row only. One odd row never aborts an import. |
-| Reload safety | Every row has a stable identity (transaction, payment, event type, timestamp, repeat count). One transaction per file: a failure part-way leaves nothing behind. |
-| Memory | Rows stream into SQLite in chunks. A 2-year, 76 MB export pair (184k rows) loads in ~10 s using ~290 MB. |
+| **Setup** | On a venue's own instance, **a checklist from first sign-in to first export** (below). On a local run, the demo's connect-or-upload screen. Either way: your business details (name, suburb, ABN, or a US postal address) and market (AU/US), the CSV upload, your plan (pay or renew), and who we deliberately did *not* contact |
+| **Goals** | Three questions — times you want busier, products you want to sell, what you're optimising for — plus the **message tone** (warm / punchy / polished / playful), the offer catalogue, and which offer each rule uses |
+| **Triggers** | All ten rules in priority order with live people-counts, a switch each, and **every threshold editable** with a reset |
+| **Messages** | The product. Every message, expandable: the email, the evidence numbers behind it, and why that person got that offer. **Approve** the ones to send (one, a category, or all; edit the words first if you like), then **Export** them as a batch |
+| **Sending** | Pick your sender (Mailchimp / Klaviyo / Brevo / MailerLite / Square Marketing / your own SMTP), links if you have none, SMTP stored locally with a connection test |
+| **Sent** | Every exported batch with its file (downloadable again any time), and the append-only ledger behind it: who approved what, on what consent basis, when. Plus how measurement works |
+| **Data** | What Square gives you, what it doesn't, and the email-capture problem worth fixing first |
+| **Security** | Password/session state, rate-limit lockouts and flags, credential status, deployment checklist, and the hash-chained audit trail with one-click integrity verification |
 
-### Views
+The demo venue is synthetic: **Marlow & Finch**, Fitzroy. 525 customers, 8,124 orders,
+$704k lifetime, deterministic (`SEED = 40`, "now" = 2026-11-04). Default goals produce
+**199 messages, 156 distinct subject lines**, about $1,649 of offer cost if every single
+recipient redeemed (in practice roughly a fifth do).
 
-`v_hourly` and `v_daily` (sales, tips, fees), `v_category_hourly` (what sold when),
-`v_txn_items` (one row per transaction with fees **and** categories).
+---
 
-## Privacy: what is never stored
+## A venue's first ten minutes
 
-These columns are recognised and dropped at ingestion. There is no switch to keep them:
-`Customer ID`, `Customer Name`, `Customer Reference ID`, `PAN Suffix`, `Tender Note`,
-`Fulfillment Note`, `Notes`. A test plants customer data in the demo files and asserts it
-appears nowhere in the database, and `load` prints which columns it dropped.
+An instance provisioned for a venue (it has a setup token; see DEPLOYMENT.md)
+opens on a **checklist**. Each step knows from the saved state whether it's
+done, and the first one that isn't is marked **Next** and shown first:
 
-Still stored, because analysis needs them: staff names/IDs, item names, `Refund Reason`
-(staff-typed free text, so it could contain a name; drop it in `regulars/schema.py` if you
-want a hard guarantee).
+1. **Your business**: name, suburb, ABN (or a US postal address). Approving and
+   exporting stay off until it's saved.
+2. **Upload your Square export**, with the Dashboard steps beside the form.
+3. **Your goals and offers.** Required: every message promises an offer, and the
+   starting catalogue is only a suggestion (a free bottle of house wine, $15 off),
+   so approving and exporting wait until the owner has saved Goals once. A venue
+   starts without the example restaurant's quiet nights and products.
+4. **Read your messages**: done once one has been opened since the upload.
+5. **Where they'll go out from**: the sender, so the export carries its unsubscribe tag.
+6. **Your plan**, when billing is on.
+7. **Approve and export your first batch.** The file carries only what was approved.
 
-## Read this before trusting it on real data
+Until the first upload, every screen that shows customers says it's showing an
+example restaurant's made-up data, and the header never shows its name. The
+demo's "Connect Square" button isn't offered (it would swap an upload for the
+example). A local run without a setup token keeps the demo screens exactly as
+they were.
 
-**Verified:** column *names* in the reference header rows (`regulars/schema.py`) came from
-real **US** seller exports posted publicly, and independent forum posts agree on several
-column positions. The code and tests are exercised end to end on synthetic data.
+**Regulars doesn't keep a venue's customer list.** An upload lives in memory, so
+a restart (including every upgrade) drops it; the checklist then asks for the
+latest export and says why. Settings, approvals, the sent history and the
+milestones (goals saved, first upload, first export) are kept. In practice an
+owner uploads a fresh export for each batch, roughly monthly.
 
-**Not verified, and the first thing to do with a real Australian export:**
+## Two ways in
 
-- Whether AU exports match those headers (Cash App etc. may be absent) and whether Items
-  Detail really has a `Category` column. One forum thread suggests category may be missing
-  from some exports; `check` and the `unmapped columns` line will tell you.
-- Value formats: currency symbol, date format, time-zone strings, and whether refunds are
-  negative. The parser keeps values as exported and reports disagreements instead of
-  assuming.
-- How Square represents refunds and split payments. The join is built to survive either
-  convention, but run `python -m regulars check` on a real file and read the
-  `net_mismatch`, `multi_payment_unchecked` and `*_without_*` counts. Some are expected
-  (gift-card sales, partial refunds); they just shouldn't be a surprise.
-- Whether a single huge file is possible. Memory is bounded per chunk of rows, but the file
-  itself is read whole, so prefer Square's monthly files.
+**Connect Square** — read-only Orders, Customers, Catalogue, through Square's
+OAuth screen when the server has credentials (Sending screen). Pulling live
+data through it is not built yet. On a local run, the demo's Setup button
+loads the demo venue.
 
-## Layout
+**Upload CSVs** — what venues do today. Two shapes accepted:
+
+- **Square's own Dashboard exports**: the **Items Detail CSV** (Transactions ›
+  Export › Items Detail CSV; one row per line item, with separate Date and Time
+  columns) plus the **customer export** (Customers › Directory › Export
+  customers), which is where the email addresses and the subscription status
+  live. Orders link to customers by Square customer ID, or by name when that's
+  all the file has (a name shared by two customers is left unlinked rather than
+  guessed). Two Square profiles with one email address are one customer.
+  `Email Subscription Status` sets consent, and an unsubscribe is permanent. Day/month order for
+  slashed dates comes from the file, then the market. The older API-style names
+  (`Created at`, `Item variation name`, `Sold count`, `Covers`, `Gross money
+  amount`…) are still accepted. **Caveat:** the Dashboard column names come
+  from Square's community posts and its 2022 notice, not from a real file yet.
+- **A simple documented format**, one row per visit:
+  `date, time, email, name, items, party_size, channel` where items is
+  `2x Flat White; 1x Garlic Bread`.
+
+Either way you get an **import report**: rows read, customers folded, menu inferred
+(with prices from the file where present), which fields were found and which weren't —
+and therefore which triggers are asleep for that dataset. Missing covers means the
+group triggers sleep; that's honest rather than guessed.
+
+**Consent is asked about explicitly at upload.** Exports don't carry marketing consent,
+and a card payment is not consent under the Spam Act. If the venue ticks "these people
+opted in at my POS / website / loyalty", contacts are marked consented with the source
+recorded as *merchant attested at import*. If nobody has consent, everything is
+quarantined and the report says so.
+
+Sample files for both formats are linked on the setup screen
+(`/sample/simple.csv`, `/sample/square-transactions.csv`, `/sample/square-customers.csv`;
+the Square ones are in the Dashboard layout).
+The simple sample is a 700-visit slice across ~88 customers — their most recent visits,
+spread across the directory, the way a real date-range export looks.
+
+Imports live **in memory only**. Restarting drops them; configuration does not.
+The report also says how many customers have an email address, and when none
+do, that the customer export is missing.
+
+---
+
+## The core mechanism
+
+Every customer is profiled from their orders — signature item and how often they buy
+it, their own median gap between visits, recency, table size, whether they add sides,
+daypart, weekday, menu variety, alcohol share, spend percentile, birthday, and whether
+their cadence is decaying.
+
+Then ten triggers are tested **in order, first match wins**:
 
 ```
-regulars/schema.py   column knowledge: field maps, private/ignored sets, file detection
-regulars/values.py   money / date / time parsers
-regulars/reader.py   CSV, ZIP and folder reading -> rows + issues
-regulars/db.py       SQLite schema, idempotent load, views, reconcile, summary
-regulars/demo.py     deterministic synthetic export generator
-regulars/cli.py      python -m regulars {load,check,summary,demo}
-demo/                the generated synthetic pair (see demo/README.md)
-tests/               unittest suite
+birthday → their usual, overdue → big spender gone quiet → the one who organises
+→ big table potential → new, needs a second visit → come at a different time
+→ never orders extras → creature of habit → slowing down
 ```
 
-## Review site (Netlify)
+Everyone gets exactly one message — the most specific thing that's true about them.
+If nothing matches they get nothing, and that's counted on screen rather than hidden.
 
-`site/` is a **read-only static snapshot** of the Regulars demo app (the "Marlow & Finch"
-demo venue, synthetic data), published by `netlify.toml`. Netlify can't run the app itself
-(it's a Python server), so this is what you click through to review progress: every screen
-and every message page, with buttons and forms switched off and a banner saying so.
+Three design rules worth naming:
 
-Regenerate it whenever the app changes (needs the app checkout running in demo mode):
+1. **Specificity beats the priority setting.** Your goal is worth +8 weight points, not
+   an override. Otherwise "their visits are drifting" leapfrogs "you always book the
+   table for six" because you picked retention that week.
+2. **Upsells only go to people currently coming in.** Pitching a free side to someone
+   absent four months is tone-deaf and wasted. They get a win-back.
+3. **Nothing sends automatically.** A named human approves each message or batch. Only
+   approved messages are exported, and the export is what writes them to the ledger.
 
-```bash
-./start.sh                                   # in the app checkout, serves :8010
-python scripts/make_snapshot.py http://127.0.0.1:8010 \
-    --source "PR #1 @ <sha>" --scrub /path/to/app/checkout
+### The copy rule
+
+Customer-facing emails may name their usual and use vague time — "a few weeks",
+"back in winter". They may never contain a gap, a ratio, a count or a percentile, and
+never "we noticed". "You usually come in every 6 days" is not warmth, it's
+surveillance, and it reads that way. Every figure stays in the evidence panel on the
+message page, which is labelled *yours to see, never theirs*. The tests enforce this
+with a regex over every generated body and subject.
+
+The copy *may* name their choices: Square modifiers (oat milk, no onion, extra
+shot) are read from your export, and a choice they make on 55%+ of their orders
+of an item becomes part of the message — "since your last flat white (almond
+milk)". The habit is stated, never counted; the percentages stay in the
+evidence panel. And an offer is never sent if it contradicts the person —
+nobody who always orders oat milk gets offered "an oat milk upgrade"; the
+engine swaps the offer and says why.
+
+### The offer catalogue
+
+Offers live in four categories — **upgrade or perk, something free, money off, group &
+booking** — because an oat-milk upgrade is the right nudge for a daily coffee regular
+and nonsense for a Friday-night group. The merchant edits the catalogue (add, rename,
+re-cost, drop), and each trigger has a dropdown defaulted to a sensible offer. Money-off
+offers exist, but the only trigger defaulted to one for a lapsed customer is the
+win-back; that's where a credit is earned.
+
+### Tuning
+
+Every threshold the triggers use — 23 of them, from the overdue multiplier to the
+birthday window to the drift ratio — is an editable number on the Triggers screen, with
+the live people-count for each rule and a reset to defaults. Changes persist.
+
+---
+
+## Sending
+
+The Sending screen records where messages will actually go out from, and adapts the
+export to it:
+
+| Sender | Unsubscribe merge tag we write |
+|---|---|
+| Mailchimp | `*|UNSUB|*` |
+| Klaviyo | `{% unsubscribe %}` |
+| Brevo / SendGrid | `{{{unsubscribe}}}` |
+| MailerLite | `{$unsubscribe}` |
+| Square Marketing | Square appends its own; we leave a placeholder |
+| Your own SMTP / other | `{{unsubscribe_url}}` |
+
+Venues with nothing yet get the four signup links and a one-line steer on each. If they
+send through their own host, SMTP details (host, port, user, password, from, reply-to)
+are stored in the local config file and a connection test can be run. **The prototype
+never transmits.** The wrong merge tag means a broken unsubscribe, which is a Spam Act
+problem, not a cosmetic one — so the tag is chosen for you, not typed.
+
+---
+
+## What persists
+
+Goals, the catalogue and trigger pairings, enabled rules, tuned thresholds, the sending
+setup, the approval ledger, the frequency-cap history and the onboarding milestones are
+written to `regulars-state.json` beside the app, so a restart doesn't wipe an afternoon
+of setup.
+Uploaded customer data is deliberately excluded. Delete the file to start clean, or use
+**Start over** on the setup screen.
+
+---
+
+## Pricing: $40/month
+
+Entry price is **$40/month, per location, no setup fee, monthly, cancel anytime.**
+
+- **Inside the impulse band.** Square Free is $0, Square Plus $129/month. $40 is a third
+  of a subscription they've already committed to, and less than one table of four. It
+  doesn't need a budget line or a partner conversation. $89 does.
+- **Matches month-one work.** Ten rules over one venue is not a $200 product. Charge
+  that and you spend your first ten customers arguing about price instead of learning.
+- **Defensible against "Square Marketing does this".** Square's bundled tool sends a
+  segment a blast. The difference here is that every message derives from that
+  individual's orders and no two are alike. At $40 you don't have to win that argument
+  hard — you just have to be cheap enough that trying it beats arguing.
+- **Unit economics still work.** Hosting is one Python process per venue. The margin
+  problem is your time, not infrastructure.
+
+Ladder up as capability is earned, not promised:
+
+| | Price | Who |
+|---|---|---|
+| **Regulars** | **$40/mo per location** | One venue. Ten triggers, email copy, manual approval, CSV/copy export |
+| Regulars + Send | $79/mo per location | Same, plus we transmit via their sender, unsubscribe handling, holdout reporting |
+| Multi-site | $40 first site, $25 each additional | The 2–5 venue groups that are the target segment |
+| Measurement pack | +$40/mo | 21-day holdout comparison, response rates fed back into the triggers |
+
+Don't discount the entry price. Give away the **email-capture audit** instead: most
+Square venues sit on thousands of customer records with no email address, because card
+payments never expose one. Turning on the POS email prompt is free, takes ten minutes,
+and is worth more than anything this product generates. It's the best proof you
+understand their data, and it's useful whether or not they buy.
+
+---
+
+## Compliance, in the product
+
+- **Spam Act 2003 s16** — every message carries venue name, ABN, the reason they're
+  receiving it, and a functional unsubscribe tag matched to their sender. Asserted per
+  message in the tests.
+- **Suppression is checked before triggers.** No email → unreachable. No consent record
+  → quarantined. Unsubscribed → permanent, no trigger overrides it. Inside the quiet
+  window → left alone. Sent recently → capped.
+- **Consent at import is an explicit attestation**, recorded as the consent source.
+- **Nothing sends automatically**; the ledger is append-only (customer, exact content,
+  trigger, consent basis, approver, timestamp). That's what you produce if ACMA asks.
+- **A 10% holdout is applied in the export automatically.** Without a control group you
+  cannot prove a campaign worked; comparing the venue total before-and-after counts
+  people who were never in the audience.
+- **Exports are minimised** — email, first name, subject, body, offer, category, consent
+  source. No spend history, no mobile number, no order details.
+- **Imports are memory-only** — an uploaded customer list is never written to disk.
+- **SMS is off.** Since 1 July 2026, sending under a venue's branded sender ID needs ACMA
+  Register approval as an entity associate, a registered sender ID, and recorded consent.
+  Email carries Spam Act obligations but no registration regime.
+- **Automated decision-making disclosure** from 10 December 2026 — segmenting customers
+  for targeting counts. Hand the merchant the privacy-policy clause at onboarding.
+- **No third-party enrichment of customers.** Matching your customers against social,
+  electoral or broker data is "trading in personal information": it removes the
+  small-business exemption from the Privacy Act regardless of turnover, breaches APP 6
+  purpose limitation, and is less accurate than the order history you already have.
+  Enrich the context instead — postcode demographics, holidays, events, weather, and
+  your own measured response rates. None of that is personal information.
+
+None of this is legal advice. Before sending for a paying customer, have an Australian
+commercial lawyer review the merchant agreement, privacy policy template and
+consent-capture wording. Budget $3,000–$5,000 once.
+
+---
+
+## Security
+
+One instance = one venue, and the app assumes it is the only tenant:
+
+- **Password gate.** PBKDF2-SHA256 (210k iterations), 12-hour HttpOnly
+  SameSite=Lax sessions, CSRF tokens on every form, five bad passwords →
+  15-minute per-address lockout. A provisioned instance stays closed until
+  its owner opens a one-time setup link (`REGULARS_SETUP_TOKEN`,
+  `/welcome?token=...`) and chooses the password; the link then stops working.
+  Without a token, the first password can only be set from localhost (or
+  `REGULARS_OPEN_FIRST_RUN=1`, once, behind TLS).
+- **Network.** Listens on `127.0.0.1` unless told otherwise (`REGULARS_BIND`).
+  `X-Forwarded-For` is ignored unless `REGULARS_TRUST_PROXY` says a proxy is in
+  front, and then only the entry that proxy added counts, so a visitor can't
+  dodge the lockout or pose as localhost by writing their own.
+- **Outside-attack detection.** Per-IP rate limits (120 POST/min, 600 GET/min),
+  size caps decided from the headers before anything is read (50 MB for a CSV
+  upload, which only a signed-in owner can send; 1 MB for every other form),
+  forged-OAuth-callback rejection — all refused *and* written to the audit
+  log, all visible on the Security screen.
+- **Tamper-evident audit log.** Every login, config change, approval, export,
+  upload, reset and OAuth event is hash-chained to the entry before it. Edit or
+  delete one line and **Verify chain integrity** says exactly where the log
+  stops being trustworthy.
+- **Secrets.** Square OAuth tokens are stored encrypted at rest
+  (encrypt-then-MAC) under a key from `REGULARS_MASTER_KEY` or an
+  auto-generated 0600 keyfile. Credentials live in the environment, never in
+  the state file. Uploaded customer CSVs are never written to disk.
+- **Headers.** CSP, nosniff, frame DENY, no-store on every response; HSTS when
+  `REGULARS_TLS=1`.
+
+Full operator guide: `DEPLOYMENT.md` (Docker, reverse proxy, env reference,
+Square app registration, backups, incident response). Release history:
+`CHANGELOG.md`.
+
+## Two markets
+
+The Setup screen switches the market between **Australia** and the **United
+States**, and the product changes where the law says it must:
+
+- **AU (Spam Act 2003):** sender identity, working one-click unsubscribe, ABN
+  in the footer, consent recorded per contact.
+- **US (CAN-SPAM):** a valid physical postal address in every commercial
+  email (the app *refuses* to switch to US without one), the commercial-email
+  line, and opt-outs honoured within 10 business days.
+- Seasons follow the hemisphere (a July visit is "back in winter" in
+  Melbourne, "back in summer" in Chicago) and customer copy respells to US
+  English. The copy rule is unchanged in both markets: never quote the
+  customer's own numbers back at them.
+
+---
+
+## Performance at real-venue sizes
+
+`python3 tools/bench.py --sizes 525,2000,20000,50000` scales the demo venue up
+and times the real code paths (measured 2026-11-05, one CPU core of a cloud VM):
+
+| Customers | Orders | Line items | Messages | Engine run | Setup page | Messages page | Square CSV | Import | Peak RAM |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 525 (demo) | 8,124 | 28,022 | 199 | 0.10 s | 0.11 s | 0.11 s | 3 MB | 0.7 s | 78 MB |
+| 2,100 | 32,365 | 111,655 | 799 | 0.36 s | 0.33 s | 0.28 s | 11 MB | 3.2 s | 217 MB |
+| 20,475 | 318,147 | 1,094,736 | 7,683 | 3.36 s | 5.10 s | 2.99 s | 111 MB | 49.7 s | 1,755 MB |
+| 50,400 | 783,897 | 2,695,103 | 19,045 | 11.57 s | 9.80 s | 7.23 s | 276 MB | 163.1 s | 4,291 MB |
+
+What this means today:
+
+- **Uploads are capped at 50 MB** (`REGULARS_MAX_UPLOAD_MB`). In the Square
+  Dashboard's Items Detail layout (27 columns a line) that's about **4,200
+  customers'** full history at the demo's order rate; in the leaner API-style
+  layout, about 9,500. A bigger venue picks a shorter date range in Square,
+  as the upload form says. Measured through the real upload path:
+  - a 24.8 MB Items Detail export plus a 0.3 MB customer export (2,100
+    customers) imported in 7-8 s, and the container held 342 MiB afterwards;
+  - a 43 MB API-style export (8,367 customers, 130,527 orders) imported in
+    17 s, **peaked at 823 MB** - about 19 times the file - and held 672 MB.
+
+  Until Gate 3's leaner import, size the server for the biggest venue's
+  upload, and keep in mind several venues uploading at once.
+- **Import got faster in Gate 2.6** (customer and menu lookups no longer scan
+  lists): on the same machine on 2026-11-06, the 20,475-profile file above
+  imports in 21 s, down from 31 s. The table's 49.7 s was a slower run.
+- **Every page view re-runs the engine**, so at 20,000 customers each screen
+  takes 3-5 seconds. Gate 3 caches the result between changes.
+- **The Messages screen shows the first 120 messages only.** The export carries
+  all of them; paging the screen is Gate 3.
+- **Memory**: a 20,000-customer import peaks near 1.8 GB, too much for the
+  smallest VPS plans. Gate 3's target is under 512 MB.
+
+## Review it without running it
+
+A read-only snapshot of the demo venue is published on Netlify from `site/` (the app itself is a Python
+server, which Netlify can't run). See `docs/review-site.md`.
+
+## Files
+
+```
+app/data.py       synthetic venue: menu, 11 archetypes, order generator, sample exports
+app/engine.py     the pipeline every industry shares: suppress → order triggers → pick
+                  offer → copy → tone, regional spelling, legal footer
+app/packs/        industry packs (REGULARS_INDUSTRY, default restaurant): profile,
+                  triggers, thresholds, offer categories, email templates
+app/core.py       industry-neutral wording: vague timing, seasons, US spelling
+app/abn.py        ABN check-digit validation and formatting
+app/billing.py    free preview, pay to send: paid-up status, reminders, Stripe pay links
+tools/bench.py    timings and memory at 2k-50k customers (see Performance)
+deploy/regularsctl.py  run many venues on one server: provision, status, upgrade,
+                  backup, restore, link (see DEPLOYMENT.md)
+app/admin.py      in-container operator commands: reset-owner, verify-audit
+app/importer.py   Square Dashboard / API-style exports and the simple format: column
+                  matching, customer linking, dates and times, menu inference
+app/security.py   passwords, sessions, CSRF, rate limits, audit chain, secret box, headers
+app/oauth.py      Square authorization-code flow: authorize, exchange, refresh, revoke
+app/store.py      the JSON state file (schema-versioned, migrated on boot)
+app/ui.py         editorial CSS and layout helpers; <details>-based, zero JavaScript
+app/server.py     HTTP layer only: rate limits, sign-in, CSRF, the GET/POST route tables
+app/state.py      the venue's settings (STATE), audit log, guard, secret box, LOCK,
+                  sessions, persistence, and the engine run every screen shares
+app/web.py        Req / Resp values passed between the handler and the screens
+app/views.py      HTML fragments shared by several screens
+app/pages/        one module per screen (setup and its venue checklist, goals,
+                  triggers, messages, sending, sent, data, security, login, welcome):
+                  its page plus its form actions
+app/exports.py    audience CSV, copy-paste text, sample input files
+app/upload.py     multipart parsing and CSV-to-dataset import
+site/             read-only static snapshot of the demo, published by netlify.toml
+scripts/make_snapshot.py  regenerates site/ from a running app (docs/review-site.md)
+netlify.toml      Netlify: publish site/, nothing to build
+Dockerfile        python:3.12-slim, non-root, /data volume, healthcheck
+DEPLOYMENT.md     operator guide: run, proxy, env, Square app, backups, incidents
+CHANGELOG.md      release history and state-schema migrations
+.github/          CI: the full test suite on every push and pull request
+tests/            262 tests: dataset, one-message-per-person, offer/behaviour match,
+                  the copy rule, suppression, Spam Act/CAN-SPAM footers, regions,
+                  goals/threshold/catalogue sensitivity, import (incl. Square
+                  Dashboard exports), persistence, HTTP routes, security primitives,
+                  auth/CSRF/lockouts, OAuth against a mock Square token server, the
+                  setup link, billing, the venue checklist, and regularsctl against a
+                  fake Docker
 ```
 
-The generator replaces local paths, masks demo email domains (`…@icloud.example`, so no
-made-up address can match a real person's), adds `noindex` everywhere and refuses to write
-output that still contains a filesystem path. It only overwrites a folder it created.
+The earlier, much larger analytics prototype (`deep-analytics-v1`) is kept separately,
+outside this repository — its menu-margin module is still worth reusing later. It is not the product; it was too
+complicated to sell to a non-technical operator.

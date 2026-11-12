@@ -1,5 +1,5 @@
 # Read-only static snapshot of the Regulars demo app, for review.
-# The files in site/ are generated: scripts/make_snapshot.py (see README).
+# The files in site/ are generated: scripts/make_snapshot.py (see docs/review-site.md).
 
 [build]
   publish = "site"
