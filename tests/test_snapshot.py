@@ -85,6 +85,17 @@ class RewriteTests(unittest.TestCase):
         self.assertNotIn("Sign-in", o)
         self.assertIn("Your business", o)
 
+    def test_security_screen_operator_warning_is_removed_too(self):
+        page = ('<html><head></head><body><div class="stat">Sign-in Open demo</div>'
+                '<div class="warn"><b>No operator password is set.</b> Every screen is publicly reachable while this '
+                'instance stays in demo mode. <a href="/login/">Set the password &rarr;</a></div>'
+                "<h2>Outside-attack detection</h2></body></html>")
+        o = ms.rewrite_page(page, BASE, "/security", {("/security", "")}, "src", "d", [])
+        self.assertNotIn("operator password", o)
+        self.assertNotIn("Set the password", o)
+        self.assertIn("Outside-attack detection", o)     # the rest of the screen stays
+        self.assertIn("Open demo", o)
+
     def test_alias_redirects_links_to_the_moved_page(self):
         page = '<html><head></head><body><a href="/">Setup</a> <a href="/goals">Goals</a></body></html>'
         known = {("/", ""), ("/goals", "")}

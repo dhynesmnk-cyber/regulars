@@ -37,7 +37,10 @@ LEAK_RE = re.compile(r"(/tmp/|/home/|/root/|claude-0|scratchpad)")
 # Operator-only notices that mean nothing (or look unfinished) in a public demo,
 # e.g. "No operator password is set yet". Matched on the app's own markup; if the
 # app changes, the notice simply reappears, which is harmless.
-STRIP_RES = [re.compile(r'<div class="warn"><b>Security\.</b>.*?</div>', re.S)]
+STRIP_RES = [
+    re.compile(r'<div class="warn"><b>Security\.</b>.*?</div>', re.S),                       # Setup screen
+    re.compile(r'<div class="warn"><b>No operator password is set\.</b>.*?</div>', re.S),   # Security screen
+]
 DEFAULT_BANNER = "Read-only snapshot of the demo venue (synthetic data) \u00b7 buttons and forms are switched off"
 CONTACT_RE = re.compile(r"^[^@\s<>\"']+@[^@\s<>\"']+\.[^@\s<>\"']+$")
 
