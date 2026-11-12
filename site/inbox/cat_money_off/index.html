@@ -1,0 +1,1032 @@
+<!doctype html><html lang="en-AU"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Messages &middot; Regulars</title><style>
+:root{--acc:#8a3413;--ink:#191714;--paper:#fbfaf7;--hair:#ddd6cb;
+--mid:#6b6459;--soft:#9c948a;--good:#3f6b3f;--bad:#8c2f2f;--warn:#8a6116;
+--tint:#f6f2ea}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);
+font:17px/1.75 "Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+-webkit-font-smoothing:antialiased}
+a{color:var(--acc);text-decoration:none;border-bottom:1px solid transparent}
+a:hover{border-bottom-color:var(--acc)}
+.wrap{max-width:760px;margin:0 auto;padding:0 28px 140px}
+header{border-bottom:1px solid var(--hair);background:var(--paper)}
+.hin{max-width:760px;margin:0 auto;padding:30px 28px 0}
+.logo{font-size:15px;letter-spacing:.22em;text-transform:uppercase}
+.logo b{font-weight:600;color:var(--ink)}
+.logo small{display:block;font-size:12px;letter-spacing:.06em;text-transform:none;
+color:var(--soft);font-style:italic;margin-top:3px}
+nav{display:flex;gap:26px;flex-wrap:wrap;margin:26px 0 0;
+font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+nav a{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mid);
+padding:0 0 14px;border-bottom:2px solid transparent}
+nav a:hover{color:var(--ink);border-bottom-color:var(--hair)}
+nav a.on{color:var(--ink);border-bottom-color:var(--acc);font-weight:600}
+h1{font-size:40px;line-height:1.15;font-weight:600;letter-spacing:-.01em;
+margin:72px 0 18px}
+h2{font-size:13px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;
+color:var(--soft);margin:76px 0 0;padding-bottom:12px;border-bottom:1px solid var(--hair)}
+h3{font-size:19px;font-weight:600;margin:0 0 10px;letter-spacing:-.01em}
+p{margin:0 0 18px}
+.lead{font-size:20px;line-height:1.65;color:var(--mid);margin:0 0 44px;max-width:34em}
+.lead b{color:var(--ink);font-weight:600}
+.card{border:0;border-top:1px solid var(--hair);padding:34px 0;margin:0}
+.card.tight{padding:26px 0}
+.row{display:flex;gap:20px;flex-wrap:wrap;align-items:center}
+.between{justify-content:space-between}
+.grid{display:grid;gap:44px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:44px 56px}
+.g3{grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:40px 44px}
+.g4{grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:36px}
+.stat{border-top:1px solid var(--ink);padding-top:14px}
+.stat .l{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--soft);font-weight:600}
+.stat .v{font-size:44px;font-weight:600;letter-spacing:-.02em;line-height:1.1;margin:6px 0 2px;
+font-variant-numeric:tabular-nums}
+.stat .n{color:var(--mid);font-size:14px;font-style:italic}
+.btn{display:inline-block;background:var(--ink);color:var(--paper);border:1px solid var(--ink);
+padding:13px 26px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;cursor:pointer;
+border-radius:0}
+.btn:hover{background:var(--acc);border-color:var(--acc);color:#fff}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--hair)}
+.btn.ghost:hover{border-color:var(--ink);background:transparent;color:var(--ink)}
+.btn.big{padding:17px 34px;font-size:13px}
+.btn.sm{padding:8px 16px;font-size:11px}
+.btn.green{background:var(--good);border-color:var(--good);color:#fff}
+.btn.green:hover{filter:brightness(1.1);background:var(--good)}
+.pill{display:inline-block;padding:3px 0;margin-right:14px;
+font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:var(--mid)}
+.p-acc{color:var(--acc)} .p-good{color:var(--good)} .p-bad{color:var(--bad)}
+.p-warn{color:var(--warn)} .p-mute{color:var(--soft)}
+table{width:100%;border-collapse:collapse;font-size:15.5px}
+th{text-align:left;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--soft);font-weight:600;
+padding:10px 12px 10px 0;border-bottom:1px solid var(--ink)}
+td{padding:16px 12px 16px 0;border-bottom:1px solid var(--hair);vertical-align:top}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
+.note,.warn,.good,.bad{border:0;border-left:2px solid var(--acc);background:transparent;
+padding:4px 0 4px 22px;margin:34px 0;font-size:16px}
+.warn{border-left-color:var(--warn)} .bad{border-left-color:var(--bad)}
+.good{border-left-color:var(--good)}
+.mono,code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+code{font-size:.9em;background:var(--tint);padding:1px 5px}
+.steps{counter-reset:s;list-style:none;padding:0;margin:34px 0}
+.steps li{counter-increment:s;position:relative;padding:20px 0 20px 58px;
+border-bottom:1px solid var(--hair)}
+.steps li:last-child{border:0}
+.steps li:before{content:counter(s,decimal-leading-zero);position:absolute;left:0;top:22px;
+font-size:13px;color:var(--acc);letter-spacing:.08em;font-weight:600}
+.steps li>b{display:block;font-size:17px;font-weight:600;margin-bottom:4px}
+.steps li span{color:var(--mid);font-size:15.5px}
+details.msg{border:0;border-bottom:1px solid var(--hair);margin:0}
+details.msg:first-of-type{border-top:1px solid var(--hair)}
+details.msg summary{cursor:pointer;padding:22px 0;list-style:none;display:flex;gap:18px;
+align-items:baseline;flex-wrap:wrap}
+details.msg summary::-webkit-details-marker{display:none}
+details.msg summary:hover .subj{color:var(--ink)}
+details.msg[open] summary{padding-bottom:14px}
+.who{font-weight:600;font-size:17px;min-width:120px}
+.subj{color:var(--mid);font-size:16px;flex:1;font-style:italic}
+.mbody{padding:6px 0 34px}
+.email{background:var(--tint);border:0;border-left:2px solid var(--hair);padding:26px 28px;
+white-space:pre-wrap;font-size:15.5px;line-height:1.8;
+font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif}
+.why{background:transparent;border-left:2px solid var(--acc);padding:4px 0 4px 22px;
+font-size:15px;color:var(--mid);margin:26px 0 0}
+.why b{color:var(--ink)}
+.ev{display:flex;gap:40px;flex-wrap:wrap;margin:26px 0;padding:18px 0;
+border-top:1px solid var(--hair);border-bottom:1px solid var(--hair)}
+.ev div{min-width:96px}
+.ev .l{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:10px;
+letter-spacing:.16em;text-transform:uppercase;color:var(--soft);font-weight:600}
+.ev .v{font-size:22px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+input[type=text],input[type=number],input[type=password],select,textarea{
+background:transparent;border:0;border-bottom:1px solid var(--hair);border-radius:0;
+padding:9px 2px;font:16px/1.5 "Iowan Old Style",Palatino,Georgia,serif;color:var(--ink);width:100%}
+input:focus,select:focus,textarea:focus{outline:0;border-bottom-color:var(--acc)}
+textarea{border:1px solid var(--hair);padding:16px;line-height:1.7}
+label{display:block;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--soft);
+font-weight:600;margin-bottom:7px}
+.field{margin-bottom:30px}
+.chk{display:flex;gap:16px;align-items:flex-start;padding:18px 0;border-bottom:1px solid var(--hair)}
+.chk:last-child{border:0}
+.chk .ic{width:22px;height:22px;flex:0 0 22px;display:flex;align-items:center;
+justify-content:center;font-size:12px;font-weight:700;padding:0;margin:3px 0 0;
+border:1px solid var(--good);color:var(--good)}
+.ic.warn{border-color:var(--warn);color:var(--warn)} .ic.block{border-color:var(--bad);color:var(--bad)}
+.ic.todo{border-color:var(--hair);color:var(--soft)} .ic.next{border-color:var(--acc);color:var(--acc)}
+.chk .t b{display:block;font-size:16.5px;font-weight:600}
+.chk .t span{color:var(--mid);font-size:15px}
+.chk .t i{color:var(--soft);font-size:13px;font-style:italic;display:block;margin-top:3px}
+.big{font-size:56px;font-weight:600;letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1}
+.muted{color:var(--mid)} .soft{color:var(--soft)} .sm{font-size:14.5px}
+.foot{color:var(--soft);font-size:13px;font-style:italic;border-top:1px solid var(--hair);
+margin-top:90px;padding-top:22px}
+.bar{height:2px;background:var(--hair);margin-top:8px}
+.bar i{display:block;height:100%;background:var(--acc)}
+.trig{display:flex;gap:26px;align-items:flex-start;padding:26px 0;border-bottom:1px solid var(--hair)}
+.trig:last-child{border:0}
+.trig .n{flex:0 0 54px;text-align:right}
+.trig .n b{font-size:26px;font-weight:600;font-variant-numeric:tabular-nums}
+.trig .n span{display:block;font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+color:var(--soft);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.trig.off{opacity:.38}
+.dot{width:7px;height:7;border-radius:50%;display:inline-block;margin-right:8px}
+input[type=checkbox],input[type=radio]{width:15px;height:15px;accent-color:var(--acc)}
+.filerow{border:1px dashed var(--hair);padding:26px;margin:26px 0}
+.filerow:hover{border-color:var(--acc)}
+</style><meta name="robots" content="noindex,nofollow"><style>
+.snap-banner{position:sticky;top:0;z-index:99999;background:#1f2937;color:#f9fafb;font:13px/1.4 system-ui,sans-serif;
+padding:8px 14px;text-align:center}.snap-banner b{color:#fbbf24}.snap-banner span{opacity:.8}
+[data-snap-dead]{cursor:not-allowed;opacity:.55}
+.snap-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#111827;color:#fff;
+padding:10px 16px;border-radius:8px;font:14px system-ui,sans-serif;z-index:99999;display:none;box-shadow:0 4px 16px #0006}
+</style></head><body><div class="snap-banner"><b>Read-only snapshot</b> of the demo venue (synthetic data) <span>&middot; PR #1 @ 985e54f &middot; built 2026-11-12 &middot; buttons and forms are switched off</span></div>
+<header><div class="hin">
+<div class="logo"><b>Regulars</b><small>Marlow &amp; Finch, Fitzroy</small></div>
+<nav><a href="/" class="">Setup</a><a href="/goals/" class="">Goals</a><a href="/triggers/" class="">Triggers</a><a href="/inbox/" class="on">Messages</a><a href="/sending/" class="">Sending</a><a href="/sent/" class="">Sent</a><a href="/data/" class="">Data</a><a href="/security/" class="">Security</a></nav></div></header>
+<div class="wrap"><h1>Ready to send.</h1><p class="lead">199 messages written from your sales data, 156 different subject lines. Open any one to see the email, the numbers behind it, and why that person got that offer.</p><div class="grid g3"><div class="stat"><div class="l">Messages ready</div><div class="v">199</div><div class="n">each written for one person</div></div><div class="stat"><div class="l">Cost if all redeem</div><div class="v">A$1,649</div><div class="n">expect roughly a fifth to</div></div><div class="stat"><div class="l">Left alone</div><div class="v">326</div><div class="n">deliberately</div></div></div><h2>By offer category</h2><div class="card" style="padding-top:20px"><div class="row" style="gap:26px"><a href="/inbox/" class="pill p-mute">All (199)</a><a href="/inbox/cat_upgrade/" class="pill p-mute">Upgrade or perk (44)</a><a href="/inbox/cat_free_item/" class="pill p-mute">Something free (78)</a><a href="/inbox/cat_money_off/" class="pill p-acc">Money off (67)</a><a href="/inbox/cat_group/" class="pill p-mute">Group &amp; booking (10)</a></div><div class="grid g2" style="margin-top:34px"><div class="card tight"><div class="row between"><h3 style="margin:0">Upgrade or perk</h3><span class="pill p-acc">44</span></div><div class="sm soft" style="margin:6px 0 10px">Their usual, done slightly better. Costs cents.</div><div class="row between sm" style="margin:4px 0"><span>an oat milk upgrade on us</span><span class="muted">44</span></div></div><div class="card tight"><div class="row between"><h3 style="margin:0">Something free</h3><span class="pill p-acc">78</span></div><div class="sm soft" style="margin:6px 0 10px">A side, a dessert, a round. The workhorse.</div><div class="row between sm" style="margin:4px 0"><span>the first round on us</span><span class="muted">43</span></div><div class="row between sm" style="margin:4px 0"><span>a free side with your main</span><span class="muted">26</span></div><div class="row between sm" style="margin:4px 0"><span>your first one on us</span><span class="muted">9</span></div></div><div class="card tight"><div class="row between"><h3 style="margin:0">Money off</h3><span class="pill p-acc">67</span></div><div class="sm soft" style="margin:6px 0 10px">BOGO or a credit. Reserve for real lapses.</div><div class="row between sm" style="margin:4px 0"><span>buy one, get one free</span><span class="muted">43</span></div><div class="row between sm" style="margin:4px 0"><span>$15 off your bill</span><span class="muted">24</span></div></div><div class="card tight"><div class="row between"><h3 style="margin:0">Group &amp; booking</h3><span class="pill p-acc">10</span></div><div class="sm soft" style="margin:6px 0 10px">Tables of six, set menus, functions.</div><div class="row between sm" style="margin:4px 0"><span>a free bottle of house wine</span><span class="muted">8</span></div><div class="row between sm" style="margin:4px 0"><span>the window table held for your group</span><span class="muted">2</span></div></div></div></div><h2>The messages</h2><div class="card tight"><div class="row between"><div><b>0 approved</b> <span class="sm muted">of 199. Approve the ones you want to send, then export them: the file carries only what you&rsquo;ve approved, and nothing leaves this app until you import it into your email tool.</span></div><span><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn sm ghost" type="submit">Approve all 67 shown</button></form> </span></div></div><p class="sm muted" style="margin:20px 0 30px">Showing 67</p><details class="msg"><summary><span class="who">Ethan Z.</span><span class="subj">An invitation to tuesday dinner, Ethan</span><span class="pill p-acc">Money off</span><span class="pill p-mute">Come at a different time</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>ethan.zhang83@yahoo.example</b></span><span class="muted">Consent: Booking, 2025-10-22</span></div><div class="ev"><div><div class="l">You want to fill</div><div class="v">Tuesday dinner</div></div><div><div class="l">Target daypart</div><div class="v">evening</div></div><div><div class="l">Target day</div><div class="v">Tuesday</div></div><div><div class="l">They come for</div><div class="v">lunch</div></div><div><div class="l">Their usual day</div><div class="v">Sunday</div></div><div><div class="l">Visits</div><div class="v">24</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">An invitation to tuesday dinner, Ethan</b></div><span class="pill p-mute">Come at a different time</span></div><div class="email" style="margin-top:18px">Hi Ethan,
+
+We&#x27;re trying to make Tuesday dinner as good as the rest of our week, and we&#x27;d love your vote of confidence.
+
+Come in on a Tuesday this month and it&#x27;s buy one, get one free on any main. It&#x27;s quieter, the kitchen has time for you, and it might become your thing.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> You asked to fill <b>Tuesday dinner</b>. They visit <b>24</b> times but almost never then - they come for <b>lunch</b> on a <b>Sunday</b>. You're not discounting to strangers, you're moving someone who already likes you into a slot that's already paid for. Note the email never tells them you know when they come - it's framed as an invite.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00267_wrong_time/">Open &amp; edit</a><span class="sm soft">Offer: buy one, get one free &mdash; costs A$9.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Ruby Z.</span><span class="subj">An invitation to tuesday dinner, Ruby</span><span class="pill p-acc">Money off</span><span class="pill p-mute">Come at a different time</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>ruby.zhang26@gmail.example</b></span><span class="muted">Consent: POS receipt prompt, 2026-07-18</span></div><div class="ev"><div><div class="l">You want to fill</div><div class="v">Tuesday dinner</div></div><div><div class="l">Target daypart</div><div class="v">evening</div></div><div><div class="l">Target day</div><div class="v">Tuesday</div></div><div><div class="l">They come for</div><div class="v">lunch</div></div><div><div class="l">Their usual day</div><div class="v">Monday</div></div><div><div class="l">Visits</div><div class="v">15</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">An invitation to tuesday dinner, Ruby</b></div><span class="pill p-mute">Come at a different time</span></div><div class="email" style="margin-top:18px">Hi Ruby,
+
+We&#x27;re trying to make Tuesday dinner as good as the rest of our week, and we&#x27;d love your vote of confidence.
+
+Come in on a Tuesday this month and it&#x27;s buy one, get one free on any main. It&#x27;s quieter, the kitchen has time for you, and it might become your thing.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> You asked to fill <b>Tuesday dinner</b>. They visit <b>15</b> times but almost never then - they come for <b>lunch</b> on a <b>Monday</b>. You're not discounting to strangers, you're moving someone who already likes you into a slot that's already paid for. Note the email never tells them you know when they come - it's framed as an invite.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00268_wrong_time/">Open &amp; edit</a><span class="sm soft">Offer: buy one, get one free &mdash; costs A$9.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Zoe G.</span><span class="subj">An invitation to tuesday dinner, Zoe</span><span class="pill p-acc">Money off</span><span class="pill p-mute">Come at a different time</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>zoe.gray65@yahoo.example</b></span><span class="muted">Consent: POS receipt prompt, 2025-10-08</span></div><div class="ev"><div><div class="l">You want to fill</div><div class="v">Tuesday dinner</div></div><div><div class="l">Target daypart</div><div class="v">evening</div></div><div><div class="l">Target day</div><div class="v">Tuesday</div></div><div><div class="l">They come for</div><div class="v">lunch</div></div><div><div class="l">Their usual day</div><div class="v">Friday</div></div><div><div class="l">Visits</div><div class="v">22</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">An invitation to tuesday dinner, Zoe</b></div><span class="pill p-mute">Come at a different time</span></div><div class="email" style="margin-top:18px">Hi Zoe,
+
+We&#x27;re trying to make Tuesday dinner as good as the rest of our week, and we&#x27;d love your vote of confidence.
+
+Come in on a Tuesday this month and it&#x27;s buy one, get one free on any main. It&#x27;s quieter, the kitchen has time for you, and it might become your thing.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> You asked to fill <b>Tuesday dinner</b>. They visit <b>22</b> times but almost never then - they come for <b>lunch</b> on a <b>Friday</b>. You're not discounting to strangers, you're moving someone who already likes you into a slot that's already paid for. Note the email never tells them you know when they come - it's framed as an invite.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00270_wrong_time/">Open &amp; edit</a><span class="sm soft">Offer: buy one, get one free &mdash; costs A$9.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Amelia S.</span><span class="subj">An invitation to tuesday dinner, Amelia</span><span class="pill p-acc">Money off</span><span class="pill p-mute">Come at a different time</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>amelia.silva46@outlook.example</b></span><span class="muted">Consent: POS receipt prompt, 2026-06-09</span></div><div class="ev"><div><div class="l">You want to fill</div><div class="v">Tuesday dinner</div></div><div><div class="l">Target daypart</div><div class="v">evening</div></div><div><div class="l">Target day</div><div class="v">Tuesday</div></div><div><div class="l">They come for</div><div class="v">lunch</div></div><div><div class="l">Their usual day</div><div class="v">Thursday</div></div><div><div class="l">Visits</div><div class="v">8</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">An invitation to tuesday dinner, Amelia</b></div><span class="pill p-mute">Come at a different time</span></div><div class="email" style="margin-top:18px">Hi Amelia,
+
+We&#x27;re trying to make Tuesday dinner as good as the rest of our week, and we&#x27;d love your vote of confidence.
+
+Come in on a Tuesday this month and it&#x27;s buy one, get one free on any main. It&#x27;s quieter, the kitchen has time for you, and it might become your thing.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> You asked to fill <b>Tuesday dinner</b>. They visit <b>8</b> times but almost never then - they come for <b>lunch</b> on a <b>Thursday</b>. You're not discounting to strangers, you're moving someone who already likes you into a slot that's already paid for. Note the email never tells them you know when they come - it's framed as an invite.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00271_wrong_time/">Open &amp; edit</a><span class="sm soft">Offer: buy one, get one free &mdash; costs A$9.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Willow G.</span><span class="subj">An invitation to tuesday dinner, Willow</span><span class="pill p-acc">Money off</span><span class="pill p-mute">Come at a different time</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>willow.gray73@hotmail.example</b></span><span class="muted">Consent: Loyalty signup, 2026-07-15</span></div><div class="ev"><div><div class="l">You want to fill</div><div class="v">Tuesday dinner</div></div><div><div class="l">Target daypart</div><div class="v">evening</div></div><div><div class="l">Target day</div><div class="v">Tuesday</div></div><div><div class="l">They come for</div><div class="v">lunch</div></div><div><div class="l">Their usual day</div><div class="v">Monday</div></div><div><div class="l">Visits</div><div class="v">22</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">An invitation to tuesday dinner, Willow</b></div><span class="pill p-mute">Come at a different time</span></div><div class="email" style="margin-top:18px">Hi Willow,
+
+We&#x27;re trying to make Tuesday dinner as good as the rest of our week, and we&#x27;d love your vote of confidence.
+
+Come in on a Tuesday this month and it&#x27;s buy one, get one free on any main. It&#x27;s quieter, the kitchen has time for you, and it might become your thing.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> You asked to fill <b>Tuesday dinner</b>. They visit <b>22</b> times but almost never then - they come for <b>lunch</b> on a <b>Monday</b>. You're not discounting to strangers, you're moving someone who already likes you into a slot that's already paid for. Note the email never tells them you know when they come - it's framed as an invite.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00275_wrong_time/">Open &amp; edit</a><span class="sm soft">Offer: buy one, get one free &mdash; costs A$9.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Imogen Z.</span><span class="subj">An invitation to tuesday dinner, Imogen</span><span class="pill p-acc">Money off</span><span class="pill p-mute">Come at a different time</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>imogen.zhang63@icloud.example</b></span><span class="muted">Consent: POS receipt prompt, 2026-03-20</span></div><div class="ev"><div><div class="l">You want to fill</div><div class="v">Tuesday dinner</div></div><div><div class="l">Target daypart</div><div class="v">evening</div></div><div><div class="l">Target day</div><div class="v">Tuesday</div></div><div><div class="l">They come for</div><div class="v">lunch</div></div><div><div class="l">Their usual day</div><div class="v">Saturday</div></div><div><div class="l">Visits</div><div class="v">20</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">An invitation to tuesday dinner, Imogen</b></div><span class="pill p-mute">Come at a different time</span></div><div class="email" style="margin-top:18px">Hi Imogen,
+
+We&#x27;re trying to make Tuesday dinner as good as the rest of our week, and we&#x27;d love your vote of confidence.
+
+Come in on a Tuesday this month and it&#x27;s buy one, get one free on any main. It&#x27;s quieter, the kitchen has time for you, and it might become your thing.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> You asked to fill <b>Tuesday dinner</b>. They visit <b>20</b> times but almost never then - they come for <b>lunch</b> on a <b>Saturday</b>. You're not discounting to strangers, you're moving someone who already likes you into a slot that's already paid for. Note the email never tells them you know when they come - it's framed as an invite.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00276_wrong_time/">Open &amp; edit</a><span class="sm soft">Offer: buy one, get one free &mdash; costs A$9.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Anh J.</span><span class="subj">An invitation to tuesday dinner, Anh</span><span class="pill p-acc">Money off</span><span class="pill p-mute">Come at a different time</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>anh.jones87@outlook.example</b></span><span class="muted">Consent: POS receipt prompt, 2025-07-04</span></div><div class="ev"><div><div class="l">You want to fill</div><div class="v">Tuesday dinner</div></div><div><div class="l">Target daypart</div><div class="v">evening</div></div><div><div class="l">Target day</div><div class="v">Tuesday</div></div><div><div class="l">They come for</div><div class="v">lunch</div></div><div><div class="l">Their usual day</div><div class="v">Monday</div></div><div><div class="l">Visits</div><div class="v">23</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">An invitation to tuesday dinner, Anh</b></div><span class="pill p-mute">Come at a different time</span></div><div class="email" style="margin-top:18px">Hi Anh,
+
+We&#x27;re trying to make Tuesday dinner as good as the rest of our week, and we&#x27;d love your vote of confidence.
+
+Come in on a Tuesday this month and it&#x27;s buy one, get one free on any main. It&#x27;s quieter, the kitchen has time for you, and it might become your thing.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> You asked to fill <b>Tuesday dinner</b>. They visit <b>23</b> times but almost never then - they come for <b>lunch</b> on a <b>Monday</b>. You're not discounting to strangers, you're moving someone who already likes you into a slot that's already paid for. Note the email never tells them you know when they come - it's framed as an invite.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00281_wrong_time/">Open &amp; edit</a><span class="sm soft">Offer: buy one, get one free &mdash; costs A$9.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Luca S.</span><span class="subj">An invitation to tuesday dinner, Luca</span><span class="pill p-acc">Money off</span><span class="pill p-mute">Come at a different time</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>luca.smith60@gmail.example</b></span><span class="muted">Consent: Loyalty signup, 2025-01-17</span></div><div class="ev"><div><div class="l">You want to fill</div><div class="v">Tuesday dinner</div></div><div><div class="l">Target daypart</div><div class="v">evening</div></div><div><div class="l">Target day</div><div class="v">Tuesday</div></div><div><div class="l">They come for</div><div class="v">lunch</div></div><div><div class="l">Their usual day</div><div class="v">Friday</div></div><div><div class="l">Visits</div><div class="v">14</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">An invitation to tuesday dinner, Luca</b></div><span class="pill p-mute">Come at a different time</span></div><div class="email" style="margin-top:18px">Hi Luca,
+
+We&#x27;re trying to make Tuesday dinner as good as the rest of our week, and we&#x27;d love your vote of confidence.
+
+Come in on a Tuesday this month and it&#x27;s buy one, get one free on any main. It&#x27;s quieter, the kitchen has time for you, and it might become your thing.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> You asked to fill <b>Tuesday dinner</b>. They visit <b>14</b> times but almost never then - they come for <b>lunch</b> on a <b>Friday</b>. You're not discounting to strangers, you're moving someone who already likes you into a slot that's already paid for. Note the email never tells them you know when they come - it's framed as an invite.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00282_wrong_time/">Open &amp; edit</a><span class="sm soft">Offer: buy one, get one free &mdash; costs A$9.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Sofia A.</span><span class="subj">An invitation to tuesday dinner, Sofia</span><span class="pill p-acc">Money off</span><span class="pill p-mute">Come at a different time</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>sofia.anderson15@yahoo.example</b></span><span class="muted">Consent: POS receipt prompt, 2024-12-09</span></div><div class="ev"><div><div class="l">You want to fill</div><div class="v">Tuesday dinner</div></div><div><div class="l">Target daypart</div><div class="v">evening</div></div><div><div class="l">Target day</div><div class="v">Tuesday</div></div><div><div class="l">They come for</div><div class="v">lunch</div></div><div><div class="l">Their usual day</div><div class="v">Thursday</div></div><div><div class="l">Visits</div><div class="v">20</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">An invitation to tuesday dinner, Sofia</b></div><span class="pill p-mute">Come at a different time</span></div><div class="email" style="margin-top:18px">Hi Sofia,
+
+We&#x27;re trying to make Tuesday dinner as good as the rest of our week, and we&#x27;d love your vote of confidence.
+
+Come in on a Tuesday this month and it&#x27;s buy one, get one free on any main. It&#x27;s quieter, the kitchen has time for you, and it might become your thing.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> You asked to fill <b>Tuesday dinner</b>. They visit <b>20</b> times but almost never then - they come for <b>lunch</b> on a <b>Thursday</b>. You're not discounting to strangers, you're moving someone who already likes you into a slot that's already paid for. Note the email never tells them you know when they come - it's framed as an invite.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00286_wrong_time/">Open &amp; edit</a><span class="sm soft">Offer: buy one, get one free &mdash; costs A$9.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Ava H.</span><span class="subj">An invitation to tuesday dinner, Ava</span><span class="pill p-acc">Money off</span><span class="pill p-mute">Come at a different time</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>ava.hughes33@outlook.example</b></span><span class="muted">Consent: Loyalty signup, 2025-03-06</span></div><div class="ev"><div><div class="l">You want to fill</div><div class="v">Tuesday dinner</div></div><div><div class="l">Target daypart</div><div class="v">evening</div></div><div><div class="l">Target day</div><div class="v">Tuesday</div></div><div><div class="l">They come for</div><div class="v">lunch</div></div><div><div class="l">Their usual day</div><div class="v">Monday</div></div><div><div class="l">Visits</div><div class="v">14</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">An invitation to tuesday dinner, Ava</b></div><span class="pill p-mute">Come at a different time</span></div><div class="email" style="margin-top:18px">Hi Ava,
+
+We&#x27;re trying to make Tuesday dinner as good as the rest of our week, and we&#x27;d love your vote of confidence.
+
+Come in on a Tuesday this month and it&#x27;s buy one, get one free on any main. It&#x27;s quieter, the kitchen has time for you, and it might become your thing.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> You asked to fill <b>Tuesday dinner</b>. They visit <b>14</b> times but almost never then - they come for <b>lunch</b> on a <b>Monday</b>. You're not discounting to strangers, you're moving someone who already likes you into a slot that's already paid for. Note the email never tells them you know when they come - it's framed as an invite.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00289_wrong_time/">Open &amp; edit</a><span class="sm soft">Offer: buy one, get one free &mdash; costs A$9.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Tane L.</span><span class="subj">An invitation to wednesday dinner, Tane</span><span class="pill p-acc">Money off</span><span class="pill p-mute">Come at a different time</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>tane.lee35@yahoo.example</b></span><span class="muted">Consent: Loyalty signup, 2026-02-09</span></div><div class="ev"><div><div class="l">You want to fill</div><div class="v">Wednesday dinner</div></div><div><div class="l">Target daypart</div><div class="v">evening</div></div><div><div class="l">Target day</div><div class="v">Wednesday</div></div><div><div class="l">They come for</div><div class="v">lunch</div></div><div><div class="l">Their usual day</div><div class="v">Tuesday</div></div><div><div class="l">Visits</div><div class="v">20</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">An invitation to wednesday dinner, Tane</b></div><span class="pill p-mute">Come at a different time</span></div><div class="email" style="margin-top:18px">Hi Tane,
+
+We&#x27;re trying to make Wednesday dinner as good as the rest of our week, and we&#x27;d love your vote of confidence.
+
+Come in on a Wednesday this month and it&#x27;s buy one, get one free on any main. It&#x27;s quieter, the kitchen has time for you, and it might become your thing.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> You asked to fill <b>Wednesday dinner</b>. They visit <b>20</b> times but almost never then - they come for <b>lunch</b> on a <b>Tuesday</b>. You're not discounting to strangers, you're moving someone who already likes you into a slot that's already paid for. Note the email never tells them you know when they come - it's framed as an invite.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00290_wrong_time/">Open &amp; edit</a><span class="sm soft">Offer: buy one, get one free &mdash; costs A$9.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Jack W.</span><span class="subj">An invitation to tuesday dinner, Jack</span><span class="pill p-acc">Money off</span><span class="pill p-mute">Come at a different time</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>jack.white23@hotmail.example</b></span><span class="muted">Consent: Loyalty signup, 2025-10-21</span></div><div class="ev"><div><div class="l">You want to fill</div><div class="v">Tuesday dinner</div></div><div><div class="l">Target daypart</div><div class="v">evening</div></div><div><div class="l">Target day</div><div class="v">Tuesday</div></div><div><div class="l">They come for</div><div class="v">lunch</div></div><div><div class="l">Their usual day</div><div class="v">Thursday</div></div><div><div class="l">Visits</div><div class="v">11</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">An invitation to tuesday dinner, Jack</b></div><span class="pill p-mute">Come at a different time</span></div><div class="email" style="margin-top:18px">Hi Jack,
+
+We&#x27;re trying to make Tuesday dinner as good as the rest of our week, and we&#x27;d love your vote of confidence.
+
+Come in on a Tuesday this month and it&#x27;s buy one, get one free on any main. It&#x27;s quieter, the kitchen has time for you, and it might become your thing.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> You asked to fill <b>Tuesday dinner</b>. They visit <b>11</b> times but almost never then - they come for <b>lunch</b> on a <b>Thursday</b>. You're not discounting to strangers, you're moving someone who already likes you into a slot that's already paid for. Note the email never tells them you know when they come - it's framed as an invite.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00293_wrong_time/">Open &amp; edit</a><span class="sm soft">Offer: buy one, get one free &mdash; costs A$9.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Aoife A.</span><span class="subj">An invitation to tuesday dinner, Aoife</span><span class="pill p-acc">Money off</span><span class="pill p-mute">Come at a different time</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>aoife.ali95@gmail.example</b></span><span class="muted">Consent: POS receipt prompt, 2025-08-02</span></div><div class="ev"><div><div class="l">You want to fill</div><div class="v">Tuesday dinner</div></div><div><div class="l">Target daypart</div><div class="v">evening</div></div><div><div class="l">Target day</div><div class="v">Tuesday</div></div><div><div class="l">They come for</div><div class="v">lunch</div></div><div><div class="l">Their usual day</div><div class="v">Monday</div></div><div><div class="l">Visits</div><div class="v">22</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">An invitation to tuesday dinner, Aoife</b></div><span class="pill p-mute">Come at a different time</span></div><div class="email" style="margin-top:18px">Hi Aoife,
+
+We&#x27;re trying to make Tuesday dinner as good as the rest of our week, and we&#x27;d love your vote of confidence.
+
+Come in on a Tuesday this month and it&#x27;s buy one, get one free on any main. It&#x27;s quieter, the kitchen has time for you, and it might become your thing.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> You asked to fill <b>Tuesday dinner</b>. They visit <b>22</b> times but almost never then - they come for <b>lunch</b> on a <b>Monday</b>. You're not discounting to strangers, you're moving someone who already likes you into a slot that's already paid for. Note the email never tells them you know when they come - it's framed as an invite.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00295_wrong_time/">Open &amp; edit</a><span class="sm soft">Offer: buy one, get one free &mdash; costs A$9.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Olivia A.</span><span class="subj">An invitation to wednesday dinner, Olivia</span><span class="pill p-acc">Money off</span><span class="pill p-mute">Come at a different time</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>olivia.ali22@outlook.example</b></span><span class="muted">Consent: Loyalty signup, 2026-08-05</span></div><div class="ev"><div><div class="l">You want to fill</div><div class="v">Wednesday dinner</div></div><div><div class="l">Target daypart</div><div class="v">evening</div></div><div><div class="l">Target day</div><div class="v">Wednesday</div></div><div><div class="l">They come for</div><div class="v">lunch</div></div><div><div class="l">Their usual day</div><div class="v">Tuesday</div></div><div><div class="l">Visits</div><div class="v">24</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">An invitation to wednesday dinner, Olivia</b></div><span class="pill p-mute">Come at a different time</span></div><div class="email" style="margin-top:18px">Hi Olivia,
+
+We&#x27;re trying to make Wednesday dinner as good as the rest of our week, and we&#x27;d love your vote of confidence.
+
+Come in on a Wednesday this month and it&#x27;s buy one, get one free on any main. It&#x27;s quieter, the kitchen has time for you, and it might become your thing.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> You asked to fill <b>Wednesday dinner</b>. They visit <b>24</b> times but almost never then - they come for <b>lunch</b> on a <b>Tuesday</b>. You're not discounting to strangers, you're moving someone who already likes you into a slot that's already paid for. Note the email never tells them you know when they come - it's framed as an invite.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00297_wrong_time/">Open &amp; edit</a><span class="sm soft">Offer: buy one, get one free &mdash; costs A$9.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Imogen K.</span><span class="subj">An invitation to tuesday dinner, Imogen</span><span class="pill p-acc">Money off</span><span class="pill p-mute">Come at a different time</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>imogen.kowalski34@gmail.example</b></span><span class="muted">Consent: Website form, 2025-11-02</span></div><div class="ev"><div><div class="l">You want to fill</div><div class="v">Tuesday dinner</div></div><div><div class="l">Target daypart</div><div class="v">evening</div></div><div><div class="l">Target day</div><div class="v">Tuesday</div></div><div><div class="l">They come for</div><div class="v">lunch</div></div><div><div class="l">Their usual day</div><div class="v">Friday</div></div><div><div class="l">Visits</div><div class="v">18</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">An invitation to tuesday dinner, Imogen</b></div><span class="pill p-mute">Come at a different time</span></div><div class="email" style="margin-top:18px">Hi Imogen,
+
+We&#x27;re trying to make Tuesday dinner as good as the rest of our week, and we&#x27;d love your vote of confidence.
+
+Come in on a Tuesday this month and it&#x27;s buy one, get one free on any main. It&#x27;s quieter, the kitchen has time for you, and it might become your thing.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> You asked to fill <b>Tuesday dinner</b>. They visit <b>18</b> times but almost never then - they come for <b>lunch</b> on a <b>Friday</b>. You're not discounting to strangers, you're moving someone who already likes you into a slot that's already paid for. Note the email never tells them you know when they come - it's framed as an invite.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00303_wrong_time/">Open &amp; edit</a><span class="sm soft">Offer: buy one, get one free &mdash; costs A$9.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Hassan M.</span><span class="subj">An invitation to tuesday dinner, Hassan</span><span class="pill p-acc">Money off</span><span class="pill p-mute">Come at a different time</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>hassan.martin92@gmail.example</b></span><span class="muted">Consent: Loyalty signup, 2026-03-11</span></div><div class="ev"><div><div class="l">You want to fill</div><div class="v">Tuesday dinner</div></div><div><div class="l">Target daypart</div><div class="v">evening</div></div><div><div class="l">Target day</div><div class="v">Tuesday</div></div><div><div class="l">They come for</div><div class="v">lunch</div></div><div><div class="l">Their usual day</div><div class="v">Monday</div></div><div><div class="l">Visits</div><div class="v">8</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">An invitation to tuesday dinner, Hassan</b></div><span class="pill p-mute">Come at a different time</span></div><div class="email" style="margin-top:18px">Hi Hassan,
+
+We&#x27;re trying to make Tuesday dinner as good as the rest of our week, and we&#x27;d love your vote of confidence.
+
+Come in on a Tuesday this month and it&#x27;s buy one, get one free on any main. It&#x27;s quieter, the kitchen has time for you, and it might become your thing.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> You asked to fill <b>Tuesday dinner</b>. They visit <b>8</b> times but almost never then - they come for <b>lunch</b> on a <b>Monday</b>. You're not discounting to strangers, you're moving someone who already likes you into a slot that's already paid for. Note the email never tells them you know when they come - it's framed as an invite.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00304_wrong_time/">Open &amp; edit</a><span class="sm soft">Offer: buy one, get one free &mdash; costs A$9.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Angus W.</span><span class="subj">We miss you, Angus</span><span class="pill p-acc">Money off</span><span class="pill p-mute">Big spender gone quiet</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>angus.williams6@gmail.example</b></span><span class="muted">Consent: Loyalty signup, 2026-02-16</span></div><div class="ev"><div><div class="l">Lifetime spend</div><div class="v">A$2,590</div></div><div><div class="l">Visits</div><div class="v">18</div></div><div><div class="l">Days since</div><div class="v">141</div></div><div><div class="l">Last visit</div><div class="v">2026-06-16</div></div><div><div class="l">Spend percentile</div><div class="v">top 11%</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">We miss you, Angus</b></div><span class="pill p-mute">Big spender gone quiet</span></div><div class="email" style="margin-top:18px">Hi Angus,
+
+You used to be one of our proper regulars, and then life happened - we last saw you back in winter.
+
+Whatever happened, we&#x27;d like you back. $15 off your bill if you come in before the end of the month, and your usual table is exactly where you left it.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> <b>141 days</b> since their last visit, after <b>18</b> visits totalling <b>A$2,590</b> - top <b>11%</b> by lifetime spend. Reactivating an existing regular costs far less than acquiring a replacement. The email says &ldquo;back in winter&rdquo;, not the day count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00330_lapsed_big_spender/">Open &amp; edit</a><span class="sm soft">Offer: $15 off your bill &mdash; costs A$15.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Hassan G.</span><span class="subj">We miss you, Hassan</span><span class="pill p-acc">Money off</span><span class="pill p-mute">Big spender gone quiet</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>hassan.gray79@gmail.example</b></span><span class="muted">Consent: POS receipt prompt, 2025-04-10</span></div><div class="ev"><div><div class="l">Lifetime spend</div><div class="v">A$1,877</div></div><div><div class="l">Visits</div><div class="v">14</div></div><div><div class="l">Days since</div><div class="v">200</div></div><div><div class="l">Last visit</div><div class="v">2026-04-18</div></div><div><div class="l">Spend percentile</div><div class="v">top 20%</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">We miss you, Hassan</b></div><span class="pill p-mute">Big spender gone quiet</span></div><div class="email" style="margin-top:18px">Hi Hassan,
+
+You used to be one of our proper regulars, and then life happened - we last saw you back in autumn.
+
+Whatever happened, we&#x27;d like you back. $15 off your bill if you come in before the end of the month, and your usual table is exactly where you left it.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> <b>200 days</b> since their last visit, after <b>14</b> visits totalling <b>A$1,877</b> - top <b>20%</b> by lifetime spend. Reactivating an existing regular costs far less than acquiring a replacement. The email says &ldquo;back in autumn&rdquo;, not the day count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00331_lapsed_big_spender/">Open &amp; edit</a><span class="sm soft">Offer: $15 off your bill &mdash; costs A$15.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Ruby D.</span><span class="subj">We miss you, Ruby</span><span class="pill p-acc">Money off</span><span class="pill p-mute">Big spender gone quiet</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>ruby.duong53@outlook.example</b></span><span class="muted">Consent: Loyalty signup, 2026-04-03</span></div><div class="ev"><div><div class="l">Lifetime spend</div><div class="v">A$4,403</div></div><div><div class="l">Visits</div><div class="v">36</div></div><div><div class="l">Days since</div><div class="v">197</div></div><div><div class="l">Last visit</div><div class="v">2026-04-21</div></div><div><div class="l">Spend percentile</div><div class="v">top 3%</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">We miss you, Ruby</b></div><span class="pill p-mute">Big spender gone quiet</span></div><div class="email" style="margin-top:18px">Hi Ruby,
+
+You used to be one of our proper regulars, and then life happened - we last saw you back in autumn.
+
+Whatever happened, we&#x27;d like you back. $15 off your bill if you come in before the end of the month, and your usual table is exactly where you left it.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> <b>197 days</b> since their last visit, after <b>36</b> visits totalling <b>A$4,403</b> - top <b>3%</b> by lifetime spend. Reactivating an existing regular costs far less than acquiring a replacement. The email says &ldquo;back in autumn&rdquo;, not the day count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00332_lapsed_big_spender/">Open &amp; edit</a><span class="sm soft">Offer: $15 off your bill &mdash; costs A$15.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Luca Z.</span><span class="subj">We miss you, Luca</span><span class="pill p-acc">Money off</span><span class="pill p-mute">Big spender gone quiet</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>luca.zhang38@yahoo.example</b></span><span class="muted">Consent: Loyalty signup, 2025-09-11</span></div><div class="ev"><div><div class="l">Lifetime spend</div><div class="v">A$2,560</div></div><div><div class="l">Visits</div><div class="v">21</div></div><div><div class="l">Days since</div><div class="v">199</div></div><div><div class="l">Last visit</div><div class="v">2026-04-19</div></div><div><div class="l">Spend percentile</div><div class="v">top 11%</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">We miss you, Luca</b></div><span class="pill p-mute">Big spender gone quiet</span></div><div class="email" style="margin-top:18px">Hi Luca,
+
+You used to be one of our proper regulars, and then life happened - we last saw you back in autumn.
+
+Whatever happened, we&#x27;d like you back. $15 off your bill if you come in before the end of the month, and your usual table is exactly where you left it.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> <b>199 days</b> since their last visit, after <b>21</b> visits totalling <b>A$2,560</b> - top <b>11%</b> by lifetime spend. Reactivating an existing regular costs far less than acquiring a replacement. The email says &ldquo;back in autumn&rdquo;, not the day count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00333_lapsed_big_spender/">Open &amp; edit</a><span class="sm soft">Offer: $15 off your bill &mdash; costs A$15.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Ethan K.</span><span class="subj">We miss you, Ethan</span><span class="pill p-acc">Money off</span><span class="pill p-mute">Big spender gone quiet</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>ethan.kelly91@yahoo.example</b></span><span class="muted">Consent: Old import (unverified), 2025-12-10</span></div><div class="ev"><div><div class="l">Lifetime spend</div><div class="v">A$4,772</div></div><div><div class="l">Visits</div><div class="v">35</div></div><div><div class="l">Days since</div><div class="v">192</div></div><div><div class="l">Last visit</div><div class="v">2026-04-26</div></div><div><div class="l">Spend percentile</div><div class="v">top 2%</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">We miss you, Ethan</b></div><span class="pill p-mute">Big spender gone quiet</span></div><div class="email" style="margin-top:18px">Hi Ethan,
+
+You used to be one of our proper regulars, and then life happened - we last saw you back in autumn.
+
+Whatever happened, we&#x27;d like you back. $15 off your bill if you come in before the end of the month, and your usual table is exactly where you left it.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> <b>192 days</b> since their last visit, after <b>35</b> visits totalling <b>A$4,772</b> - top <b>2%</b> by lifetime spend. Reactivating an existing regular costs far less than acquiring a replacement. The email says &ldquo;back in autumn&rdquo;, not the day count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00334_lapsed_big_spender/">Open &amp; edit</a><span class="sm soft">Offer: $15 off your bill &mdash; costs A$15.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Ella O.</span><span class="subj">We miss you, Ella</span><span class="pill p-acc">Money off</span><span class="pill p-mute">Big spender gone quiet</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>ella.o&#x27;brien17@yahoo.example</b></span><span class="muted">Consent: POS receipt prompt, 2026-03-24</span></div><div class="ev"><div><div class="l">Lifetime spend</div><div class="v">A$3,618</div></div><div><div class="l">Visits</div><div class="v">31</div></div><div><div class="l">Days since</div><div class="v">227</div></div><div><div class="l">Last visit</div><div class="v">2026-03-22</div></div><div><div class="l">Spend percentile</div><div class="v">top 7%</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">We miss you, Ella</b></div><span class="pill p-mute">Big spender gone quiet</span></div><div class="email" style="margin-top:18px">Hi Ella,
+
+You used to be one of our proper regulars, and then life happened - we last saw you back in autumn.
+
+Whatever happened, we&#x27;d like you back. $15 off your bill if you come in before the end of the month, and your usual table is exactly where you left it.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> <b>227 days</b> since their last visit, after <b>31</b> visits totalling <b>A$3,618</b> - top <b>7%</b> by lifetime spend. Reactivating an existing regular costs far less than acquiring a replacement. The email says &ldquo;back in autumn&rdquo;, not the day count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00335_lapsed_big_spender/">Open &amp; edit</a><span class="sm soft">Offer: $15 off your bill &mdash; costs A$15.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Liam K.</span><span class="subj">We miss you, Liam</span><span class="pill p-acc">Money off</span><span class="pill p-mute">Big spender gone quiet</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>liam.kaur78@gmail.example</b></span><span class="muted">Consent: POS receipt prompt, 2025-10-24</span></div><div class="ev"><div><div class="l">Lifetime spend</div><div class="v">A$1,712</div></div><div><div class="l">Visits</div><div class="v">14</div></div><div><div class="l">Days since</div><div class="v">224</div></div><div><div class="l">Last visit</div><div class="v">2026-03-25</div></div><div><div class="l">Spend percentile</div><div class="v">top 25%</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">We miss you, Liam</b></div><span class="pill p-mute">Big spender gone quiet</span></div><div class="email" style="margin-top:18px">Hi Liam,
+
+You used to be one of our proper regulars, and then life happened - we last saw you back in autumn.
+
+Whatever happened, we&#x27;d like you back. $15 off your bill if you come in before the end of the month, and your usual table is exactly where you left it.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> <b>224 days</b> since their last visit, after <b>14</b> visits totalling <b>A$1,712</b> - top <b>25%</b> by lifetime spend. Reactivating an existing regular costs far less than acquiring a replacement. The email says &ldquo;back in autumn&rdquo;, not the day count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00336_lapsed_big_spender/">Open &amp; edit</a><span class="sm soft">Offer: $15 off your bill &mdash; costs A$15.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Riley P.</span><span class="subj">We miss you, Riley</span><span class="pill p-acc">Money off</span><span class="pill p-mute">Big spender gone quiet</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>riley.patel22@yahoo.example</b></span><span class="muted">Consent: POS receipt prompt, 2025-09-17</span></div><div class="ev"><div><div class="l">Lifetime spend</div><div class="v">A$4,302</div></div><div><div class="l">Visits</div><div class="v">33</div></div><div><div class="l">Days since</div><div class="v">236</div></div><div><div class="l">Last visit</div><div class="v">2026-03-13</div></div><div><div class="l">Spend percentile</div><div class="v">top 4%</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">We miss you, Riley</b></div><span class="pill p-mute">Big spender gone quiet</span></div><div class="email" style="margin-top:18px">Hi Riley,
+
+You used to be one of our proper regulars, and then life happened - we last saw you back in autumn.
+
+Whatever happened, we&#x27;d like you back. $15 off your bill if you come in before the end of the month, and your usual table is exactly where you left it.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> <b>236 days</b> since their last visit, after <b>33</b> visits totalling <b>A$4,302</b> - top <b>4%</b> by lifetime spend. Reactivating an existing regular costs far less than acquiring a replacement. The email says &ldquo;back in autumn&rdquo;, not the day count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00337_lapsed_big_spender/">Open &amp; edit</a><span class="sm soft">Offer: $15 off your bill &mdash; costs A$15.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Ethan R.</span><span class="subj">We miss you, Ethan</span><span class="pill p-acc">Money off</span><span class="pill p-mute">Big spender gone quiet</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>ethan.rossi47@gmail.example</b></span><span class="muted">Consent: Website form, 2025-12-31</span></div><div class="ev"><div><div class="l">Lifetime spend</div><div class="v">A$1,797</div></div><div><div class="l">Visits</div><div class="v">16</div></div><div><div class="l">Days since</div><div class="v">212</div></div><div><div class="l">Last visit</div><div class="v">2026-04-06</div></div><div><div class="l">Spend percentile</div><div class="v">top 23%</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">We miss you, Ethan</b></div><span class="pill p-mute">Big spender gone quiet</span></div><div class="email" style="margin-top:18px">Hi Ethan,
+
+You used to be one of our proper regulars, and then life happened - we last saw you back in autumn.
+
+Whatever happened, we&#x27;d like you back. $15 off your bill if you come in before the end of the month, and your usual table is exactly where you left it.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> <b>212 days</b> since their last visit, after <b>16</b> visits totalling <b>A$1,797</b> - top <b>23%</b> by lifetime spend. Reactivating an existing regular costs far less than acquiring a replacement. The email says &ldquo;back in autumn&rdquo;, not the day count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00339_lapsed_big_spender/">Open &amp; edit</a><span class="sm soft">Offer: $15 off your bill &mdash; costs A$15.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Charlotte K.</span><span class="subj">We miss you, Charlotte</span><span class="pill p-acc">Money off</span><span class="pill p-mute">Big spender gone quiet</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>charlotte.kim23@yahoo.example</b></span><span class="muted">Consent: Website form, 2025-05-10</span></div><div class="ev"><div><div class="l">Lifetime spend</div><div class="v">A$4,154</div></div><div><div class="l">Visits</div><div class="v">31</div></div><div><div class="l">Days since</div><div class="v">136</div></div><div><div class="l">Last visit</div><div class="v">2026-06-21</div></div><div><div class="l">Spend percentile</div><div class="v">top 5%</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">We miss you, Charlotte</b></div><span class="pill p-mute">Big spender gone quiet</span></div><div class="email" style="margin-top:18px">Hi Charlotte,
+
+You used to be one of our proper regulars, and then life happened - we last saw you back in winter.
+
+Whatever happened, we&#x27;d like you back. $15 off your bill if you come in before the end of the month, and your usual table is exactly where you left it.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> <b>136 days</b> since their last visit, after <b>31</b> visits totalling <b>A$4,154</b> - top <b>5%</b> by lifetime spend. Reactivating an existing regular costs far less than acquiring a replacement. The email says &ldquo;back in winter&rdquo;, not the day count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00340_lapsed_big_spender/">Open &amp; edit</a><span class="sm soft">Offer: $15 off your bill &mdash; costs A$15.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Ravi W.</span><span class="subj">We miss you, Ravi</span><span class="pill p-acc">Money off</span><span class="pill p-mute">Big spender gone quiet</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>ravi.white37@gmail.example</b></span><span class="muted">Consent: Website form, 2026-07-04</span></div><div class="ev"><div><div class="l">Lifetime spend</div><div class="v">A$5,023</div></div><div><div class="l">Visits</div><div class="v">36</div></div><div><div class="l">Days since</div><div class="v">181</div></div><div><div class="l">Last visit</div><div class="v">2026-05-07</div></div><div><div class="l">Spend percentile</div><div class="v">top 1%</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">We miss you, Ravi</b></div><span class="pill p-mute">Big spender gone quiet</span></div><div class="email" style="margin-top:18px">Hi Ravi,
+
+You used to be one of our proper regulars, and then life happened - we last saw you back in autumn.
+
+Whatever happened, we&#x27;d like you back. $15 off your bill if you come in before the end of the month, and your usual table is exactly where you left it.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> <b>181 days</b> since their last visit, after <b>36</b> visits totalling <b>A$5,023</b> - top <b>1%</b> by lifetime spend. Reactivating an existing regular costs far less than acquiring a replacement. The email says &ldquo;back in autumn&rdquo;, not the day count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00341_lapsed_big_spender/">Open &amp; edit</a><span class="sm soft">Offer: $15 off your bill &mdash; costs A$15.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Hassan D.</span><span class="subj">We miss you, Hassan</span><span class="pill p-acc">Money off</span><span class="pill p-mute">Big spender gone quiet</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>hassan.duong79@icloud.example</b></span><span class="muted">Consent: Booking, 2025-11-25</span></div><div class="ev"><div><div class="l">Lifetime spend</div><div class="v">A$4,859</div></div><div><div class="l">Visits</div><div class="v">37</div></div><div><div class="l">Days since</div><div class="v">186</div></div><div><div class="l">Last visit</div><div class="v">2026-05-02</div></div><div><div class="l">Spend percentile</div><div class="v">top 1%</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">We miss you, Hassan</b></div><span class="pill p-mute">Big spender gone quiet</span></div><div class="email" style="margin-top:18px">Hi Hassan,
+
+You used to be one of our proper regulars, and then life happened - we last saw you back in autumn.
+
+Whatever happened, we&#x27;d like you back. $15 off your bill if you come in before the end of the month, and your usual table is exactly where you left it.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> <b>186 days</b> since their last visit, after <b>37</b> visits totalling <b>A$4,859</b> - top <b>1%</b> by lifetime spend. Reactivating an existing regular costs far less than acquiring a replacement. The email says &ldquo;back in autumn&rdquo;, not the day count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00342_lapsed_big_spender/">Open &amp; edit</a><span class="sm soft">Offer: $15 off your bill &mdash; costs A$15.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Amelia B.</span><span class="subj">We miss you, Amelia</span><span class="pill p-acc">Money off</span><span class="pill p-mute">Big spender gone quiet</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>amelia.brown39@icloud.example</b></span><span class="muted">Consent: Website form, 2026-04-29</span></div><div class="ev"><div><div class="l">Lifetime spend</div><div class="v">A$3,782</div></div><div><div class="l">Visits</div><div class="v">28</div></div><div><div class="l">Days since</div><div class="v">158</div></div><div><div class="l">Last visit</div><div class="v">2026-05-30</div></div><div><div class="l">Spend percentile</div><div class="v">top 7%</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">We miss you, Amelia</b></div><span class="pill p-mute">Big spender gone quiet</span></div><div class="email" style="margin-top:18px">Hi Amelia,
+
+You used to be one of our proper regulars, and then life happened - we last saw you back in autumn.
+
+Whatever happened, we&#x27;d like you back. $15 off your bill if you come in before the end of the month, and your usual table is exactly where you left it.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> <b>158 days</b> since their last visit, after <b>28</b> visits totalling <b>A$3,782</b> - top <b>7%</b> by lifetime spend. Reactivating an existing regular costs far less than acquiring a replacement. The email says &ldquo;back in autumn&rdquo;, not the day count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00343_lapsed_big_spender/">Open &amp; edit</a><span class="sm soft">Offer: $15 off your bill &mdash; costs A$15.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Simone K.</span><span class="subj">We miss you, Simone</span><span class="pill p-acc">Money off</span><span class="pill p-mute">Big spender gone quiet</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>simone.kowalski3@hotmail.example</b></span><span class="muted">Consent: Loyalty signup, 2025-07-11</span></div><div class="ev"><div><div class="l">Lifetime spend</div><div class="v">A$1,671</div></div><div><div class="l">Visits</div><div class="v">15</div></div><div><div class="l">Days since</div><div class="v">135</div></div><div><div class="l">Last visit</div><div class="v">2026-06-22</div></div><div><div class="l">Spend percentile</div><div class="v">top 26%</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">We miss you, Simone</b></div><span class="pill p-mute">Big spender gone quiet</span></div><div class="email" style="margin-top:18px">Hi Simone,
+
+You used to be one of our proper regulars, and then life happened - we last saw you back in winter.
+
+Whatever happened, we&#x27;d like you back. $15 off your bill if you come in before the end of the month, and your usual table is exactly where you left it.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> <b>135 days</b> since their last visit, after <b>15</b> visits totalling <b>A$1,671</b> - top <b>26%</b> by lifetime spend. Reactivating an existing regular costs far less than acquiring a replacement. The email says &ldquo;back in winter&rdquo;, not the day count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00344_lapsed_big_spender/">Open &amp; edit</a><span class="sm soft">Offer: $15 off your bill &mdash; costs A$15.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Ruby A.</span><span class="subj">We miss you, Ruby</span><span class="pill p-acc">Money off</span><span class="pill p-mute">Big spender gone quiet</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>ruby.anderson38@hotmail.example</b></span><span class="muted">Consent: Loyalty signup, 2025-05-29</span></div><div class="ev"><div><div class="l">Lifetime spend</div><div class="v">A$4,146</div></div><div><div class="l">Visits</div><div class="v">33</div></div><div><div class="l">Days since</div><div class="v">217</div></div><div><div class="l">Last visit</div><div class="v">2026-04-01</div></div><div><div class="l">Spend percentile</div><div class="v">top 5%</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">We miss you, Ruby</b></div><span class="pill p-mute">Big spender gone quiet</span></div><div class="email" style="margin-top:18px">Hi Ruby,
+
+You used to be one of our proper regulars, and then life happened - we last saw you back in autumn.
+
+Whatever happened, we&#x27;d like you back. $15 off your bill if you come in before the end of the month, and your usual table is exactly where you left it.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> <b>217 days</b> since their last visit, after <b>33</b> visits totalling <b>A$4,146</b> - top <b>5%</b> by lifetime spend. Reactivating an existing regular costs far less than acquiring a replacement. The email says &ldquo;back in autumn&rdquo;, not the day count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00346_lapsed_big_spender/">Open &amp; edit</a><span class="sm soft">Offer: $15 off your bill &mdash; costs A$15.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Aoife S.</span><span class="subj">We miss you, Aoife</span><span class="pill p-acc">Money off</span><span class="pill p-mute">Big spender gone quiet</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>aoife.santos61@yahoo.example</b></span><span class="muted">Consent: Loyalty signup, 2025-08-08</span></div><div class="ev"><div><div class="l">Lifetime spend</div><div class="v">A$4,004</div></div><div><div class="l">Visits</div><div class="v">35</div></div><div><div class="l">Days since</div><div class="v">202</div></div><div><div class="l">Last visit</div><div class="v">2026-04-16</div></div><div><div class="l">Spend percentile</div><div class="v">top 6%</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">We miss you, Aoife</b></div><span class="pill p-mute">Big spender gone quiet</span></div><div class="email" style="margin-top:18px">Hi Aoife,
+
+You used to be one of our proper regulars, and then life happened - we last saw you back in autumn.
+
+Whatever happened, we&#x27;d like you back. $15 off your bill if you come in before the end of the month, and your usual table is exactly where you left it.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> <b>202 days</b> since their last visit, after <b>35</b> visits totalling <b>A$4,004</b> - top <b>6%</b> by lifetime spend. Reactivating an existing regular costs far less than acquiring a replacement. The email says &ldquo;back in autumn&rdquo;, not the day count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00347_lapsed_big_spender/">Open &amp; edit</a><span class="sm soft">Offer: $15 off your bill &mdash; costs A$15.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Hamish M.</span><span class="subj">We miss you, Hamish</span><span class="pill p-acc">Money off</span><span class="pill p-mute">Big spender gone quiet</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>hamish.martin81@hotmail.example</b></span><span class="muted">Consent: POS receipt prompt, 2025-03-08</span></div><div class="ev"><div><div class="l">Lifetime spend</div><div class="v">A$4,703</div></div><div><div class="l">Visits</div><div class="v">35</div></div><div><div class="l">Days since</div><div class="v">241</div></div><div><div class="l">Last visit</div><div class="v">2026-03-08</div></div><div><div class="l">Spend percentile</div><div class="v">top 2%</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">We miss you, Hamish</b></div><span class="pill p-mute">Big spender gone quiet</span></div><div class="email" style="margin-top:18px">Hi Hamish,
+
+You used to be one of our proper regulars, and then life happened - we last saw you back in autumn.
+
+Whatever happened, we&#x27;d like you back. $15 off your bill if you come in before the end of the month, and your usual table is exactly where you left it.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> <b>241 days</b> since their last visit, after <b>35</b> visits totalling <b>A$4,703</b> - top <b>2%</b> by lifetime spend. Reactivating an existing regular costs far less than acquiring a replacement. The email says &ldquo;back in autumn&rdquo;, not the day count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00348_lapsed_big_spender/">Open &amp; edit</a><span class="sm soft">Offer: $15 off your bill &mdash; costs A$15.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Liam T.</span><span class="subj">We miss you, Liam</span><span class="pill p-acc">Money off</span><span class="pill p-mute">Big spender gone quiet</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>liam.thompson42@outlook.example</b></span><span class="muted">Consent: POS receipt prompt, 2026-08-10</span></div><div class="ev"><div><div class="l">Lifetime spend</div><div class="v">A$5,125</div></div><div><div class="l">Visits</div><div class="v">38</div></div><div><div class="l">Days since</div><div class="v">172</div></div><div><div class="l">Last visit</div><div class="v">2026-05-16</div></div><div><div class="l">Spend percentile</div><div class="v">top 0%</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">We miss you, Liam</b></div><span class="pill p-mute">Big spender gone quiet</span></div><div class="email" style="margin-top:18px">Hi Liam,
+
+You used to be one of our proper regulars, and then life happened - we last saw you back in autumn.
+
+Whatever happened, we&#x27;d like you back. $15 off your bill if you come in before the end of the month, and your usual table is exactly where you left it.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> <b>172 days</b> since their last visit, after <b>38</b> visits totalling <b>A$5,125</b> - top <b>0%</b> by lifetime spend. Reactivating an existing regular costs far less than acquiring a replacement. The email says &ldquo;back in autumn&rdquo;, not the day count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00349_lapsed_big_spender/">Open &amp; edit</a><span class="sm soft">Offer: $15 off your bill &mdash; costs A$15.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Amelia M.</span><span class="subj">We miss you, Amelia</span><span class="pill p-acc">Money off</span><span class="pill p-mute">Big spender gone quiet</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>amelia.martin71@hotmail.example</b></span><span class="muted">Consent: Loyalty signup, 2025-09-02</span></div><div class="ev"><div><div class="l">Lifetime spend</div><div class="v">A$2,176</div></div><div><div class="l">Visits</div><div class="v">15</div></div><div><div class="l">Days since</div><div class="v">209</div></div><div><div class="l">Last visit</div><div class="v">2026-04-09</div></div><div><div class="l">Spend percentile</div><div class="v">top 16%</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">We miss you, Amelia</b></div><span class="pill p-mute">Big spender gone quiet</span></div><div class="email" style="margin-top:18px">Hi Amelia,
+
+You used to be one of our proper regulars, and then life happened - we last saw you back in autumn.
+
+Whatever happened, we&#x27;d like you back. $15 off your bill if you come in before the end of the month, and your usual table is exactly where you left it.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> <b>209 days</b> since their last visit, after <b>15</b> visits totalling <b>A$2,176</b> - top <b>16%</b> by lifetime spend. Reactivating an existing regular costs far less than acquiring a replacement. The email says &ldquo;back in autumn&rdquo;, not the day count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00350_lapsed_big_spender/">Open &amp; edit</a><span class="sm soft">Offer: $15 off your bill &mdash; costs A$15.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Priya J.</span><span class="subj">We miss you, Priya</span><span class="pill p-acc">Money off</span><span class="pill p-mute">Big spender gone quiet</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>priya.jones4@outlook.example</b></span><span class="muted">Consent: Booking, 2026-07-05</span></div><div class="ev"><div><div class="l">Lifetime spend</div><div class="v">A$5,080</div></div><div><div class="l">Visits</div><div class="v">37</div></div><div><div class="l">Days since</div><div class="v">221</div></div><div><div class="l">Last visit</div><div class="v">2026-03-28</div></div><div><div class="l">Spend percentile</div><div class="v">top 1%</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">We miss you, Priya</b></div><span class="pill p-mute">Big spender gone quiet</span></div><div class="email" style="margin-top:18px">Hi Priya,
+
+You used to be one of our proper regulars, and then life happened - we last saw you back in autumn.
+
+Whatever happened, we&#x27;d like you back. $15 off your bill if you come in before the end of the month, and your usual table is exactly where you left it.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> <b>221 days</b> since their last visit, after <b>37</b> visits totalling <b>A$5,080</b> - top <b>1%</b> by lifetime spend. Reactivating an existing regular costs far less than acquiring a replacement. The email says &ldquo;back in autumn&rdquo;, not the day count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00351_lapsed_big_spender/">Open &amp; edit</a><span class="sm soft">Offer: $15 off your bill &mdash; costs A$15.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Eleni W.</span><span class="subj">We miss you, Eleni</span><span class="pill p-acc">Money off</span><span class="pill p-mute">Big spender gone quiet</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>eleni.white30@yahoo.example</b></span><span class="muted">Consent: POS receipt prompt, 2026-05-16</span></div><div class="ev"><div><div class="l">Lifetime spend</div><div class="v">A$3,696</div></div><div><div class="l">Visits</div><div class="v">28</div></div><div><div class="l">Days since</div><div class="v">244</div></div><div><div class="l">Last visit</div><div class="v">2026-03-05</div></div><div><div class="l">Spend percentile</div><div class="v">top 7%</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">We miss you, Eleni</b></div><span class="pill p-mute">Big spender gone quiet</span></div><div class="email" style="margin-top:18px">Hi Eleni,
+
+You used to be one of our proper regulars, and then life happened - we last saw you back in autumn.
+
+Whatever happened, we&#x27;d like you back. $15 off your bill if you come in before the end of the month, and your usual table is exactly where you left it.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> <b>244 days</b> since their last visit, after <b>28</b> visits totalling <b>A$3,696</b> - top <b>7%</b> by lifetime spend. Reactivating an existing regular costs far less than acquiring a replacement. The email says &ldquo;back in autumn&rdquo;, not the day count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00352_lapsed_big_spender/">Open &amp; edit</a><span class="sm soft">Offer: $15 off your bill &mdash; costs A$15.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Noah P.</span><span class="subj">We miss you, Noah</span><span class="pill p-acc">Money off</span><span class="pill p-mute">Big spender gone quiet</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>noah.patel51@icloud.example</b></span><span class="muted">Consent: POS receipt prompt, 2024-12-20</span></div><div class="ev"><div><div class="l">Lifetime spend</div><div class="v">A$5,122</div></div><div><div class="l">Visits</div><div class="v">39</div></div><div><div class="l">Days since</div><div class="v">204</div></div><div><div class="l">Last visit</div><div class="v">2026-04-14</div></div><div><div class="l">Spend percentile</div><div class="v">top 1%</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">We miss you, Noah</b></div><span class="pill p-mute">Big spender gone quiet</span></div><div class="email" style="margin-top:18px">Hi Noah,
+
+You used to be one of our proper regulars, and then life happened - we last saw you back in autumn.
+
+Whatever happened, we&#x27;d like you back. $15 off your bill if you come in before the end of the month, and your usual table is exactly where you left it.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> <b>204 days</b> since their last visit, after <b>39</b> visits totalling <b>A$5,122</b> - top <b>1%</b> by lifetime spend. Reactivating an existing regular costs far less than acquiring a replacement. The email says &ldquo;back in autumn&rdquo;, not the day count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00353_lapsed_big_spender/">Open &amp; edit</a><span class="sm soft">Offer: $15 off your bill &mdash; costs A$15.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Chloe S.</span><span class="subj">We miss you, Chloe</span><span class="pill p-acc">Money off</span><span class="pill p-mute">Big spender gone quiet</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>chloe.singh11@hotmail.example</b></span><span class="muted">Consent: POS receipt prompt, 2024-12-15</span></div><div class="ev"><div><div class="l">Lifetime spend</div><div class="v">A$4,485</div></div><div><div class="l">Visits</div><div class="v">34</div></div><div><div class="l">Days since</div><div class="v">227</div></div><div><div class="l">Last visit</div><div class="v">2026-03-22</div></div><div><div class="l">Spend percentile</div><div class="v">top 3%</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">We miss you, Chloe</b></div><span class="pill p-mute">Big spender gone quiet</span></div><div class="email" style="margin-top:18px">Hi Chloe,
+
+You used to be one of our proper regulars, and then life happened - we last saw you back in autumn.
+
+Whatever happened, we&#x27;d like you back. $15 off your bill if you come in before the end of the month, and your usual table is exactly where you left it.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> <b>227 days</b> since their last visit, after <b>34</b> visits totalling <b>A$4,485</b> - top <b>3%</b> by lifetime spend. Reactivating an existing regular costs far less than acquiring a replacement. The email says &ldquo;back in autumn&rdquo;, not the day count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00357_lapsed_big_spender/">Open &amp; edit</a><span class="sm soft">Offer: $15 off your bill &mdash; costs A$15.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Sofia P.</span><span class="subj">We miss you, Sofia</span><span class="pill p-acc">Money off</span><span class="pill p-mute">Big spender gone quiet</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>sofia.patel22@gmail.example</b></span><span class="muted">Consent: Website form, 2025-05-20</span></div><div class="ev"><div><div class="l">Lifetime spend</div><div class="v">A$4,411</div></div><div><div class="l">Visits</div><div class="v">31</div></div><div><div class="l">Days since</div><div class="v">161</div></div><div><div class="l">Last visit</div><div class="v">2026-05-27</div></div><div><div class="l">Spend percentile</div><div class="v">top 3%</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">We miss you, Sofia</b></div><span class="pill p-mute">Big spender gone quiet</span></div><div class="email" style="margin-top:18px">Hi Sofia,
+
+You used to be one of our proper regulars, and then life happened - we last saw you back in autumn.
+
+Whatever happened, we&#x27;d like you back. $15 off your bill if you come in before the end of the month, and your usual table is exactly where you left it.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> <b>161 days</b> since their last visit, after <b>31</b> visits totalling <b>A$4,411</b> - top <b>3%</b> by lifetime spend. Reactivating an existing regular costs far less than acquiring a replacement. The email says &ldquo;back in autumn&rdquo;, not the day count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00359_lapsed_big_spender/">Open &amp; edit</a><span class="sm soft">Offer: $15 off your bill &mdash; costs A$15.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Anh W.</span><span class="subj">Glad you found us, Anh</span><span class="pill p-acc">Money off</span><span class="pill p-mute">New - needs a second visit</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>anh.white34@hotmail.example</b></span><span class="muted">Consent: POS receipt prompt, 2025-06-03</span></div><div class="ev"><div><div class="l">Days since first visit</div><div class="v">44</div></div><div><div class="l">Visits</div><div class="v">1</div></div><div><div class="l">They ordered</div><div class="v">Buttermilk Pancakes</div></div><div><div class="l">Their usual day</div><div class="v">Monday</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">Glad you found us, Anh</b></div><span class="pill p-mute">New - needs a second visit</span></div><div class="email" style="margin-top:18px">Hi Anh,
+
+Thanks for coming in recently - genuinely, new faces are the whole reason we do this.
+
+The second visit is the one that counts, so we&#x27;d like to make it easy: buy one, get one free when you come back this month.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> First visit <b>44 days</b> ago, <b>1</b> visit(s) total. Inside the habit-forming window, where one nudge is worth more than any later win-back.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00361_new_second_visit/">Open &amp; edit</a><span class="sm soft">Offer: buy one, get one free &mdash; costs A$9.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Liam Z.</span><span class="subj">Glad you found us, Liam</span><span class="pill p-acc">Money off</span><span class="pill p-mute">New - needs a second visit</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>liam.zhang47@outlook.example</b></span><span class="muted">Consent: Loyalty signup, 2025-06-18</span></div><div class="ev"><div><div class="l">Days since first visit</div><div class="v">48</div></div><div><div class="l">Visits</div><div class="v">2</div></div><div><div class="l">They ordered</div><div class="v">Espresso Martini</div></div><div><div class="l">Their usual day</div><div class="v">Thursday</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">Glad you found us, Liam</b></div><span class="pill p-mute">New - needs a second visit</span></div><div class="email" style="margin-top:18px">Hi Liam,
+
+Thanks for coming in recently - genuinely, new faces are the whole reason we do this.
+
+The second visit is the one that counts, so we&#x27;d like to make it easy: buy one, get one free when you come back this month.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> First visit <b>48 days</b> ago, <b>2</b> visit(s) total. Inside the habit-forming window, where one nudge is worth more than any later win-back.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00364_new_second_visit/">Open &amp; edit</a><span class="sm soft">Offer: buy one, get one free &mdash; costs A$9.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Zoe K.</span><span class="subj">Glad you found us, Zoe</span><span class="pill p-acc">Money off</span><span class="pill p-mute">New - needs a second visit</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>zoe.kim69@hotmail.example</b></span><span class="muted">Consent: POS receipt prompt, 2026-04-25</span></div><div class="ev"><div><div class="l">Days since first visit</div><div class="v">11</div></div><div><div class="l">Visits</div><div class="v">1</div></div><div><div class="l">They ordered</div><div class="v">Pappardelle Ragu</div></div><div><div class="l">Their usual day</div><div class="v">Saturday</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">Glad you found us, Zoe</b></div><span class="pill p-mute">New - needs a second visit</span></div><div class="email" style="margin-top:18px">Hi Zoe,
+
+Thanks for coming in recently - genuinely, new faces are the whole reason we do this.
+
+The second visit is the one that counts, so we&#x27;d like to make it easy: buy one, get one free when you come back this month.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> First visit <b>11 days</b> ago, <b>1</b> visit(s) total. Inside the habit-forming window, where one nudge is worth more than any later win-back.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00367_new_second_visit/">Open &amp; edit</a><span class="sm soft">Offer: buy one, get one free &mdash; costs A$9.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Liam J.</span><span class="subj">Glad you found us, Liam</span><span class="pill p-acc">Money off</span><span class="pill p-mute">New - needs a second visit</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>liam.jones66@yahoo.example</b></span><span class="muted">Consent: Website form, 2025-12-18</span></div><div class="ev"><div><div class="l">Days since first visit</div><div class="v">8</div></div><div><div class="l">Visits</div><div class="v">1</div></div><div><div class="l">They ordered</div><div class="v">Fish &amp; Chips</div></div><div><div class="l">Their usual day</div><div class="v">Tuesday</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">Glad you found us, Liam</b></div><span class="pill p-mute">New - needs a second visit</span></div><div class="email" style="margin-top:18px">Hi Liam,
+
+Thanks for coming in recently - genuinely, new faces are the whole reason we do this.
+
+The second visit is the one that counts, so we&#x27;d like to make it easy: buy one, get one free when you come back this month.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> First visit <b>8 days</b> ago, <b>1</b> visit(s) total. Inside the habit-forming window, where one nudge is worth more than any later win-back.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00368_new_second_visit/">Open &amp; edit</a><span class="sm soft">Offer: buy one, get one free &mdash; costs A$9.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Priya Z.</span><span class="subj">Glad you found us, Priya</span><span class="pill p-acc">Money off</span><span class="pill p-mute">New - needs a second visit</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>priya.zhang24@icloud.example</b></span><span class="muted">Consent: Loyalty signup, 2025-10-31</span></div><div class="ev"><div><div class="l">Days since first visit</div><div class="v">20</div></div><div><div class="l">Visits</div><div class="v">1</div></div><div><div class="l">They ordered</div><div class="v">Negroni</div></div><div><div class="l">Their usual day</div><div class="v">Thursday</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">Glad you found us, Priya</b></div><span class="pill p-mute">New - needs a second visit</span></div><div class="email" style="margin-top:18px">Hi Priya,
+
+Thanks for coming in recently - genuinely, new faces are the whole reason we do this.
+
+The second visit is the one that counts, so we&#x27;d like to make it easy: buy one, get one free when you come back this month.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> First visit <b>20 days</b> ago, <b>1</b> visit(s) total. Inside the habit-forming window, where one nudge is worth more than any later win-back.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00369_new_second_visit/">Open &amp; edit</a><span class="sm soft">Offer: buy one, get one free &mdash; costs A$9.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Imogen D.</span><span class="subj">Glad you found us, Imogen</span><span class="pill p-acc">Money off</span><span class="pill p-mute">New - needs a second visit</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>imogen.duong84@outlook.example</b></span><span class="muted">Consent: POS receipt prompt, 2025-10-29</span></div><div class="ev"><div><div class="l">Days since first visit</div><div class="v">59</div></div><div><div class="l">Visits</div><div class="v">2</div></div><div><div class="l">They ordered</div><div class="v">Fish &amp; Chips</div></div><div><div class="l">Their usual day</div><div class="v">Sunday</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">Glad you found us, Imogen</b></div><span class="pill p-mute">New - needs a second visit</span></div><div class="email" style="margin-top:18px">Hi Imogen,
+
+Thanks for coming in recently - genuinely, new faces are the whole reason we do this.
+
+The second visit is the one that counts, so we&#x27;d like to make it easy: buy one, get one free when you come back this month.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> First visit <b>59 days</b> ago, <b>2</b> visit(s) total. Inside the habit-forming window, where one nudge is worth more than any later win-back.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00372_new_second_visit/">Open &amp; edit</a><span class="sm soft">Offer: buy one, get one free &mdash; costs A$9.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Liam C.</span><span class="subj">Glad you found us, Liam</span><span class="pill p-acc">Money off</span><span class="pill p-mute">New - needs a second visit</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>liam.chen86@hotmail.example</b></span><span class="muted">Consent: Booking, 2025-03-21</span></div><div class="ev"><div><div class="l">Days since first visit</div><div class="v">36</div></div><div><div class="l">Visits</div><div class="v">1</div></div><div><div class="l">They ordered</div><div class="v">Acai Bowl</div></div><div><div class="l">Their usual day</div><div class="v">Tuesday</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">Glad you found us, Liam</b></div><span class="pill p-mute">New - needs a second visit</span></div><div class="email" style="margin-top:18px">Hi Liam,
+
+Thanks for coming in recently - genuinely, new faces are the whole reason we do this.
+
+The second visit is the one that counts, so we&#x27;d like to make it easy: buy one, get one free when you come back this month.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> First visit <b>36 days</b> ago, <b>1</b> visit(s) total. Inside the habit-forming window, where one nudge is worth more than any later win-back.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00373_new_second_visit/">Open &amp; edit</a><span class="sm soft">Offer: buy one, get one free &mdash; costs A$9.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Priya A.</span><span class="subj">Glad you found us, Priya</span><span class="pill p-acc">Money off</span><span class="pill p-mute">New - needs a second visit</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>priya.anderson89@hotmail.example</b></span><span class="muted">Consent: POS receipt prompt, 2026-05-16</span></div><div class="ev"><div><div class="l">Days since first visit</div><div class="v">34</div></div><div><div class="l">Visits</div><div class="v">2</div></div><div><div class="l">They ordered</div><div class="v">Craft Beer</div></div><div><div class="l">Their usual day</div><div class="v">Thursday</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">Glad you found us, Priya</b></div><span class="pill p-mute">New - needs a second visit</span></div><div class="email" style="margin-top:18px">Hi Priya,
+
+Thanks for coming in recently - genuinely, new faces are the whole reason we do this.
+
+The second visit is the one that counts, so we&#x27;d like to make it easy: buy one, get one free when you come back this month.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> First visit <b>34 days</b> ago, <b>2</b> visit(s) total. Inside the habit-forming window, where one nudge is worth more than any later win-back.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00376_new_second_visit/">Open &amp; edit</a><span class="sm soft">Offer: buy one, get one free &mdash; costs A$9.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Jack R.</span><span class="subj">Glad you found us, Jack</span><span class="pill p-acc">Money off</span><span class="pill p-mute">New - needs a second visit</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>jack.rossi24@gmail.example</b></span><span class="muted">Consent: Booking, 2025-02-19</span></div><div class="ev"><div><div class="l">Days since first visit</div><div class="v">54</div></div><div><div class="l">Visits</div><div class="v">2</div></div><div><div class="l">They ordered</div><div class="v">Fish &amp; Chips</div></div><div><div class="l">Their usual day</div><div class="v">Friday</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">Glad you found us, Jack</b></div><span class="pill p-mute">New - needs a second visit</span></div><div class="email" style="margin-top:18px">Hi Jack,
+
+Thanks for coming in recently - genuinely, new faces are the whole reason we do this.
+
+The second visit is the one that counts, so we&#x27;d like to make it easy: buy one, get one free when you come back this month.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> First visit <b>54 days</b> ago, <b>2</b> visit(s) total. Inside the habit-forming window, where one nudge is worth more than any later win-back.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00377_new_second_visit/">Open &amp; edit</a><span class="sm soft">Offer: buy one, get one free &mdash; costs A$9.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Ella G.</span><span class="subj">Glad you found us, Ella</span><span class="pill p-acc">Money off</span><span class="pill p-mute">New - needs a second visit</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>ella.gray49@gmail.example</b></span><span class="muted">Consent: Loyalty signup, 2025-11-18</span></div><div class="ev"><div><div class="l">Days since first visit</div><div class="v">13</div></div><div><div class="l">Visits</div><div class="v">1</div></div><div><div class="l">They ordered</div><div class="v">Fresh OJ</div></div><div><div class="l">Their usual day</div><div class="v">Thursday</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">Glad you found us, Ella</b></div><span class="pill p-mute">New - needs a second visit</span></div><div class="email" style="margin-top:18px">Hi Ella,
+
+Thanks for coming in recently - genuinely, new faces are the whole reason we do this.
+
+The second visit is the one that counts, so we&#x27;d like to make it easy: buy one, get one free when you come back this month.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> First visit <b>13 days</b> ago, <b>1</b> visit(s) total. Inside the habit-forming window, where one nudge is worth more than any later win-back.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00382_new_second_visit/">Open &amp; edit</a><span class="sm soft">Offer: buy one, get one free &mdash; costs A$9.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Kirra W.</span><span class="subj">Glad you found us, Kirra</span><span class="pill p-acc">Money off</span><span class="pill p-mute">New - needs a second visit</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>kirra.white66@outlook.example</b></span><span class="muted">Consent: POS receipt prompt, 2025-09-10</span></div><div class="ev"><div><div class="l">Days since first visit</div><div class="v">43</div></div><div><div class="l">Visits</div><div class="v">1</div></div><div><div class="l">They ordered</div><div class="v">Margherita Pizza</div></div><div><div class="l">Their usual day</div><div class="v">Tuesday</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">Glad you found us, Kirra</b></div><span class="pill p-mute">New - needs a second visit</span></div><div class="email" style="margin-top:18px">Hi Kirra,
+
+Thanks for coming in recently - genuinely, new faces are the whole reason we do this.
+
+The second visit is the one that counts, so we&#x27;d like to make it easy: buy one, get one free when you come back this month.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> First visit <b>43 days</b> ago, <b>1</b> visit(s) total. Inside the habit-forming window, where one nudge is worth more than any later win-back.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00383_new_second_visit/">Open &amp; edit</a><span class="sm soft">Offer: buy one, get one free &mdash; costs A$9.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Willow K.</span><span class="subj">Glad you found us, Willow</span><span class="pill p-acc">Money off</span><span class="pill p-mute">New - needs a second visit</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>willow.kaur52@gmail.example</b></span><span class="muted">Consent: Loyalty signup, 2026-09-06</span></div><div class="ev"><div><div class="l">Days since first visit</div><div class="v">44</div></div><div><div class="l">Visits</div><div class="v">2</div></div><div><div class="l">They ordered</div><div class="v">Margherita Pizza</div></div><div><div class="l">Their usual day</div><div class="v">Monday</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">Glad you found us, Willow</b></div><span class="pill p-mute">New - needs a second visit</span></div><div class="email" style="margin-top:18px">Hi Willow,
+
+Thanks for coming in recently - genuinely, new faces are the whole reason we do this.
+
+The second visit is the one that counts, so we&#x27;d like to make it easy: buy one, get one free when you come back this month.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> First visit <b>44 days</b> ago, <b>2</b> visit(s) total. Inside the habit-forming window, where one nudge is worth more than any later win-back.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00392_new_second_visit/">Open &amp; edit</a><span class="sm soft">Offer: buy one, get one free &mdash; costs A$9.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Anh O.</span><span class="subj">Glad you found us, Anh</span><span class="pill p-acc">Money off</span><span class="pill p-mute">New - needs a second visit</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>anh.o&#x27;brien3@outlook.example</b></span><span class="muted">Consent: POS receipt prompt, 2025-12-26</span></div><div class="ev"><div><div class="l">Days since first visit</div><div class="v">36</div></div><div><div class="l">Visits</div><div class="v">2</div></div><div><div class="l">They ordered</div><div class="v">Fish &amp; Chips</div></div><div><div class="l">Their usual day</div><div class="v">Tuesday</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">Glad you found us, Anh</b></div><span class="pill p-mute">New - needs a second visit</span></div><div class="email" style="margin-top:18px">Hi Anh,
+
+Thanks for coming in recently - genuinely, new faces are the whole reason we do this.
+
+The second visit is the one that counts, so we&#x27;d like to make it easy: buy one, get one free when you come back this month.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> First visit <b>36 days</b> ago, <b>2</b> visit(s) total. Inside the habit-forming window, where one nudge is worth more than any later win-back.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00393_new_second_visit/">Open &amp; edit</a><span class="sm soft">Offer: buy one, get one free &mdash; costs A$9.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Liam B.</span><span class="subj">Glad you found us, Liam</span><span class="pill p-acc">Money off</span><span class="pill p-mute">New - needs a second visit</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>liam.brown32@icloud.example</b></span><span class="muted">Consent: Loyalty signup, 2026-07-28</span></div><div class="ev"><div><div class="l">Days since first visit</div><div class="v">52</div></div><div><div class="l">Visits</div><div class="v">2</div></div><div><div class="l">They ordered</div><div class="v">House Wine</div></div><div><div class="l">Their usual day</div><div class="v">Sunday</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">Glad you found us, Liam</b></div><span class="pill p-mute">New - needs a second visit</span></div><div class="email" style="margin-top:18px">Hi Liam,
+
+Thanks for coming in recently - genuinely, new faces are the whole reason we do this.
+
+The second visit is the one that counts, so we&#x27;d like to make it easy: buy one, get one free when you come back this month.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> First visit <b>52 days</b> ago, <b>2</b> visit(s) total. Inside the habit-forming window, where one nudge is worth more than any later win-back.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00395_new_second_visit/">Open &amp; edit</a><span class="sm soft">Offer: buy one, get one free &mdash; costs A$9.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Sienna K.</span><span class="subj">Glad you found us, Sienna</span><span class="pill p-acc">Money off</span><span class="pill p-mute">New - needs a second visit</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>sienna.kim1@icloud.example</b></span><span class="muted">Consent: Booking, 2026-01-12</span></div><div class="ev"><div><div class="l">Days since first visit</div><div class="v">54</div></div><div><div class="l">Visits</div><div class="v">2</div></div><div><div class="l">They ordered</div><div class="v">House Wine</div></div><div><div class="l">Their usual day</div><div class="v">Friday</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">Glad you found us, Sienna</b></div><span class="pill p-mute">New - needs a second visit</span></div><div class="email" style="margin-top:18px">Hi Sienna,
+
+Thanks for coming in recently - genuinely, new faces are the whole reason we do this.
+
+The second visit is the one that counts, so we&#x27;d like to make it easy: buy one, get one free when you come back this month.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> First visit <b>54 days</b> ago, <b>2</b> visit(s) total. Inside the habit-forming window, where one nudge is worth more than any later win-back.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00396_new_second_visit/">Open &amp; edit</a><span class="sm soft">Offer: buy one, get one free &mdash; costs A$9.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Grace S.</span><span class="subj">Glad you found us, Grace</span><span class="pill p-acc">Money off</span><span class="pill p-mute">New - needs a second visit</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>grace.singh46@yahoo.example</b></span><span class="muted">Consent: Old import (unverified), 2026-05-07</span></div><div class="ev"><div><div class="l">Days since first visit</div><div class="v">25</div></div><div><div class="l">Visits</div><div class="v">2</div></div><div><div class="l">They ordered</div><div class="v">Flat White</div></div><div><div class="l">Their usual day</div><div class="v">Saturday</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">Glad you found us, Grace</b></div><span class="pill p-mute">New - needs a second visit</span></div><div class="email" style="margin-top:18px">Hi Grace,
+
+Thanks for coming in recently - genuinely, new faces are the whole reason we do this.
+
+The second visit is the one that counts, so we&#x27;d like to make it easy: buy one, get one free when you come back this month.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> First visit <b>25 days</b> ago, <b>2</b> visit(s) total. Inside the habit-forming window, where one nudge is worth more than any later win-back.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00397_new_second_visit/">Open &amp; edit</a><span class="sm soft">Offer: buy one, get one free &mdash; costs A$9.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Tane W.</span><span class="subj">Glad you found us, Tane</span><span class="pill p-acc">Money off</span><span class="pill p-mute">New - needs a second visit</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>tane.walker90@gmail.example</b></span><span class="muted">Consent: Loyalty signup, 2025-11-30</span></div><div class="ev"><div><div class="l">Days since first visit</div><div class="v">13</div></div><div><div class="l">Visits</div><div class="v">1</div></div><div><div class="l">They ordered</div><div class="v">Fish &amp; Chips</div></div><div><div class="l">Their usual day</div><div class="v">Thursday</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">Glad you found us, Tane</b></div><span class="pill p-mute">New - needs a second visit</span></div><div class="email" style="margin-top:18px">Hi Tane,
+
+Thanks for coming in recently - genuinely, new faces are the whole reason we do this.
+
+The second visit is the one that counts, so we&#x27;d like to make it easy: buy one, get one free when you come back this month.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> First visit <b>13 days</b> ago, <b>1</b> visit(s) total. Inside the habit-forming window, where one nudge is worth more than any later win-back.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00399_new_second_visit/">Open &amp; edit</a><span class="sm soft">Offer: buy one, get one free &mdash; costs A$9.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Declan W.</span><span class="subj">Glad you found us, Declan</span><span class="pill p-acc">Money off</span><span class="pill p-mute">New - needs a second visit</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>declan.wilson88@yahoo.example</b></span><span class="muted">Consent: POS receipt prompt, 2026-05-05</span></div><div class="ev"><div><div class="l">Days since first visit</div><div class="v">25</div></div><div><div class="l">Visits</div><div class="v">2</div></div><div><div class="l">They ordered</div><div class="v">Fish &amp; Chips</div></div><div><div class="l">Their usual day</div><div class="v">Saturday</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">Glad you found us, Declan</b></div><span class="pill p-mute">New - needs a second visit</span></div><div class="email" style="margin-top:18px">Hi Declan,
+
+Thanks for coming in recently - genuinely, new faces are the whole reason we do this.
+
+The second visit is the one that counts, so we&#x27;d like to make it easy: buy one, get one free when you come back this month.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> First visit <b>25 days</b> ago, <b>2</b> visit(s) total. Inside the habit-forming window, where one nudge is worth more than any later win-back.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00402_new_second_visit/">Open &amp; edit</a><span class="sm soft">Offer: buy one, get one free &mdash; costs A$9.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Eleni S.</span><span class="subj">Glad you found us, Eleni</span><span class="pill p-acc">Money off</span><span class="pill p-mute">New - needs a second visit</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>eleni.silva25@gmail.example</b></span><span class="muted">Consent: Website form, 2025-03-15</span></div><div class="ev"><div><div class="l">Days since first visit</div><div class="v">36</div></div><div><div class="l">Visits</div><div class="v">1</div></div><div><div class="l">They ordered</div><div class="v">Smashed Avo</div></div><div><div class="l">Their usual day</div><div class="v">Tuesday</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">Glad you found us, Eleni</b></div><span class="pill p-mute">New - needs a second visit</span></div><div class="email" style="margin-top:18px">Hi Eleni,
+
+Thanks for coming in recently - genuinely, new faces are the whole reason we do this.
+
+The second visit is the one that counts, so we&#x27;d like to make it easy: buy one, get one free when you come back this month.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> First visit <b>36 days</b> ago, <b>1</b> visit(s) total. Inside the habit-forming window, where one nudge is worth more than any later win-back.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00405_new_second_visit/">Open &amp; edit</a><span class="sm soft">Offer: buy one, get one free &mdash; costs A$9.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Imogen O.</span><span class="subj">Glad you found us, Imogen</span><span class="pill p-acc">Money off</span><span class="pill p-mute">New - needs a second visit</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>imogen.o&#x27;brien79@yahoo.example</b></span><span class="muted">Consent: POS receipt prompt, 2026-01-08</span></div><div class="ev"><div><div class="l">Days since first visit</div><div class="v">26</div></div><div><div class="l">Visits</div><div class="v">1</div></div><div><div class="l">They ordered</div><div class="v">Burger &amp; Fries</div></div><div><div class="l">Their usual day</div><div class="v">Friday</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">Glad you found us, Imogen</b></div><span class="pill p-mute">New - needs a second visit</span></div><div class="email" style="margin-top:18px">Hi Imogen,
+
+Thanks for coming in recently - genuinely, new faces are the whole reason we do this.
+
+The second visit is the one that counts, so we&#x27;d like to make it easy: buy one, get one free when you come back this month.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> First visit <b>26 days</b> ago, <b>1</b> visit(s) total. Inside the habit-forming window, where one nudge is worth more than any later win-back.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00407_new_second_visit/">Open &amp; edit</a><span class="sm soft">Offer: buy one, get one free &mdash; costs A$9.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Aoife T.</span><span class="subj">Glad you found us, Aoife</span><span class="pill p-acc">Money off</span><span class="pill p-mute">New - needs a second visit</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>aoife.taylor49@yahoo.example</b></span><span class="muted">Consent: POS receipt prompt, 2026-03-07</span></div><div class="ev"><div><div class="l">Days since first visit</div><div class="v">28</div></div><div><div class="l">Visits</div><div class="v">2</div></div><div><div class="l">They ordered</div><div class="v">Burger &amp; Fries</div></div><div><div class="l">Their usual day</div><div class="v">Wednesday</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">Glad you found us, Aoife</b></div><span class="pill p-mute">New - needs a second visit</span></div><div class="email" style="margin-top:18px">Hi Aoife,
+
+Thanks for coming in recently - genuinely, new faces are the whole reason we do this.
+
+The second visit is the one that counts, so we&#x27;d like to make it easy: buy one, get one free when you come back this month.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> First visit <b>28 days</b> ago, <b>2</b> visit(s) total. Inside the habit-forming window, where one nudge is worth more than any later win-back.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00408_new_second_visit/">Open &amp; edit</a><span class="sm soft">Offer: buy one, get one free &mdash; costs A$9.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Sienna D.</span><span class="subj">An invitation to tuesday dinner, Sienna</span><span class="pill p-acc">Money off</span><span class="pill p-mute">Come at a different time</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>sienna.duong49@gmail.example</b></span><span class="muted">Consent: POS receipt prompt, 2026-04-24</span></div><div class="ev"><div><div class="l">You want to fill</div><div class="v">Tuesday dinner</div></div><div><div class="l">Target daypart</div><div class="v">evening</div></div><div><div class="l">Target day</div><div class="v">Tuesday</div></div><div><div class="l">They come for</div><div class="v">breakfast</div></div><div><div class="l">Their usual day</div><div class="v">Friday</div></div><div><div class="l">Visits</div><div class="v">5</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">An invitation to tuesday dinner, Sienna</b></div><span class="pill p-mute">Come at a different time</span></div><div class="email" style="margin-top:18px">Hi Sienna,
+
+We&#x27;re trying to make Tuesday dinner as good as the rest of our week, and we&#x27;d love your vote of confidence.
+
+Come in on a Tuesday this month and it&#x27;s buy one, get one free on any main. It&#x27;s quieter, the kitchen has time for you, and it might become your thing.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> You asked to fill <b>Tuesday dinner</b>. They visit <b>5</b> times but almost never then - they come for <b>breakfast</b> on a <b>Friday</b>. You're not discounting to strangers, you're moving someone who already likes you into a slot that's already paid for. Note the email never tells them you know when they come - it's framed as an invite.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00441_wrong_time/">Open &amp; edit</a><span class="sm soft">Offer: buy one, get one free &mdash; costs A$9.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Cooper A.</span><span class="subj">An invitation to tuesday dinner, Cooper</span><span class="pill p-acc">Money off</span><span class="pill p-mute">Come at a different time</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>cooper.ali81@hotmail.example</b></span><span class="muted">Consent: Loyalty signup, 2025-12-07</span></div><div class="ev"><div><div class="l">You want to fill</div><div class="v">Tuesday dinner</div></div><div><div class="l">Target daypart</div><div class="v">evening</div></div><div><div class="l">Target day</div><div class="v">Tuesday</div></div><div><div class="l">They come for</div><div class="v">breakfast</div></div><div><div class="l">Their usual day</div><div class="v">Thursday</div></div><div><div class="l">Visits</div><div class="v">3</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">An invitation to tuesday dinner, Cooper</b></div><span class="pill p-mute">Come at a different time</span></div><div class="email" style="margin-top:18px">Hi Cooper,
+
+We&#x27;re trying to make Tuesday dinner as good as the rest of our week, and we&#x27;d love your vote of confidence.
+
+Come in on a Tuesday this month and it&#x27;s buy one, get one free on any main. It&#x27;s quieter, the kitchen has time for you, and it might become your thing.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> You asked to fill <b>Tuesday dinner</b>. They visit <b>3</b> times but almost never then - they come for <b>breakfast</b> on a <b>Thursday</b>. You're not discounting to strangers, you're moving someone who already likes you into a slot that's already paid for. Note the email never tells them you know when they come - it's framed as an invite.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00447_wrong_time/">Open &amp; edit</a><span class="sm soft">Offer: buy one, get one free &mdash; costs A$9.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Sofia W.</span><span class="subj">An invitation to tuesday dinner, Sofia</span><span class="pill p-acc">Money off</span><span class="pill p-mute">Come at a different time</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>sofia.white52@outlook.example</b></span><span class="muted">Consent: POS receipt prompt, 2026-07-19</span></div><div class="ev"><div><div class="l">You want to fill</div><div class="v">Tuesday dinner</div></div><div><div class="l">Target daypart</div><div class="v">evening</div></div><div><div class="l">Target day</div><div class="v">Tuesday</div></div><div><div class="l">They come for</div><div class="v">lunch</div></div><div><div class="l">Their usual day</div><div class="v">Sunday</div></div><div><div class="l">Visits</div><div class="v">3</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">An invitation to tuesday dinner, Sofia</b></div><span class="pill p-mute">Come at a different time</span></div><div class="email" style="margin-top:18px">Hi Sofia,
+
+We&#x27;re trying to make Tuesday dinner as good as the rest of our week, and we&#x27;d love your vote of confidence.
+
+Come in on a Tuesday this month and it&#x27;s buy one, get one free on any main. It&#x27;s quieter, the kitchen has time for you, and it might become your thing.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> You asked to fill <b>Tuesday dinner</b>. They visit <b>3</b> times but almost never then - they come for <b>lunch</b> on a <b>Sunday</b>. You're not discounting to strangers, you're moving someone who already likes you into a slot that's already paid for. Note the email never tells them you know when they come - it's framed as an invite.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00454_wrong_time/">Open &amp; edit</a><span class="sm soft">Offer: buy one, get one free &mdash; costs A$9.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Harper C.</span><span class="subj">An invitation to tuesday dinner, Harper</span><span class="pill p-acc">Money off</span><span class="pill p-mute">Come at a different time</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>harper.chen49@icloud.example</b></span><span class="muted">Consent: Loyalty signup, 2025-05-22</span></div><div class="ev"><div><div class="l">You want to fill</div><div class="v">Tuesday dinner</div></div><div><div class="l">Target daypart</div><div class="v">evening</div></div><div><div class="l">Target day</div><div class="v">Tuesday</div></div><div><div class="l">They come for</div><div class="v">breakfast</div></div><div><div class="l">Their usual day</div><div class="v">Wednesday</div></div><div><div class="l">Visits</div><div class="v">6</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">An invitation to tuesday dinner, Harper</b></div><span class="pill p-mute">Come at a different time</span></div><div class="email" style="margin-top:18px">Hi Harper,
+
+We&#x27;re trying to make Tuesday dinner as good as the rest of our week, and we&#x27;d love your vote of confidence.
+
+Come in on a Tuesday this month and it&#x27;s buy one, get one free on any main. It&#x27;s quieter, the kitchen has time for you, and it might become your thing.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> You asked to fill <b>Tuesday dinner</b>. They visit <b>6</b> times but almost never then - they come for <b>breakfast</b> on a <b>Wednesday</b>. You're not discounting to strangers, you're moving someone who already likes you into a slot that's already paid for. Note the email never tells them you know when they come - it's framed as an invite.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00459_wrong_time/">Open &amp; edit</a><span class="sm soft">Offer: buy one, get one free &mdash; costs A$9.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Ella W.</span><span class="subj">An invitation to wednesday dinner, Ella</span><span class="pill p-acc">Money off</span><span class="pill p-mute">Come at a different time</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>ella.wilson27@gmail.example</b></span><span class="muted">Consent: POS receipt prompt, 2025-08-04</span></div><div class="ev"><div><div class="l">You want to fill</div><div class="v">Wednesday dinner</div></div><div><div class="l">Target daypart</div><div class="v">evening</div></div><div><div class="l">Target day</div><div class="v">Wednesday</div></div><div><div class="l">They come for</div><div class="v">lunch</div></div><div><div class="l">Their usual day</div><div class="v">Tuesday</div></div><div><div class="l">Visits</div><div class="v">6</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">An invitation to wednesday dinner, Ella</b></div><span class="pill p-mute">Come at a different time</span></div><div class="email" style="margin-top:18px">Hi Ella,
+
+We&#x27;re trying to make Wednesday dinner as good as the rest of our week, and we&#x27;d love your vote of confidence.
+
+Come in on a Wednesday this month and it&#x27;s buy one, get one free on any main. It&#x27;s quieter, the kitchen has time for you, and it might become your thing.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> You asked to fill <b>Wednesday dinner</b>. They visit <b>6</b> times but almost never then - they come for <b>lunch</b> on a <b>Tuesday</b>. You're not discounting to strangers, you're moving someone who already likes you into a slot that's already paid for. Note the email never tells them you know when they come - it's framed as an invite.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00464_wrong_time/">Open &amp; edit</a><span class="sm soft">Offer: buy one, get one free &mdash; costs A$9.00 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Anh S.</span><span class="subj">An invitation to tuesday dinner, Anh</span><span class="pill p-acc">Money off</span><span class="pill p-mute">Come at a different time</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>anh.santos42@yahoo.example</b></span><span class="muted">Consent: POS receipt prompt, 2025-01-22</span></div><div class="ev"><div><div class="l">You want to fill</div><div class="v">Tuesday dinner</div></div><div><div class="l">Target daypart</div><div class="v">evening</div></div><div><div class="l">Target day</div><div class="v">Tuesday</div></div><div><div class="l">They come for</div><div class="v">breakfast</div></div><div><div class="l">Their usual day</div><div class="v">Friday</div></div><div><div class="l">Visits</div><div class="v">7</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">An invitation to tuesday dinner, Anh</b></div><span class="pill p-mute">Come at a different time</span></div><div class="email" style="margin-top:18px">Hi Anh,
+
+We&#x27;re trying to make Tuesday dinner as good as the rest of our week, and we&#x27;d love your vote of confidence.
+
+Come in on a Tuesday this month and it&#x27;s buy one, get one free on any main. It&#x27;s quieter, the kitchen has time for you, and it might become your thing.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> You asked to fill <b>Tuesday dinner</b>. They visit <b>7</b> times but almost never then - they come for <b>breakfast</b> on a <b>Friday</b>. You're not discounting to strangers, you're moving someone who already likes you into a slot that's already paid for. Note the email never tells them you know when they come - it's framed as an invite.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00473_wrong_time/">Open &amp; edit</a><span class="sm soft">Offer: buy one, get one free &mdash; costs A$9.00 if redeemed</span></div></div></details>
+<div class="foot">Regulars 0.6.0<br>The example data is made up: an example restaurant, its customers and their orders.<br>Every figure in every message traces to an order in the data; no figure appears in a customer&rsquo;s email unless a human put it there.</div></div><div class="snap-toast" id="snap-toast">Read-only snapshot: this button doesn't do anything here.</div>
+<script>
+(function(){var t=document.getElementById('snap-toast'),h;
+function toast(){t.style.display='block';clearTimeout(h);h=setTimeout(function(){t.style.display='none'},2600)}
+document.addEventListener('submit',function(e){e.preventDefault();toast()},true);
+document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('[data-snap-dead]');
+if(a){e.preventDefault();toast()}},true)})();
+</script></body></html>

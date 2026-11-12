@@ -1,0 +1,16 @@
+# Read-only static snapshot of the Regulars demo app, for review.
+# The files in site/ are generated: scripts/make_snapshot.py (see docs/review-site.md).
+
+[build]
+  publish = "site"
+  # Nothing to build. Stating a command here also overrides any build command
+  # set in the Netlify UI, which would otherwise fail on this repo.
+  command = "echo 'static snapshot: nothing to build'"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "no-referrer"
+    X-Frame-Options = "DENY"

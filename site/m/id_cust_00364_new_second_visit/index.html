@@ -1,0 +1,174 @@
+<!doctype html><html lang="en-AU"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Liam Zhang &middot; Regulars</title><style>
+:root{--acc:#8a3413;--ink:#191714;--paper:#fbfaf7;--hair:#ddd6cb;
+--mid:#6b6459;--soft:#9c948a;--good:#3f6b3f;--bad:#8c2f2f;--warn:#8a6116;
+--tint:#f6f2ea}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);
+font:17px/1.75 "Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+-webkit-font-smoothing:antialiased}
+a{color:var(--acc);text-decoration:none;border-bottom:1px solid transparent}
+a:hover{border-bottom-color:var(--acc)}
+.wrap{max-width:760px;margin:0 auto;padding:0 28px 140px}
+header{border-bottom:1px solid var(--hair);background:var(--paper)}
+.hin{max-width:760px;margin:0 auto;padding:30px 28px 0}
+.logo{font-size:15px;letter-spacing:.22em;text-transform:uppercase}
+.logo b{font-weight:600;color:var(--ink)}
+.logo small{display:block;font-size:12px;letter-spacing:.06em;text-transform:none;
+color:var(--soft);font-style:italic;margin-top:3px}
+nav{display:flex;gap:26px;flex-wrap:wrap;margin:26px 0 0;
+font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+nav a{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mid);
+padding:0 0 14px;border-bottom:2px solid transparent}
+nav a:hover{color:var(--ink);border-bottom-color:var(--hair)}
+nav a.on{color:var(--ink);border-bottom-color:var(--acc);font-weight:600}
+h1{font-size:40px;line-height:1.15;font-weight:600;letter-spacing:-.01em;
+margin:72px 0 18px}
+h2{font-size:13px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;
+color:var(--soft);margin:76px 0 0;padding-bottom:12px;border-bottom:1px solid var(--hair)}
+h3{font-size:19px;font-weight:600;margin:0 0 10px;letter-spacing:-.01em}
+p{margin:0 0 18px}
+.lead{font-size:20px;line-height:1.65;color:var(--mid);margin:0 0 44px;max-width:34em}
+.lead b{color:var(--ink);font-weight:600}
+.card{border:0;border-top:1px solid var(--hair);padding:34px 0;margin:0}
+.card.tight{padding:26px 0}
+.row{display:flex;gap:20px;flex-wrap:wrap;align-items:center}
+.between{justify-content:space-between}
+.grid{display:grid;gap:44px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:44px 56px}
+.g3{grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:40px 44px}
+.g4{grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:36px}
+.stat{border-top:1px solid var(--ink);padding-top:14px}
+.stat .l{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--soft);font-weight:600}
+.stat .v{font-size:44px;font-weight:600;letter-spacing:-.02em;line-height:1.1;margin:6px 0 2px;
+font-variant-numeric:tabular-nums}
+.stat .n{color:var(--mid);font-size:14px;font-style:italic}
+.btn{display:inline-block;background:var(--ink);color:var(--paper);border:1px solid var(--ink);
+padding:13px 26px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;cursor:pointer;
+border-radius:0}
+.btn:hover{background:var(--acc);border-color:var(--acc);color:#fff}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--hair)}
+.btn.ghost:hover{border-color:var(--ink);background:transparent;color:var(--ink)}
+.btn.big{padding:17px 34px;font-size:13px}
+.btn.sm{padding:8px 16px;font-size:11px}
+.btn.green{background:var(--good);border-color:var(--good);color:#fff}
+.btn.green:hover{filter:brightness(1.1);background:var(--good)}
+.pill{display:inline-block;padding:3px 0;margin-right:14px;
+font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:var(--mid)}
+.p-acc{color:var(--acc)} .p-good{color:var(--good)} .p-bad{color:var(--bad)}
+.p-warn{color:var(--warn)} .p-mute{color:var(--soft)}
+table{width:100%;border-collapse:collapse;font-size:15.5px}
+th{text-align:left;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--soft);font-weight:600;
+padding:10px 12px 10px 0;border-bottom:1px solid var(--ink)}
+td{padding:16px 12px 16px 0;border-bottom:1px solid var(--hair);vertical-align:top}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
+.note,.warn,.good,.bad{border:0;border-left:2px solid var(--acc);background:transparent;
+padding:4px 0 4px 22px;margin:34px 0;font-size:16px}
+.warn{border-left-color:var(--warn)} .bad{border-left-color:var(--bad)}
+.good{border-left-color:var(--good)}
+.mono,code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+code{font-size:.9em;background:var(--tint);padding:1px 5px}
+.steps{counter-reset:s;list-style:none;padding:0;margin:34px 0}
+.steps li{counter-increment:s;position:relative;padding:20px 0 20px 58px;
+border-bottom:1px solid var(--hair)}
+.steps li:last-child{border:0}
+.steps li:before{content:counter(s,decimal-leading-zero);position:absolute;left:0;top:22px;
+font-size:13px;color:var(--acc);letter-spacing:.08em;font-weight:600}
+.steps li>b{display:block;font-size:17px;font-weight:600;margin-bottom:4px}
+.steps li span{color:var(--mid);font-size:15.5px}
+details.msg{border:0;border-bottom:1px solid var(--hair);margin:0}
+details.msg:first-of-type{border-top:1px solid var(--hair)}
+details.msg summary{cursor:pointer;padding:22px 0;list-style:none;display:flex;gap:18px;
+align-items:baseline;flex-wrap:wrap}
+details.msg summary::-webkit-details-marker{display:none}
+details.msg summary:hover .subj{color:var(--ink)}
+details.msg[open] summary{padding-bottom:14px}
+.who{font-weight:600;font-size:17px;min-width:120px}
+.subj{color:var(--mid);font-size:16px;flex:1;font-style:italic}
+.mbody{padding:6px 0 34px}
+.email{background:var(--tint);border:0;border-left:2px solid var(--hair);padding:26px 28px;
+white-space:pre-wrap;font-size:15.5px;line-height:1.8;
+font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif}
+.why{background:transparent;border-left:2px solid var(--acc);padding:4px 0 4px 22px;
+font-size:15px;color:var(--mid);margin:26px 0 0}
+.why b{color:var(--ink)}
+.ev{display:flex;gap:40px;flex-wrap:wrap;margin:26px 0;padding:18px 0;
+border-top:1px solid var(--hair);border-bottom:1px solid var(--hair)}
+.ev div{min-width:96px}
+.ev .l{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:10px;
+letter-spacing:.16em;text-transform:uppercase;color:var(--soft);font-weight:600}
+.ev .v{font-size:22px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+input[type=text],input[type=number],input[type=password],select,textarea{
+background:transparent;border:0;border-bottom:1px solid var(--hair);border-radius:0;
+padding:9px 2px;font:16px/1.5 "Iowan Old Style",Palatino,Georgia,serif;color:var(--ink);width:100%}
+input:focus,select:focus,textarea:focus{outline:0;border-bottom-color:var(--acc)}
+textarea{border:1px solid var(--hair);padding:16px;line-height:1.7}
+label{display:block;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--soft);
+font-weight:600;margin-bottom:7px}
+.field{margin-bottom:30px}
+.chk{display:flex;gap:16px;align-items:flex-start;padding:18px 0;border-bottom:1px solid var(--hair)}
+.chk:last-child{border:0}
+.chk .ic{width:22px;height:22px;flex:0 0 22px;display:flex;align-items:center;
+justify-content:center;font-size:12px;font-weight:700;padding:0;margin:3px 0 0;
+border:1px solid var(--good);color:var(--good)}
+.ic.warn{border-color:var(--warn);color:var(--warn)} .ic.block{border-color:var(--bad);color:var(--bad)}
+.ic.todo{border-color:var(--hair);color:var(--soft)} .ic.next{border-color:var(--acc);color:var(--acc)}
+.chk .t b{display:block;font-size:16.5px;font-weight:600}
+.chk .t span{color:var(--mid);font-size:15px}
+.chk .t i{color:var(--soft);font-size:13px;font-style:italic;display:block;margin-top:3px}
+.big{font-size:56px;font-weight:600;letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1}
+.muted{color:var(--mid)} .soft{color:var(--soft)} .sm{font-size:14.5px}
+.foot{color:var(--soft);font-size:13px;font-style:italic;border-top:1px solid var(--hair);
+margin-top:90px;padding-top:22px}
+.bar{height:2px;background:var(--hair);margin-top:8px}
+.bar i{display:block;height:100%;background:var(--acc)}
+.trig{display:flex;gap:26px;align-items:flex-start;padding:26px 0;border-bottom:1px solid var(--hair)}
+.trig:last-child{border:0}
+.trig .n{flex:0 0 54px;text-align:right}
+.trig .n b{font-size:26px;font-weight:600;font-variant-numeric:tabular-nums}
+.trig .n span{display:block;font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+color:var(--soft);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.trig.off{opacity:.38}
+.dot{width:7px;height:7;border-radius:50%;display:inline-block;margin-right:8px}
+input[type=checkbox],input[type=radio]{width:15px;height:15px;accent-color:var(--acc)}
+.filerow{border:1px dashed var(--hair);padding:26px;margin:26px 0}
+.filerow:hover{border-color:var(--acc)}
+</style><meta name="robots" content="noindex,nofollow"><style>
+.snap-banner{position:sticky;top:0;z-index:99999;background:#1f2937;color:#f9fafb;font:13px/1.4 system-ui,sans-serif;
+padding:8px 14px;text-align:center}.snap-banner b{color:#fbbf24}.snap-banner span{opacity:.8}
+[data-snap-dead]{cursor:not-allowed;opacity:.55}
+.snap-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#111827;color:#fff;
+padding:10px 16px;border-radius:8px;font:14px system-ui,sans-serif;z-index:99999;display:none;box-shadow:0 4px 16px #0006}
+</style></head><body><div class="snap-banner"><b>Read-only snapshot</b> of the demo venue (synthetic data) <span>&middot; PR #1 @ 985e54f &middot; built 2026-11-12 &middot; buttons and forms are switched off</span></div>
+<header><div class="hin">
+<div class="logo"><b>Regulars</b><small>Marlow &amp; Finch, Fitzroy</small></div>
+<nav><a href="/" class="">Setup</a><a href="/goals/" class="">Goals</a><a href="/triggers/" class="">Triggers</a><a href="/inbox/" class="on">Messages</a><a href="/sending/" class="">Sending</a><a href="/sent/" class="">Sent</a><a href="/data/" class="">Data</a><a href="/security/" class="">Security</a></nav></div></header>
+<div class="wrap"><p style="margin-top:40px"><a href="/inbox/">&larr; All messages</a></p><h1>Liam Zhang</h1><p class="lead">New - needs a second visit &rarr; Money off: buy one, get one free</p><div class="grid g4"><div class="stat"><div class="l">Visits</div><div class="v">2</div><div class="n">over 48 days</div></div><div class="stat"><div class="l">Lifetime spend</div><div class="v">A$251</div><div class="n">avg ticket A$125.50</div></div><div class="stat"><div class="l">Last in</div><div class="v">33d</div><div class="n">own rhythm 15 days</div></div><div class="stat"><div class="l">Usual table</div><div class="v">2.5</div><div class="n">biggest 3</div></div></div><h2>Their behaviour &mdash; yours to see, never theirs</h2><div class="card"><table><tr><td class="sm" style="width:36%"><b>Signature order</b></td><td>none</td></tr><tr><td class="sm" style="width:36%"><b>Most ordered</b></td><td>Espresso Martini, Margherita Pizza, Pappardelle Ragu, Garlic Bread</td></tr><tr><td class="sm" style="width:36%"><b>Never bought</b></td><td>Catering Platter</td></tr><tr><td class="sm" style="width:36%"><b>Usual time</b></td><td>dinner, most often a Thursday</td></tr><tr><td class="sm" style="width:36%"><b>Adds a side or dessert</b></td><td>100% of visits</td></tr><tr><td class="sm" style="width:36%"><b>Menu variety</b></td><td>0.54 (low = orders the same few things)</td></tr><tr><td class="sm" style="width:36%"><b>Buys alcohol</b></td><td>50% of visits</td></tr><tr><td class="sm" style="width:36%"><b>Cadence trend</b></td><td>steady</td></tr><tr><td class="sm" style="width:36%"><b>Birthday</b></td><td>in 229 days</td></tr><tr><td class="sm" style="width:36%"><b>Spend percentile</b></td><td>top 90% of your customers</td></tr><tr><td class="sm" style="width:36%"><b>Contactable</b></td><td>yes &mdash; liam.zhang47@outlook.example</td></tr><tr><td class="sm" style="width:36%"><b>Consent</b></td><td>Loyalty signup</td></tr></table><div class="note" style="margin:26px 0 0">This table is the reason the email can be short and warm. Everything here stays in the app; the customer sees a message that reads like it was written by someone who knows them &mdash; because it was derived by someone who does.</div></div><h2>Why this offer</h2><div class="why" style="font-size:16px">First visit <b>48 days</b> ago, <b>2</b> visit(s) total. Inside the habit-forming window, where one nudge is worth more than any later win-back.</div><div class="note sm"><b>The rule that fired:</b> First visit inside the new-customer window, only been once or twice. The habit-forming window.</div><h2>The message</h2><form class="card" action="#" method="get" data-snapshot="1"><input type="hidden" name="id" value="cust_00364_new_second_visit"><div class="field"><label>Subject line</label><input type="text" name="subject" value="Glad you found us, Liam"></div><div class="field"><label>Email body</label><textarea name="body" rows="16">Hi Liam,
+
+Thanks for coming in recently - genuinely, new faces are the whole reason we do this.
+
+The second visit is the one that counts, so we&#x27;d like to make it easy: buy one, get one free when you come back this month.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</textarea></div><div class="warn sm">Edit freely &mdash; but keep the footer. It carries the venue name, the ABN, the reason they&rsquo;re receiving this and the unsubscribe tag. Those four things are what keep you on the right side of the Spam Act. And keep the copy free of their numbers: no gaps, no counts, no ratios.</div><div class="row"><button class="btn big green" type="submit">Approve for the next export</button><a class="btn ghost" href="/inbox/">Back</a></div></form>
+<div class="foot">Regulars 0.6.0<br>The example data is made up: an example restaurant, its customers and their orders.<br>Every figure in every message traces to an order in the data; no figure appears in a customer&rsquo;s email unless a human put it there.</div></div><div class="snap-toast" id="snap-toast">Read-only snapshot: this button doesn't do anything here.</div>
+<script>
+(function(){var t=document.getElementById('snap-toast'),h;
+function toast(){t.style.display='block';clearTimeout(h);h=setTimeout(function(){t.style.display='none'},2600)}
+document.addEventListener('submit',function(e){e.preventDefault();toast()},true);
+document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('[data-snap-dead]');
+if(a){e.preventDefault();toast()}},true)})();
+</script></body></html>

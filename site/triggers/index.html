@@ -1,0 +1,161 @@
+<!doctype html><html lang="en-AU"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Triggers &middot; Regulars</title><style>
+:root{--acc:#8a3413;--ink:#191714;--paper:#fbfaf7;--hair:#ddd6cb;
+--mid:#6b6459;--soft:#9c948a;--good:#3f6b3f;--bad:#8c2f2f;--warn:#8a6116;
+--tint:#f6f2ea}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);
+font:17px/1.75 "Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+-webkit-font-smoothing:antialiased}
+a{color:var(--acc);text-decoration:none;border-bottom:1px solid transparent}
+a:hover{border-bottom-color:var(--acc)}
+.wrap{max-width:760px;margin:0 auto;padding:0 28px 140px}
+header{border-bottom:1px solid var(--hair);background:var(--paper)}
+.hin{max-width:760px;margin:0 auto;padding:30px 28px 0}
+.logo{font-size:15px;letter-spacing:.22em;text-transform:uppercase}
+.logo b{font-weight:600;color:var(--ink)}
+.logo small{display:block;font-size:12px;letter-spacing:.06em;text-transform:none;
+color:var(--soft);font-style:italic;margin-top:3px}
+nav{display:flex;gap:26px;flex-wrap:wrap;margin:26px 0 0;
+font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+nav a{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mid);
+padding:0 0 14px;border-bottom:2px solid transparent}
+nav a:hover{color:var(--ink);border-bottom-color:var(--hair)}
+nav a.on{color:var(--ink);border-bottom-color:var(--acc);font-weight:600}
+h1{font-size:40px;line-height:1.15;font-weight:600;letter-spacing:-.01em;
+margin:72px 0 18px}
+h2{font-size:13px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;
+color:var(--soft);margin:76px 0 0;padding-bottom:12px;border-bottom:1px solid var(--hair)}
+h3{font-size:19px;font-weight:600;margin:0 0 10px;letter-spacing:-.01em}
+p{margin:0 0 18px}
+.lead{font-size:20px;line-height:1.65;color:var(--mid);margin:0 0 44px;max-width:34em}
+.lead b{color:var(--ink);font-weight:600}
+.card{border:0;border-top:1px solid var(--hair);padding:34px 0;margin:0}
+.card.tight{padding:26px 0}
+.row{display:flex;gap:20px;flex-wrap:wrap;align-items:center}
+.between{justify-content:space-between}
+.grid{display:grid;gap:44px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:44px 56px}
+.g3{grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:40px 44px}
+.g4{grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:36px}
+.stat{border-top:1px solid var(--ink);padding-top:14px}
+.stat .l{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--soft);font-weight:600}
+.stat .v{font-size:44px;font-weight:600;letter-spacing:-.02em;line-height:1.1;margin:6px 0 2px;
+font-variant-numeric:tabular-nums}
+.stat .n{color:var(--mid);font-size:14px;font-style:italic}
+.btn{display:inline-block;background:var(--ink);color:var(--paper);border:1px solid var(--ink);
+padding:13px 26px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;cursor:pointer;
+border-radius:0}
+.btn:hover{background:var(--acc);border-color:var(--acc);color:#fff}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--hair)}
+.btn.ghost:hover{border-color:var(--ink);background:transparent;color:var(--ink)}
+.btn.big{padding:17px 34px;font-size:13px}
+.btn.sm{padding:8px 16px;font-size:11px}
+.btn.green{background:var(--good);border-color:var(--good);color:#fff}
+.btn.green:hover{filter:brightness(1.1);background:var(--good)}
+.pill{display:inline-block;padding:3px 0;margin-right:14px;
+font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:var(--mid)}
+.p-acc{color:var(--acc)} .p-good{color:var(--good)} .p-bad{color:var(--bad)}
+.p-warn{color:var(--warn)} .p-mute{color:var(--soft)}
+table{width:100%;border-collapse:collapse;font-size:15.5px}
+th{text-align:left;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--soft);font-weight:600;
+padding:10px 12px 10px 0;border-bottom:1px solid var(--ink)}
+td{padding:16px 12px 16px 0;border-bottom:1px solid var(--hair);vertical-align:top}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
+.note,.warn,.good,.bad{border:0;border-left:2px solid var(--acc);background:transparent;
+padding:4px 0 4px 22px;margin:34px 0;font-size:16px}
+.warn{border-left-color:var(--warn)} .bad{border-left-color:var(--bad)}
+.good{border-left-color:var(--good)}
+.mono,code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+code{font-size:.9em;background:var(--tint);padding:1px 5px}
+.steps{counter-reset:s;list-style:none;padding:0;margin:34px 0}
+.steps li{counter-increment:s;position:relative;padding:20px 0 20px 58px;
+border-bottom:1px solid var(--hair)}
+.steps li:last-child{border:0}
+.steps li:before{content:counter(s,decimal-leading-zero);position:absolute;left:0;top:22px;
+font-size:13px;color:var(--acc);letter-spacing:.08em;font-weight:600}
+.steps li>b{display:block;font-size:17px;font-weight:600;margin-bottom:4px}
+.steps li span{color:var(--mid);font-size:15.5px}
+details.msg{border:0;border-bottom:1px solid var(--hair);margin:0}
+details.msg:first-of-type{border-top:1px solid var(--hair)}
+details.msg summary{cursor:pointer;padding:22px 0;list-style:none;display:flex;gap:18px;
+align-items:baseline;flex-wrap:wrap}
+details.msg summary::-webkit-details-marker{display:none}
+details.msg summary:hover .subj{color:var(--ink)}
+details.msg[open] summary{padding-bottom:14px}
+.who{font-weight:600;font-size:17px;min-width:120px}
+.subj{color:var(--mid);font-size:16px;flex:1;font-style:italic}
+.mbody{padding:6px 0 34px}
+.email{background:var(--tint);border:0;border-left:2px solid var(--hair);padding:26px 28px;
+white-space:pre-wrap;font-size:15.5px;line-height:1.8;
+font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif}
+.why{background:transparent;border-left:2px solid var(--acc);padding:4px 0 4px 22px;
+font-size:15px;color:var(--mid);margin:26px 0 0}
+.why b{color:var(--ink)}
+.ev{display:flex;gap:40px;flex-wrap:wrap;margin:26px 0;padding:18px 0;
+border-top:1px solid var(--hair);border-bottom:1px solid var(--hair)}
+.ev div{min-width:96px}
+.ev .l{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:10px;
+letter-spacing:.16em;text-transform:uppercase;color:var(--soft);font-weight:600}
+.ev .v{font-size:22px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+input[type=text],input[type=number],input[type=password],select,textarea{
+background:transparent;border:0;border-bottom:1px solid var(--hair);border-radius:0;
+padding:9px 2px;font:16px/1.5 "Iowan Old Style",Palatino,Georgia,serif;color:var(--ink);width:100%}
+input:focus,select:focus,textarea:focus{outline:0;border-bottom-color:var(--acc)}
+textarea{border:1px solid var(--hair);padding:16px;line-height:1.7}
+label{display:block;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--soft);
+font-weight:600;margin-bottom:7px}
+.field{margin-bottom:30px}
+.chk{display:flex;gap:16px;align-items:flex-start;padding:18px 0;border-bottom:1px solid var(--hair)}
+.chk:last-child{border:0}
+.chk .ic{width:22px;height:22px;flex:0 0 22px;display:flex;align-items:center;
+justify-content:center;font-size:12px;font-weight:700;padding:0;margin:3px 0 0;
+border:1px solid var(--good);color:var(--good)}
+.ic.warn{border-color:var(--warn);color:var(--warn)} .ic.block{border-color:var(--bad);color:var(--bad)}
+.ic.todo{border-color:var(--hair);color:var(--soft)} .ic.next{border-color:var(--acc);color:var(--acc)}
+.chk .t b{display:block;font-size:16.5px;font-weight:600}
+.chk .t span{color:var(--mid);font-size:15px}
+.chk .t i{color:var(--soft);font-size:13px;font-style:italic;display:block;margin-top:3px}
+.big{font-size:56px;font-weight:600;letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1}
+.muted{color:var(--mid)} .soft{color:var(--soft)} .sm{font-size:14.5px}
+.foot{color:var(--soft);font-size:13px;font-style:italic;border-top:1px solid var(--hair);
+margin-top:90px;padding-top:22px}
+.bar{height:2px;background:var(--hair);margin-top:8px}
+.bar i{display:block;height:100%;background:var(--acc)}
+.trig{display:flex;gap:26px;align-items:flex-start;padding:26px 0;border-bottom:1px solid var(--hair)}
+.trig:last-child{border:0}
+.trig .n{flex:0 0 54px;text-align:right}
+.trig .n b{font-size:26px;font-weight:600;font-variant-numeric:tabular-nums}
+.trig .n span{display:block;font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+color:var(--soft);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.trig.off{opacity:.38}
+.dot{width:7px;height:7;border-radius:50%;display:inline-block;margin-right:8px}
+input[type=checkbox],input[type=radio]{width:15px;height:15px;accent-color:var(--acc)}
+.filerow{border:1px dashed var(--hair);padding:26px;margin:26px 0}
+.filerow:hover{border-color:var(--acc)}
+</style><meta name="robots" content="noindex,nofollow"><style>
+.snap-banner{position:sticky;top:0;z-index:99999;background:#1f2937;color:#f9fafb;font:13px/1.4 system-ui,sans-serif;
+padding:8px 14px;text-align:center}.snap-banner b{color:#fbbf24}.snap-banner span{opacity:.8}
+[data-snap-dead]{cursor:not-allowed;opacity:.55}
+.snap-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#111827;color:#fff;
+padding:10px 16px;border-radius:8px;font:14px system-ui,sans-serif;z-index:99999;display:none;box-shadow:0 4px 16px #0006}
+</style></head><body><div class="snap-banner"><b>Read-only snapshot</b> of the demo venue (synthetic data) <span>&middot; PR #1 @ 985e54f &middot; built 2026-11-12 &middot; buttons and forms are switched off</span></div>
+<header><div class="hin">
+<div class="logo"><b>Regulars</b><small>Marlow &amp; Finch, Fitzroy</small></div>
+<nav><a href="/" class="">Setup</a><a href="/goals/" class="">Goals</a><a href="/triggers/" class="on">Triggers</a><a href="/inbox/" class="">Messages</a><a href="/sending/" class="">Sending</a><a href="/sent/" class="">Sent</a><a href="/data/" class="">Data</a><a href="/security/" class="">Security</a></nav></div></header>
+<div class="wrap"><h1>Triggers, and their numbers.</h1><p class="lead">Each customer is tested against these rules in order and the <b>first match wins</b>, so everyone gets exactly one message &mdash; the most specific thing that&rsquo;s true about them. If nothing matches, they get nothing, and that is counted rather than hidden. Every number below is yours to change.</p><div class="grid g3"><div class="stat"><div class="l">Rules on</div><div class="v">10</div><div class="n">of 10</div></div><div class="stat"><div class="l">Messages</div><div class="v">199</div><div class="n">one per matched customer</div></div><div class="stat"><div class="l">No match</div><div class="v">56</div><div class="n">correctly left alone</div></div></div><form action="#" method="get" data-snapshot="1"><h2>The rules</h2><div class="card" style="padding-top:10px"><div class="trig "><div class="n"><b>8</b><span>people</span></div><div style="flex:1"><label class="row" style="gap:10px;margin:0;font:inherit;text-transform:none;letter-spacing:0;color:var(--ink)"><input type="checkbox" style="width:auto" name="t" value="birthday" checked> <b style="font-size:18px">Birthday coming up</b></label><div class="sm muted" style="margin-top:6px">Birthday inside the window (Square captures this at loyalty signup). Time-critical, so it outranks the priority setting.</div><div style="margin-top:10px"><span class="pill p-acc">Group &amp; booking: a free bottle of house wine</span><span class="pill p-mute">priority 1</span></div></div></div><div class="trig "><div class="n"><b>44</b><span>people</span></div><div style="flex:1"><label class="row" style="gap:10px;margin:0;font:inherit;text-transform:none;letter-spacing:0;color:var(--ink)"><input type="checkbox" style="width:auto" name="t" value="signature_overdue" checked> <b style="font-size:18px">Their usual, overdue</b></label><div class="sm muted" style="margin-top:6px">Orders the same thing repeatedly, and it&#x27;s past their own normal rhythm. The message names the exact thing they buy.</div><div style="margin-top:10px"><span class="pill p-acc">Upgrade or perk: an oat milk upgrade on us</span><span class="pill p-mute">priority 2</span></div></div></div><div class="trig "><div class="n"><b>24</b><span>people</span></div><div style="flex:1"><label class="row" style="gap:10px;margin:0;font:inherit;text-transform:none;letter-spacing:0;color:var(--ink)"><input type="checkbox" style="width:auto" name="t" value="lapsed_big_spender" checked> <b style="font-size:18px">Big spender gone quiet</b></label><div class="sm muted" style="margin-top:6px">Absent past the lapse threshold and above the spend percentile floor. The only trigger allowed a real credit.</div><div style="margin-top:10px"><span class="pill p-acc">Money off: $15 off your bill</span><span class="pill p-mute">priority 3</span></div></div></div><div class="trig "><div class="n"><b>43</b><span>people</span></div><div style="flex:1"><label class="row" style="gap:10px;margin:0;font:inherit;text-transform:none;letter-spacing:0;color:var(--ink)"><input type="checkbox" style="width:auto" name="t" value="social_hub" checked> <b style="font-size:18px">The one who organises</b></label><div class="sm muted" style="margin-top:6px">Average table at or above the organiser threshold, still coming in. Give them a reason to bring more people.</div><div style="margin-top:10px"><span class="pill p-acc">Something free: the first round on us</span><span class="pill p-mute">priority 4</span></div></div></div><div class="trig "><div class="n"><b>2</b><span>people</span></div><div style="flex:1"><label class="row" style="gap:10px;margin:0;font:inherit;text-transform:none;letter-spacing:0;color:var(--ink)"><input type="checkbox" style="width:auto" name="t" value="big_table" checked> <b style="font-size:18px">Big table potential</b></label><div class="sm muted" style="margin-top:6px">Has seated a big table before but usually comes as a pair. A functions lead, not a referral.</div><div style="margin-top:10px"><span class="pill p-acc">Group &amp; booking: the window table held for your group</span><span class="pill p-mute">priority 5</span></div></div></div><div class="trig "><div class="n"><b>21</b><span>people</span></div><div style="flex:1"><label class="row" style="gap:10px;margin:0;font:inherit;text-transform:none;letter-spacing:0;color:var(--ink)"><input type="checkbox" style="width:auto" name="t" value="new_second_visit" checked> <b style="font-size:18px">New - needs a second visit</b></label><div class="sm muted" style="margin-top:6px">First visit inside the new-customer window, only been once or twice. The habit-forming window.</div><div style="margin-top:10px"><span class="pill p-acc">Money off: buy one, get one free</span><span class="pill p-mute">priority 6</span></div></div></div><div class="trig "><div class="n"><b>22</b><span>people</span></div><div style="flex:1"><label class="row" style="gap:10px;margin:0;font:inherit;text-transform:none;letter-spacing:0;color:var(--ink)"><input type="checkbox" style="width:auto" name="t" value="wrong_time" checked> <b style="font-size:18px">Come at a different time</b></label><div class="sm muted" style="margin-top:6px">You want a specific slot filled; they already like you, just not then. Plausibility-filtered so nobody gets an invite they&#x27;d find absurd.</div><div style="margin-top:10px"><span class="pill p-acc">Money off: buy one, get one free</span><span class="pill p-mute">priority 7</span></div></div></div><div class="trig "><div class="n"><b>1</b><span>people</span></div><div style="flex:1"><label class="row" style="gap:10px;margin:0;font:inherit;text-transform:none;letter-spacing:0;color:var(--ink)"><input type="checkbox" style="width:auto" name="t" value="never_adds_extras" checked> <b style="font-size:18px">Never orders extras</b></label><div class="sm muted" style="margin-top:6px">Enough visits, and adds a side or dessert under the attach threshold. Suggests your venue&#x27;s actual best-selling side.</div><div style="margin-top:10px"><span class="pill p-acc">Something free: a free side with your main</span><span class="pill p-mute">priority 8</span></div></div></div><div class="trig "><div class="n"><b>9</b><span>people</span></div><div style="flex:1"><label class="row" style="gap:10px;margin:0;font:inherit;text-transform:none;letter-spacing:0;color:var(--ink)"><input type="checkbox" style="width:auto" name="t" value="habit_breaker" checked> <b style="font-size:18px">Creature of habit</b></label><div class="sm muted" style="margin-top:6px">Loyal, narrow range, and you have something on your push list they&#x27;ve never tried.</div><div style="margin-top:10px"><span class="pill p-acc">Something free: your first one on us</span><span class="pill p-mute">priority 9</span></div></div></div><div class="trig "><div class="n"><b>25</b><span>people</span></div><div style="flex:1"><label class="row" style="gap:10px;margin:0;font:inherit;text-transform:none;letter-spacing:0;color:var(--ink)"><input type="checkbox" style="width:auto" name="t" value="drifting" checked> <b style="font-size:18px">Slowing down</b></label><div class="sm muted" style="margin-top:6px">Still coming in, but recent gaps between visits are longer than their own early pattern by the drift multiplier. Catches the slide before it becomes a lapse.</div><div style="margin-top:10px"><span class="pill p-acc">Something free: a free side with your main</span><span class="pill p-mute">priority 10</span></div></div></div></div><h2>The numbers</h2><p class="sm muted" style="margin-top:18px">These are the thresholds behind the rules above. Change one and apply &mdash; the people-counts re-run immediately, so you can see what a number is worth before you commit to it. Reset returns to the defaults we&rsquo;d ship with.</p><div class="card" style="padding-top:26px"><div class="grid g2"><div class="field"><label>Orders before something is &#x27;their usual&#x27;</label><input type="number" step="1" name="th_sig_min_visits" value="3"><div class="sm soft" style="margin-top:6px">How many times must they order the same thing before a message can name it.</div></div><div class="field"><label>&#x27;Overdue&#x27; multiplier</label><input type="number" step="0.1" name="th_sig_overdue_mult" value="1.5"><div class="sm soft" style="margin-top:6px">Their own median gap between visits, multiplied by this. A daily regular and a monthly regular get judged against themselves, not against each other.</div></div><div class="field"><label>Quiet period after a visit (days)</label><input type="number" step="1" name="th_sig_min_recency" value="7"><div class="sm soft" style="margin-top:6px">Nobody gets a nudge inside this many days of being in. They don&#x27;t need it.</div></div><div class="field"><label>A lapse starts at (days absent)</label><input type="number" step="5" name="th_lapsed_days" value="110"><div class="sm soft" style="margin-top:6px">Past this, the nudge becomes a win-back with a real incentive behind it.</div></div><div class="field"><label>Win-backs limited to spenders above (percentile)</label><input type="number" step="5" name="th_lapsed_spend_pct" value="55"><div class="sm soft" style="margin-top:6px">A $15 credit is an investment. Spend it on people whose absence costs you.</div></div><div class="field"><label>Minimum visits to count as a lost regular</label><input type="number" step="1" name="th_lapsed_min_visits" value="5"><div class="sm soft" style="margin-top:6px">Someone who came once was never a regular. Don&#x27;t pay to get them back.</div></div><div class="field"><label>Birthday window (days ahead)</label><input type="number" step="1" name="th_birthday_window_days" value="14"><div class="sm soft" style="margin-top:6px">How far ahead a birthday is worth acting on. Beyond a fortnight nobody has decided where they&#x27;re going, and birthday outranks everything else.</div></div><div class="field"><label>&#x27;Organiser&#x27; = average table of at least</label><input type="number" step="0.5" name="th_social_avg_party" value="3.0"><div class="sm soft" style="margin-top:6px">The person who rounds everyone up. Your cheapest acquisition channel.</div></div><div class="field"><label>Minimum visits for the organiser trigger</label><input type="number" step="1" name="th_social_min_visits" value="4"><div class="sm soft" style="margin-top:6px">One big birthday doesn&#x27;t make someone your referral engine.</div></div><div class="field"><label>Biggest table that counts as &#x27;big&#x27; (people)</label><input type="number" step="1" name="th_big_max_party" value="6"><div class="sm soft" style="margin-top:6px">Has seated at least this many before, but usually comes as a pair.</div></div><div class="field"><label>Minimum visits for the big-table trigger</label><input type="number" step="1" name="th_big_min_visits" value="3"></div><div class="field"><label>Usual table must be smaller than</label><input type="number" step="0.5" name="th_big_avg_party_max" value="3.0"><div class="sm soft" style="margin-top:6px">People who always bring a crowd get the organiser message instead.</div></div><div class="field"><label>A customer counts as new for (days)</label><input type="number" step="5" name="th_new_window_days" value="60"><div class="sm soft" style="margin-top:6px">The habit-forming window. The second visit is the one that keeps them.</div></div><div class="field"><label>Maximum visits to still count as new</label><input type="number" step="1" name="th_new_max_visits" value="2"></div><div class="field"><label>Minimum visits for the side-dish upsell</label><input type="number" step="1" name="th_extras_min_visits" value="4"></div><div class="field"><label>Upsell if they add a side on under (share of visits)</label><input type="number" step="0.05" name="th_extras_max_attach" value="0.2"><div class="sm soft" style="margin-top:6px">0.20 means one visit in five or less. Above that, they already know.</div></div><div class="field"><label>Minimum visits for the &#x27;creature of habit&#x27; trigger</label><input type="number" step="1" name="th_habit_min_visits" value="6"></div><div class="field"><label>Narrow menu range means variety under</label><input type="number" step="0.05" name="th_habit_max_variety" value="0.45"><div class="sm soft" style="margin-top:6px">Distinct items divided by total items. Low = orders the same few things.</div></div><div class="field"><label>Upsells stop once someone is this overdue</label><input type="number" step="0.1" name="th_upsell_overdue_max" value="1.5"><div class="sm soft" style="margin-top:6px">Pitching a free side to someone who&#x27;s lapsing is tone-deaf. Win them back first.</div></div><div class="field"><label>Minimum visits for the quiet-slot invite</label><input type="number" step="1" name="th_wrong_time_min_visits" value="3"></div><div class="field"><label>Minimum visits to detect slowing down</label><input type="number" step="1" name="th_drift_min_visits" value="6"></div><div class="field"><label>&#x27;Slowing down&#x27; = recent gaps this many x their early gaps</label><input type="number" step="0.1" name="th_drift_trend_min" value="1.6"><div class="sm soft" style="margin-top:6px">Catches the slide while the habit is still recoverable.</div></div><div class="field"><label>Slowing-down window (days since last visit)</label><input type="number" step="5" name="th_drift_max_recency" value="90"><div class="sm soft" style="margin-top:6px">Past this they&#x27;ve lapsed, and a lapse gets the win-back message.</div></div></div></div><div class="row between" style="margin-top:44px"><span class="sm muted">Turning a rule off removes those people from the list entirely &mdash; they are not reassigned to a weaker message.</span><span><button class="btn ghost" type="submit" formaction="/tuning/reset" formnovalidate>Reset numbers</button> <button class="btn big" type="submit">Apply</button></span></div></form><h2>Why this order</h2><div class="card"><ol class="steps"><li><b>Birthday always comes first</b><span>It&rsquo;s time-critical. A birthday inside the window beats a coffee nudge, whatever your priority setting says.</span></li><li><b>Then whatever you said you wanted most of</b><span>Your priority is worth a nudge up the order for the rules that serve it. It doesn&rsquo;t delete the others.</span></li><li><b>Then most specific to least</b><span>&ldquo;You order the flat white constantly&rdquo; is a stronger message than &ldquo;we miss you&rdquo;, so it gets used while it&rsquo;s true.</span></li><li><b>Upsells only go to people currently coming in</b><span>Pitching a free side to someone who hasn&rsquo;t visited in months is tone-deaf and wasted. They get a win-back instead.</span></li><li><b>Win-backs are for real lapses</b><span>A nudge about their usual is for someone running late. Past your lapse threshold it becomes a credit, because a nudge won&rsquo;t bring them back.</span></li></ol></div>
+<div class="foot">Regulars 0.6.0<br>The example data is made up: an example restaurant, its customers and their orders.<br>Every figure in every message traces to an order in the data; no figure appears in a customer&rsquo;s email unless a human put it there.</div></div><div class="snap-toast" id="snap-toast">Read-only snapshot: this button doesn't do anything here.</div>
+<script>
+(function(){var t=document.getElementById('snap-toast'),h;
+function toast(){t.style.display='block';clearTimeout(h);h=setTimeout(function(){t.style.display='none'},2600)}
+document.addEventListener('submit',function(e){e.preventDefault();toast()},true);
+document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('[data-snap-dead]');
+if(a){e.preventDefault();toast()}},true)})();
+</script></body></html>

@@ -1,0 +1,254 @@
+#!/usr/bin/env python3
+"""Turn a running Regulars demo app into a read-only static site for Netlify.
+
+    ./start.sh                                   # in the app checkout (demo mode)
+    python scripts/make_snapshot.py http://127.0.0.1:8010 \\
+        --source "PR #1 @ 985e54f" --scrub /path/to/app/checkout
+
+Crawls every same-origin GET page reachable from the app's screens, rewrites links
+to static paths, switches every form off, adds a "read-only snapshot" banner and
+noindex markers, and refuses to write anything that still contains a local
+filesystem path. Standard library only.
+"""
+from __future__ import annotations
+
+import argparse
+import datetime
+import html
+import re
+import shutil
+import sys
+import urllib.error
+import urllib.parse
+import urllib.request
+from collections import deque
+from pathlib import Path
+
+SEEDS = ["/", "/goals", "/triggers", "/inbox", "/sending", "/sent", "/data", "/security", "/login"]
+# Not pages: state-changing, OAuth hand-offs, health checks, file downloads.
+SKIP_PREFIXES = ("/logout", "/oauth/", "/healthz", "/welcome", "/export", "/download", "/reset")
+SKIP_SUFFIXES = (".csv", ".zip", ".pdf", ".json", ".txt", ".log")
+ROBOTS_MARKER = "# regulars-snapshot"
+SCRUBBED = "/srv/regulars"
+LEAK_RE = re.compile(r"(/tmp/|/home/|/root/|claude-0|scratchpad)")
+
+A_TAG_RE = re.compile(r"<a\b[^>]*>", re.I | re.S)
+HREF_RE = re.compile(r"""\bhref=(["'])(.*?)\1""", re.S)
+FORM_RE = re.compile(r"<form\b[^>]*>", re.I | re.S)
+BODY_RE = re.compile(r"<body\b[^>]*>", re.I | re.S)
+EMAIL_RE = re.compile(r"(?<![\w.%+-])([A-Za-z0-9._%+-]+)@([A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+)")
+# Domains that are already placeholders and can stay as they are.
+SAFE_EMAIL_DOMAINS = ("example.com", "example.org", "example.net", ".example", ".invalid", "yourvenue.com.au")
+
+
+# --- URL mapping ---------------------------------------------------------------
+
+def resolve(base_url: str, current: str, href: str):
+    """Absolute (path, query, fragment) if href is a same-origin link, else None."""
+    full = urllib.parse.urljoin(base_url + current, html.unescape(href).strip())
+    u, b = urllib.parse.urlsplit(full), urllib.parse.urlsplit(base_url)
+    if u.scheme not in ("http", "https") or u.netloc != b.netloc:
+        return None
+    return (u.path or "/", u.query, u.fragment)
+
+
+def is_page(path: str) -> bool:
+    return not (path.startswith(SKIP_PREFIXES) or path.lower().endswith(SKIP_SUFFIXES))
+
+
+def local_url(path: str, query: str = "") -> str:
+    """'/m', 'id=12' -> '/m/id-12/'. Deterministic, directory-style, Netlify-friendly."""
+    segs = [s for s in path.split("/") if s]
+    if query:
+        pairs = sorted(urllib.parse.parse_qsl(query, keep_blank_values=True))
+        segs.append("-".join(re.sub(r"[^A-Za-z0-9._]+", "_", f"{k}-{v}") for k, v in pairs))
+    return "/" + "/".join(segs) + ("/" if segs else "")
+
+
+def out_file(out: Path, url: str) -> Path:
+    return out / url.strip("/") / "index.html" if url != "/" else out / "index.html"
+
+
+# --- HTML rewriting --------------------------------------------------------------
+
+def mask_emails(text: str) -> str:
+    """name@icloud.com -> name@icloud.example.
+
+    The demo's customers are made up, but they sit on real providers, so an
+    address could coincide with a real person's. A public preview shouldn't
+    publish those. Applies to visible text and mailto: links alike.
+    """
+    def one(m):
+        local, domain = m.group(1), m.group(2).lower()
+        if domain == "yourvenue.com.au" or domain.endswith(SAFE_EMAIL_DOMAINS):
+            return m.group(0)
+        return f"{local}@{domain.split('.')[0]}.example"
+
+    return EMAIL_RE.sub(one, text)
+
+
+def extract_links(page: str) -> list[str]:
+    return [html.unescape(m.group(2)) for tag in A_TAG_RE.findall(page) for m in [HREF_RE.search(tag)] if m]
+
+
+def _rewrite_a(tag: str, base_url: str, current: str, known: set) -> str:
+    m = HREF_RE.search(tag)
+    if not m:
+        return tag
+    raw = html.unescape(m.group(2)).strip()
+    if raw.startswith(("#", "mailto:", "tel:")):
+        return tag
+    r = resolve(base_url, current, raw)
+    if r is None:  # external site: leave alone
+        return tag
+    path, query, frag = r
+    if (path, query) in known:
+        new = local_url(path, query) + (f"#{frag}" if frag else "")
+        return tag[: m.start()] + f'href="{html.escape(new)}"' + tag[m.end():]
+    dead = tag[: m.start()] + 'href="#" data-snap-dead="1" title="Not available in the read-only snapshot"' + tag[m.end():]
+    return dead
+
+
+def _neuter_form(tag: str) -> str:
+    tag = re.sub(r"""\s(?:action|enctype|method)=(["']).*?\1""", "", tag, flags=re.I | re.S)
+    return tag[:-1].rstrip() + ' action="#" method="get" data-snapshot="1">'
+
+
+BANNER_CSS = """<style>
+.snap-banner{position:sticky;top:0;z-index:99999;background:#1f2937;color:#f9fafb;font:13px/1.4 system-ui,sans-serif;
+padding:8px 14px;text-align:center}.snap-banner b{color:#fbbf24}.snap-banner span{opacity:.8}
+[data-snap-dead]{cursor:not-allowed;opacity:.55}
+.snap-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#111827;color:#fff;
+padding:10px 16px;border-radius:8px;font:14px system-ui,sans-serif;z-index:99999;display:none;box-shadow:0 4px 16px #0006}
+</style>"""
+
+SNAP_JS = """<div class="snap-toast" id="snap-toast">Read-only snapshot: this button doesn't do anything here.</div>
+<script>
+(function(){var t=document.getElementById('snap-toast'),h;
+function toast(){t.style.display='block';clearTimeout(h);h=setTimeout(function(){t.style.display='none'},2600)}
+document.addEventListener('submit',function(e){e.preventDefault();toast()},true);
+document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('[data-snap-dead]');
+if(a){e.preventDefault();toast()}},true)})();
+</script>"""
+
+
+def banner(source: str, built: str) -> str:
+    return (
+        '<div class="snap-banner"><b>Read-only snapshot</b> of the demo venue '
+        f'(synthetic data) <span>&middot; {html.escape(source)} &middot; built {html.escape(built)}'
+        " &middot; buttons and forms are switched off</span></div>"
+    )
+
+
+def rewrite_page(page: str, base_url: str, current: str, known: set, source: str, built: str,
+                 scrub: list[str]) -> str:
+    page = A_TAG_RE.sub(lambda m: _rewrite_a(m.group(0), base_url, current, known), page)
+    page = FORM_RE.sub(lambda m: _neuter_form(m.group(0)), page)
+    head_add = '<meta name="robots" content="noindex,nofollow">' + BANNER_CSS
+    page = re.sub(r"</head>", lambda m: head_add + "</head>", page, count=1, flags=re.I) \
+        if re.search(r"</head>", page, re.I) else head_add + page
+    page = BODY_RE.sub(lambda m: m.group(0) + banner(source, built), page, count=1)
+    page = re.sub(r"</body>", lambda m: SNAP_JS + "</body>", page, count=1, flags=re.I) \
+        if re.search(r"</body>", page, re.I) else page + SNAP_JS
+    for prefix in scrub:
+        page = page.replace(prefix, SCRUBBED)
+    return mask_emails(page)
+
+
+# --- Crawl + write ------------------------------------------------------------------
+
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, *a, **k):  # surface 3xx instead of following it
+        return None
+
+
+_OPENER = urllib.request.build_opener(_NoRedirect)
+
+
+def fetch(url: str):
+    try:
+        with _OPENER.open(url, timeout=20) as r:
+            return r.status, r.headers.get("Content-Type", ""), r.read()
+    except urllib.error.HTTPError as e:
+        return e.code, e.headers.get("Content-Type", ""), b""
+
+
+def crawl(base_url: str, max_pages: int):
+    pages: dict[tuple[str, str], str] = {}
+    skipped: dict[str, str] = {}
+    queue = deque((p, "") for p in SEEDS)
+    seen = set(queue)
+    while queue and len(pages) < max_pages:
+        path, query = queue.popleft()
+        status, ctype, body = fetch(base_url + path + ("?" + query if query else ""))
+        if status != 200 or "text/html" not in ctype:
+            skipped[path + ("?" + query if query else "")] = f"HTTP {status}" if status != 200 else ctype
+            continue
+        text = body.decode("utf-8", errors="replace")
+        pages[(path, query)] = text
+        for href in extract_links(text):
+            r = resolve(base_url, path, href)
+            if r and is_page(r[0]) and (r[0], r[1]) not in seen:
+                seen.add((r[0], r[1]))
+                queue.append((r[0], r[1]))
+    leftover = len(queue)
+    return pages, skipped, leftover
+
+
+def prepare_out(out: Path) -> None:
+    robots = out / "robots.txt"
+    if out.exists() and any(out.iterdir()):
+        if not (robots.exists() and robots.read_text().startswith(ROBOTS_MARKER)):
+            sys.exit(f"refusing to overwrite {out}: not a previous snapshot (no robots.txt marker)")
+        shutil.rmtree(out)
+    out.mkdir(parents=True, exist_ok=True)
+
+
+def build(base_url: str, out: Path, source: str, built: str, scrub: list[str], max_pages: int):
+    base_url = base_url.rstrip("/")
+    pages, skipped, leftover = crawl(base_url, max_pages)
+    if ("/", "") not in pages:
+        sys.exit(f"{base_url}/ did not return a page; is the app running?")
+    known = set(pages)
+
+    rendered, taken = {}, {}
+    for (path, query), text in pages.items():
+        url = local_url(path, query)
+        if url in taken and taken[url] != (path, query):
+            sys.exit(f"two pages map to {url}: {taken[url]} and {(path, query)}")
+        taken[url] = (path, query)
+        page = rewrite_page(text, base_url, path, known, source, built, scrub)
+        if LEAK_RE.search(page):
+            bad = LEAK_RE.search(page)
+            sys.exit(f"{path}: output still contains a local path near {page[max(0, bad.start()-40):bad.end()+40]!r}; pass --scrub")
+        rendered[url] = page
+
+    prepare_out(out)
+    for url, page in rendered.items():
+        f = out_file(out, url)
+        f.parent.mkdir(parents=True, exist_ok=True)
+        f.write_text(page, encoding="utf-8")
+    (out / "robots.txt").write_text(f"{ROBOTS_MARKER}\nUser-agent: *\nDisallow: /\n")
+    return len(rendered), skipped, leftover
+
+
+def main(argv=None) -> int:
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("base_url", nargs="?", default="http://127.0.0.1:8010")
+    ap.add_argument("--out", default="site")
+    ap.add_argument("--source", default="demo app", help="label shown in the banner, e.g. 'PR #1 @ 985e54f'")
+    ap.add_argument("--built", default=datetime.date.today().isoformat())
+    ap.add_argument("--scrub", action="append", default=[], help="local path prefix to replace (repeatable)")
+    ap.add_argument("--max-pages", type=int, default=400)
+    a = ap.parse_args(argv)
+    n, skipped, leftover = build(a.base_url, Path(a.out), a.source, a.built, a.scrub, a.max_pages)
+    print(f"wrote {n} pages to {a.out}/")
+    for u, why in sorted(skipped.items()):
+        print(f"  skipped {u}: {why}")
+    if leftover:
+        print(f"  WARNING: stopped at --max-pages with {leftover} pages still queued")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

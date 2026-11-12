@@ -1,0 +1,733 @@
+<!doctype html><html lang="en-AU"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Messages &middot; Regulars</title><style>
+:root{--acc:#8a3413;--ink:#191714;--paper:#fbfaf7;--hair:#ddd6cb;
+--mid:#6b6459;--soft:#9c948a;--good:#3f6b3f;--bad:#8c2f2f;--warn:#8a6116;
+--tint:#f6f2ea}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);
+font:17px/1.75 "Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+-webkit-font-smoothing:antialiased}
+a{color:var(--acc);text-decoration:none;border-bottom:1px solid transparent}
+a:hover{border-bottom-color:var(--acc)}
+.wrap{max-width:760px;margin:0 auto;padding:0 28px 140px}
+header{border-bottom:1px solid var(--hair);background:var(--paper)}
+.hin{max-width:760px;margin:0 auto;padding:30px 28px 0}
+.logo{font-size:15px;letter-spacing:.22em;text-transform:uppercase}
+.logo b{font-weight:600;color:var(--ink)}
+.logo small{display:block;font-size:12px;letter-spacing:.06em;text-transform:none;
+color:var(--soft);font-style:italic;margin-top:3px}
+nav{display:flex;gap:26px;flex-wrap:wrap;margin:26px 0 0;
+font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+nav a{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mid);
+padding:0 0 14px;border-bottom:2px solid transparent}
+nav a:hover{color:var(--ink);border-bottom-color:var(--hair)}
+nav a.on{color:var(--ink);border-bottom-color:var(--acc);font-weight:600}
+h1{font-size:40px;line-height:1.15;font-weight:600;letter-spacing:-.01em;
+margin:72px 0 18px}
+h2{font-size:13px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;
+color:var(--soft);margin:76px 0 0;padding-bottom:12px;border-bottom:1px solid var(--hair)}
+h3{font-size:19px;font-weight:600;margin:0 0 10px;letter-spacing:-.01em}
+p{margin:0 0 18px}
+.lead{font-size:20px;line-height:1.65;color:var(--mid);margin:0 0 44px;max-width:34em}
+.lead b{color:var(--ink);font-weight:600}
+.card{border:0;border-top:1px solid var(--hair);padding:34px 0;margin:0}
+.card.tight{padding:26px 0}
+.row{display:flex;gap:20px;flex-wrap:wrap;align-items:center}
+.between{justify-content:space-between}
+.grid{display:grid;gap:44px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:44px 56px}
+.g3{grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:40px 44px}
+.g4{grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:36px}
+.stat{border-top:1px solid var(--ink);padding-top:14px}
+.stat .l{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--soft);font-weight:600}
+.stat .v{font-size:44px;font-weight:600;letter-spacing:-.02em;line-height:1.1;margin:6px 0 2px;
+font-variant-numeric:tabular-nums}
+.stat .n{color:var(--mid);font-size:14px;font-style:italic}
+.btn{display:inline-block;background:var(--ink);color:var(--paper);border:1px solid var(--ink);
+padding:13px 26px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;cursor:pointer;
+border-radius:0}
+.btn:hover{background:var(--acc);border-color:var(--acc);color:#fff}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--hair)}
+.btn.ghost:hover{border-color:var(--ink);background:transparent;color:var(--ink)}
+.btn.big{padding:17px 34px;font-size:13px}
+.btn.sm{padding:8px 16px;font-size:11px}
+.btn.green{background:var(--good);border-color:var(--good);color:#fff}
+.btn.green:hover{filter:brightness(1.1);background:var(--good)}
+.pill{display:inline-block;padding:3px 0;margin-right:14px;
+font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:var(--mid)}
+.p-acc{color:var(--acc)} .p-good{color:var(--good)} .p-bad{color:var(--bad)}
+.p-warn{color:var(--warn)} .p-mute{color:var(--soft)}
+table{width:100%;border-collapse:collapse;font-size:15.5px}
+th{text-align:left;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--soft);font-weight:600;
+padding:10px 12px 10px 0;border-bottom:1px solid var(--ink)}
+td{padding:16px 12px 16px 0;border-bottom:1px solid var(--hair);vertical-align:top}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
+.note,.warn,.good,.bad{border:0;border-left:2px solid var(--acc);background:transparent;
+padding:4px 0 4px 22px;margin:34px 0;font-size:16px}
+.warn{border-left-color:var(--warn)} .bad{border-left-color:var(--bad)}
+.good{border-left-color:var(--good)}
+.mono,code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+code{font-size:.9em;background:var(--tint);padding:1px 5px}
+.steps{counter-reset:s;list-style:none;padding:0;margin:34px 0}
+.steps li{counter-increment:s;position:relative;padding:20px 0 20px 58px;
+border-bottom:1px solid var(--hair)}
+.steps li:last-child{border:0}
+.steps li:before{content:counter(s,decimal-leading-zero);position:absolute;left:0;top:22px;
+font-size:13px;color:var(--acc);letter-spacing:.08em;font-weight:600}
+.steps li>b{display:block;font-size:17px;font-weight:600;margin-bottom:4px}
+.steps li span{color:var(--mid);font-size:15.5px}
+details.msg{border:0;border-bottom:1px solid var(--hair);margin:0}
+details.msg:first-of-type{border-top:1px solid var(--hair)}
+details.msg summary{cursor:pointer;padding:22px 0;list-style:none;display:flex;gap:18px;
+align-items:baseline;flex-wrap:wrap}
+details.msg summary::-webkit-details-marker{display:none}
+details.msg summary:hover .subj{color:var(--ink)}
+details.msg[open] summary{padding-bottom:14px}
+.who{font-weight:600;font-size:17px;min-width:120px}
+.subj{color:var(--mid);font-size:16px;flex:1;font-style:italic}
+.mbody{padding:6px 0 34px}
+.email{background:var(--tint);border:0;border-left:2px solid var(--hair);padding:26px 28px;
+white-space:pre-wrap;font-size:15.5px;line-height:1.8;
+font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif}
+.why{background:transparent;border-left:2px solid var(--acc);padding:4px 0 4px 22px;
+font-size:15px;color:var(--mid);margin:26px 0 0}
+.why b{color:var(--ink)}
+.ev{display:flex;gap:40px;flex-wrap:wrap;margin:26px 0;padding:18px 0;
+border-top:1px solid var(--hair);border-bottom:1px solid var(--hair)}
+.ev div{min-width:96px}
+.ev .l{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:10px;
+letter-spacing:.16em;text-transform:uppercase;color:var(--soft);font-weight:600}
+.ev .v{font-size:22px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+input[type=text],input[type=number],input[type=password],select,textarea{
+background:transparent;border:0;border-bottom:1px solid var(--hair);border-radius:0;
+padding:9px 2px;font:16px/1.5 "Iowan Old Style",Palatino,Georgia,serif;color:var(--ink);width:100%}
+input:focus,select:focus,textarea:focus{outline:0;border-bottom-color:var(--acc)}
+textarea{border:1px solid var(--hair);padding:16px;line-height:1.7}
+label{display:block;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--soft);
+font-weight:600;margin-bottom:7px}
+.field{margin-bottom:30px}
+.chk{display:flex;gap:16px;align-items:flex-start;padding:18px 0;border-bottom:1px solid var(--hair)}
+.chk:last-child{border:0}
+.chk .ic{width:22px;height:22px;flex:0 0 22px;display:flex;align-items:center;
+justify-content:center;font-size:12px;font-weight:700;padding:0;margin:3px 0 0;
+border:1px solid var(--good);color:var(--good)}
+.ic.warn{border-color:var(--warn);color:var(--warn)} .ic.block{border-color:var(--bad);color:var(--bad)}
+.ic.todo{border-color:var(--hair);color:var(--soft)} .ic.next{border-color:var(--acc);color:var(--acc)}
+.chk .t b{display:block;font-size:16.5px;font-weight:600}
+.chk .t span{color:var(--mid);font-size:15px}
+.chk .t i{color:var(--soft);font-size:13px;font-style:italic;display:block;margin-top:3px}
+.big{font-size:56px;font-weight:600;letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1}
+.muted{color:var(--mid)} .soft{color:var(--soft)} .sm{font-size:14.5px}
+.foot{color:var(--soft);font-size:13px;font-style:italic;border-top:1px solid var(--hair);
+margin-top:90px;padding-top:22px}
+.bar{height:2px;background:var(--hair);margin-top:8px}
+.bar i{display:block;height:100%;background:var(--acc)}
+.trig{display:flex;gap:26px;align-items:flex-start;padding:26px 0;border-bottom:1px solid var(--hair)}
+.trig:last-child{border:0}
+.trig .n{flex:0 0 54px;text-align:right}
+.trig .n b{font-size:26px;font-weight:600;font-variant-numeric:tabular-nums}
+.trig .n span{display:block;font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+color:var(--soft);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.trig.off{opacity:.38}
+.dot{width:7px;height:7;border-radius:50%;display:inline-block;margin-right:8px}
+input[type=checkbox],input[type=radio]{width:15px;height:15px;accent-color:var(--acc)}
+.filerow{border:1px dashed var(--hair);padding:26px;margin:26px 0}
+.filerow:hover{border-color:var(--acc)}
+</style><meta name="robots" content="noindex,nofollow"><style>
+.snap-banner{position:sticky;top:0;z-index:99999;background:#1f2937;color:#f9fafb;font:13px/1.4 system-ui,sans-serif;
+padding:8px 14px;text-align:center}.snap-banner b{color:#fbbf24}.snap-banner span{opacity:.8}
+[data-snap-dead]{cursor:not-allowed;opacity:.55}
+.snap-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#111827;color:#fff;
+padding:10px 16px;border-radius:8px;font:14px system-ui,sans-serif;z-index:99999;display:none;box-shadow:0 4px 16px #0006}
+</style></head><body><div class="snap-banner"><b>Read-only snapshot</b> of the demo venue (synthetic data) <span>&middot; PR #1 @ 985e54f &middot; built 2026-11-12 &middot; buttons and forms are switched off</span></div>
+<header><div class="hin">
+<div class="logo"><b>Regulars</b><small>Marlow &amp; Finch, Fitzroy</small></div>
+<nav><a href="/" class="">Setup</a><a href="/goals/" class="">Goals</a><a href="/triggers/" class="">Triggers</a><a href="/inbox/" class="on">Messages</a><a href="/sending/" class="">Sending</a><a href="/sent/" class="">Sent</a><a href="/data/" class="">Data</a><a href="/security/" class="">Security</a></nav></div></header>
+<div class="wrap"><h1>Ready to send.</h1><p class="lead">199 messages written from your sales data, 156 different subject lines. Open any one to see the email, the numbers behind it, and why that person got that offer.</p><div class="grid g3"><div class="stat"><div class="l">Messages ready</div><div class="v">199</div><div class="n">each written for one person</div></div><div class="stat"><div class="l">Cost if all redeem</div><div class="v">A$1,649</div><div class="n">expect roughly a fifth to</div></div><div class="stat"><div class="l">Left alone</div><div class="v">326</div><div class="n">deliberately</div></div></div><h2>By offer category</h2><div class="card" style="padding-top:20px"><div class="row" style="gap:26px"><a href="/inbox/" class="pill p-mute">All (199)</a><a href="/inbox/cat_upgrade/" class="pill p-acc">Upgrade or perk (44)</a><a href="/inbox/cat_free_item/" class="pill p-mute">Something free (78)</a><a href="/inbox/cat_money_off/" class="pill p-mute">Money off (67)</a><a href="/inbox/cat_group/" class="pill p-mute">Group &amp; booking (10)</a></div><div class="grid g2" style="margin-top:34px"><div class="card tight"><div class="row between"><h3 style="margin:0">Upgrade or perk</h3><span class="pill p-acc">44</span></div><div class="sm soft" style="margin:6px 0 10px">Their usual, done slightly better. Costs cents.</div><div class="row between sm" style="margin:4px 0"><span>an oat milk upgrade on us</span><span class="muted">44</span></div></div><div class="card tight"><div class="row between"><h3 style="margin:0">Something free</h3><span class="pill p-acc">78</span></div><div class="sm soft" style="margin:6px 0 10px">A side, a dessert, a round. The workhorse.</div><div class="row between sm" style="margin:4px 0"><span>the first round on us</span><span class="muted">43</span></div><div class="row between sm" style="margin:4px 0"><span>a free side with your main</span><span class="muted">26</span></div><div class="row between sm" style="margin:4px 0"><span>your first one on us</span><span class="muted">9</span></div></div><div class="card tight"><div class="row between"><h3 style="margin:0">Money off</h3><span class="pill p-acc">67</span></div><div class="sm soft" style="margin:6px 0 10px">BOGO or a credit. Reserve for real lapses.</div><div class="row between sm" style="margin:4px 0"><span>buy one, get one free</span><span class="muted">43</span></div><div class="row between sm" style="margin:4px 0"><span>$15 off your bill</span><span class="muted">24</span></div></div><div class="card tight"><div class="row between"><h3 style="margin:0">Group &amp; booking</h3><span class="pill p-acc">10</span></div><div class="sm soft" style="margin:6px 0 10px">Tables of six, set menus, functions.</div><div class="row between sm" style="margin:4px 0"><span>a free bottle of house wine</span><span class="muted">8</span></div><div class="row between sm" style="margin:4px 0"><span>the window table held for your group</span><span class="muted">2</span></div></div></div></div><h2>The messages</h2><div class="card tight"><div class="row between"><div><b>0 approved</b> <span class="sm muted">of 199. Approve the ones you want to send, then export them: the file carries only what you&rsquo;ve approved, and nothing leaves this app until you import it into your email tool.</span></div><span><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn sm ghost" type="submit">Approve all 44 shown</button></form> </span></div></div><p class="sm muted" style="margin:20px 0 30px">Showing 44</p><details class="msg"><summary><span class="who">Hamish Z.</span><span class="subj">The flat white misses you, Hamish</span><span class="pill p-acc">Upgrade or perk</span><span class="pill p-mute">Their usual, overdue</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>hamish.zhang20@outlook.example</b></span><span class="muted">Consent: Booking, 2026-08-16</span></div><div class="ev"><div><div class="l">Their usual</div><div class="v">Flat White</div></div><div><div class="l">Times ordered</div><div class="v">23</div></div><div><div class="l">Usual gap (days)</div><div class="v">6.0</div></div><div><div class="l">Days since</div><div class="v">9</div></div><div><div class="l">x their normal</div><div class="v">1.5x</div></div><div><div class="l">How they order it</div><div class="v">Almond Milk on 83% of their orders of it</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">The flat white misses you, Hamish</b></div><span class="pill p-mute">Their usual, overdue</span></div><div class="email" style="margin-top:18px">Hi Hamish,
+
+It&#x27;s been a couple of weeks since your last flat white (almond milk), and we&#x27;ve missed handing it over.
+
+Whenever you&#x27;re next in, an oat milk upgrade on us - no code, no app, just mention it when you order.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> Ordered a <b>Flat White</b> on <b>23</b> separate visits. Their own median gap is <b>6 days</b>; it has been <b>9</b> (1.5x their normal). Highest-response message in the system, because it names the exact thing they buy. The email itself says only &ldquo;a couple of weeks&rdquo; - the numbers are yours, not theirs. They order it <b>Almond Milk on 83% of their orders of it</b>, and the email names the choice, never the count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00007_signature_overdue/">Open &amp; edit</a><span class="sm soft">Offer: an oat milk upgrade on us &mdash; costs A$0.60 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Liam T.</span><span class="subj">The flat white misses you, Liam</span><span class="pill p-acc">Upgrade or perk</span><span class="pill p-mute">Their usual, overdue</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>liam.taylor64@icloud.example</b></span><span class="muted">Consent: POS receipt prompt, 2026-09-11</span></div><div class="ev"><div><div class="l">Their usual</div><div class="v">Flat White</div></div><div><div class="l">Times ordered</div><div class="v">45</div></div><div><div class="l">Usual gap (days)</div><div class="v">7.0</div></div><div><div class="l">Days since</div><div class="v">11</div></div><div><div class="l">x their normal</div><div class="v">1.57x</div></div><div><div class="l">How they order it</div><div class="v">Extra Shot on 93% of their orders of it</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">The flat white misses you, Liam</b></div><span class="pill p-mute">Their usual, overdue</span></div><div class="email" style="margin-top:18px">Hi Liam,
+
+It&#x27;s been a couple of weeks since your last flat white (extra shot), and we&#x27;ve missed handing it over.
+
+Whenever you&#x27;re next in, an oat milk upgrade on us - no code, no app, just mention it when you order.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> Ordered a <b>Flat White</b> on <b>45</b> separate visits. Their own median gap is <b>7 days</b>; it has been <b>11</b> (1.57x their normal). Highest-response message in the system, because it names the exact thing they buy. The email itself says only &ldquo;a couple of weeks&rdquo; - the numbers are yours, not theirs. They order it <b>Extra Shot on 93% of their orders of it</b>, and the email names the choice, never the count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00022_signature_overdue/">Open &amp; edit</a><span class="sm soft">Offer: an oat milk upgrade on us &mdash; costs A$0.60 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Olivia A.</span><span class="subj">The flat white misses you, Olivia</span><span class="pill p-acc">Upgrade or perk</span><span class="pill p-mute">Their usual, overdue</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>olivia.anderson1@gmail.example</b></span><span class="muted">Consent: Loyalty signup, 2025-08-25</span></div><div class="ev"><div><div class="l">Their usual</div><div class="v">Flat White</div></div><div><div class="l">Times ordered</div><div class="v">29</div></div><div><div class="l">Usual gap (days)</div><div class="v">6.0</div></div><div><div class="l">Days since</div><div class="v">9</div></div><div><div class="l">x their normal</div><div class="v">1.5x</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">The flat white misses you, Olivia</b></div><span class="pill p-mute">Their usual, overdue</span></div><div class="email" style="margin-top:18px">Hi Olivia,
+
+It&#x27;s been a couple of weeks since your last flat white, and we&#x27;ve missed handing it over.
+
+Whenever you&#x27;re next in, an oat milk upgrade on us - no code, no app, just mention it when you order.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> Ordered a <b>Flat White</b> on <b>29</b> separate visits. Their own median gap is <b>6 days</b>; it has been <b>9</b> (1.5x their normal). Highest-response message in the system, because it names the exact thing they buy. The email itself says only &ldquo;a couple of weeks&rdquo; - the numbers are yours, not theirs.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00024_signature_overdue/">Open &amp; edit</a><span class="sm soft">Offer: an oat milk upgrade on us &mdash; costs A$0.60 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Declan A.</span><span class="subj">The flat white misses you, Declan</span><span class="pill p-acc">Upgrade or perk</span><span class="pill p-mute">Their usual, overdue</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>declan.ali33@yahoo.example</b></span><span class="muted">Consent: POS receipt prompt, 2025-12-02</span></div><div class="ev"><div><div class="l">Their usual</div><div class="v">Flat White</div></div><div><div class="l">Times ordered</div><div class="v">29</div></div><div><div class="l">Usual gap (days)</div><div class="v">7.0</div></div><div><div class="l">Days since</div><div class="v">11</div></div><div><div class="l">x their normal</div><div class="v">1.57x</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">The flat white misses you, Declan</b></div><span class="pill p-mute">Their usual, overdue</span></div><div class="email" style="margin-top:18px">Hi Declan,
+
+It&#x27;s been a couple of weeks since your last flat white, and we&#x27;ve missed handing it over.
+
+Whenever you&#x27;re next in, an oat milk upgrade on us - no code, no app, just mention it when you order.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> Ordered a <b>Flat White</b> on <b>29</b> separate visits. Their own median gap is <b>7 days</b>; it has been <b>11</b> (1.57x their normal). Highest-response message in the system, because it names the exact thing they buy. The email itself says only &ldquo;a couple of weeks&rdquo; - the numbers are yours, not theirs.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00031_signature_overdue/">Open &amp; edit</a><span class="sm soft">Offer: an oat milk upgrade on us &mdash; costs A$0.60 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Grace N.</span><span class="subj">The flat white misses you, Grace</span><span class="pill p-acc">Upgrade or perk</span><span class="pill p-mute">Their usual, overdue</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>grace.nguyen57@hotmail.example</b></span><span class="muted">Consent: Loyalty signup, 2026-07-12</span></div><div class="ev"><div><div class="l">Their usual</div><div class="v">Flat White</div></div><div><div class="l">Times ordered</div><div class="v">38</div></div><div><div class="l">Usual gap (days)</div><div class="v">6</div></div><div><div class="l">Days since</div><div class="v">10</div></div><div><div class="l">x their normal</div><div class="v">1.67x</div></div><div><div class="l">How they order it</div><div class="v">Almond Milk on 100% of their orders of it</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">The flat white misses you, Grace</b></div><span class="pill p-mute">Their usual, overdue</span></div><div class="email" style="margin-top:18px">Hi Grace,
+
+It&#x27;s been a couple of weeks since your last flat white (almond milk), and we&#x27;ve missed handing it over.
+
+Whenever you&#x27;re next in, an oat milk upgrade on us - no code, no app, just mention it when you order.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> Ordered a <b>Flat White</b> on <b>38</b> separate visits. Their own median gap is <b>6 days</b>; it has been <b>10</b> (1.67x their normal). Highest-response message in the system, because it names the exact thing they buy. The email itself says only &ldquo;a couple of weeks&rdquo; - the numbers are yours, not theirs. They order it <b>Almond Milk on 100% of their orders of it</b>, and the email names the choice, never the count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00041_signature_overdue/">Open &amp; edit</a><span class="sm soft">Offer: an oat milk upgrade on us &mdash; costs A$0.60 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Grace T.</span><span class="subj">The flat white misses you, Grace</span><span class="pill p-acc">Upgrade or perk</span><span class="pill p-mute">Their usual, overdue</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>grace.thompson93@icloud.example</b></span><span class="muted">Consent: Website form, 2025-04-27</span></div><div class="ev"><div><div class="l">Their usual</div><div class="v">Flat White</div></div><div><div class="l">Times ordered</div><div class="v">33</div></div><div><div class="l">Usual gap (days)</div><div class="v">6.0</div></div><div><div class="l">Days since</div><div class="v">10</div></div><div><div class="l">x their normal</div><div class="v">1.67x</div></div><div><div class="l">How they order it</div><div class="v">Extra Hot on 97% of their orders of it</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">The flat white misses you, Grace</b></div><span class="pill p-mute">Their usual, overdue</span></div><div class="email" style="margin-top:18px">Hi Grace,
+
+It&#x27;s been a couple of weeks since your last flat white (extra hot), and we&#x27;ve missed handing it over.
+
+Whenever you&#x27;re next in, an oat milk upgrade on us - no code, no app, just mention it when you order.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> Ordered a <b>Flat White</b> on <b>33</b> separate visits. Their own median gap is <b>6 days</b>; it has been <b>10</b> (1.67x their normal). Highest-response message in the system, because it names the exact thing they buy. The email itself says only &ldquo;a couple of weeks&rdquo; - the numbers are yours, not theirs. They order it <b>Extra Hot on 97% of their orders of it</b>, and the email names the choice, never the count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00043_signature_overdue/">Open &amp; edit</a><span class="sm soft">Offer: an oat milk upgrade on us &mdash; costs A$0.60 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Aoife A.</span><span class="subj">The flat white misses you, Aoife</span><span class="pill p-acc">Upgrade or perk</span><span class="pill p-mute">Their usual, overdue</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>aoife.anderson58@hotmail.example</b></span><span class="muted">Consent: Booking, 2026-05-17</span></div><div class="ev"><div><div class="l">Their usual</div><div class="v">Flat White</div></div><div><div class="l">Times ordered</div><div class="v">33</div></div><div><div class="l">Usual gap (days)</div><div class="v">6.0</div></div><div><div class="l">Days since</div><div class="v">11</div></div><div><div class="l">x their normal</div><div class="v">1.83x</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">The flat white misses you, Aoife</b></div><span class="pill p-mute">Their usual, overdue</span></div><div class="email" style="margin-top:18px">Hi Aoife,
+
+It&#x27;s been a couple of weeks since your last flat white, and we&#x27;ve missed handing it over.
+
+Whenever you&#x27;re next in, an oat milk upgrade on us - no code, no app, just mention it when you order.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> Ordered a <b>Flat White</b> on <b>33</b> separate visits. Their own median gap is <b>6 days</b>; it has been <b>11</b> (1.83x their normal). Highest-response message in the system, because it names the exact thing they buy. The email itself says only &ldquo;a couple of weeks&rdquo; - the numbers are yours, not theirs.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00047_signature_overdue/">Open &amp; edit</a><span class="sm soft">Offer: an oat milk upgrade on us &mdash; costs A$0.60 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Declan B.</span><span class="subj">The flat white misses you, Declan</span><span class="pill p-acc">Upgrade or perk</span><span class="pill p-mute">Their usual, overdue</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>declan.brown44@yahoo.example</b></span><span class="muted">Consent: Booking, 2026-05-12</span></div><div class="ev"><div><div class="l">Their usual</div><div class="v">Flat White</div></div><div><div class="l">Times ordered</div><div class="v">44</div></div><div><div class="l">Usual gap (days)</div><div class="v">6</div></div><div><div class="l">Days since</div><div class="v">10</div></div><div><div class="l">x their normal</div><div class="v">1.67x</div></div><div><div class="l">How they order it</div><div class="v">Decaf on 95% of their orders of it</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">The flat white misses you, Declan</b></div><span class="pill p-mute">Their usual, overdue</span></div><div class="email" style="margin-top:18px">Hi Declan,
+
+It&#x27;s been a couple of weeks since your last flat white (decaf), and we&#x27;ve missed handing it over.
+
+Whenever you&#x27;re next in, an oat milk upgrade on us - no code, no app, just mention it when you order.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> Ordered a <b>Flat White</b> on <b>44</b> separate visits. Their own median gap is <b>6 days</b>; it has been <b>10</b> (1.67x their normal). Highest-response message in the system, because it names the exact thing they buy. The email itself says only &ldquo;a couple of weeks&rdquo; - the numbers are yours, not theirs. They order it <b>Decaf on 95% of their orders of it</b>, and the email names the choice, never the count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00060_signature_overdue/">Open &amp; edit</a><span class="sm soft">Offer: an oat milk upgrade on us &mdash; costs A$0.60 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Bianca W.</span><span class="subj">The flat white misses you, Bianca</span><span class="pill p-acc">Upgrade or perk</span><span class="pill p-mute">Their usual, overdue</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>bianca.williams41@hotmail.example</b></span><span class="muted">Consent: Website form, 2026-02-14</span></div><div class="ev"><div><div class="l">Their usual</div><div class="v">Flat White</div></div><div><div class="l">Times ordered</div><div class="v">40</div></div><div><div class="l">Usual gap (days)</div><div class="v">6</div></div><div><div class="l">Days since</div><div class="v">11</div></div><div><div class="l">x their normal</div><div class="v">1.83x</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">The flat white misses you, Bianca</b></div><span class="pill p-mute">Their usual, overdue</span></div><div class="email" style="margin-top:18px">Hi Bianca,
+
+It&#x27;s been a couple of weeks since your last flat white, and we&#x27;ve missed handing it over.
+
+Whenever you&#x27;re next in, an oat milk upgrade on us - no code, no app, just mention it when you order.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> Ordered a <b>Flat White</b> on <b>40</b> separate visits. Their own median gap is <b>6 days</b>; it has been <b>11</b> (1.83x their normal). Highest-response message in the system, because it names the exact thing they buy. The email itself says only &ldquo;a couple of weeks&rdquo; - the numbers are yours, not theirs.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00065_signature_overdue/">Open &amp; edit</a><span class="sm soft">Offer: an oat milk upgrade on us &mdash; costs A$0.60 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Mia N.</span><span class="subj">The smashed avo misses you, Mia</span><span class="pill p-acc">Upgrade or perk</span><span class="pill p-mute">Their usual, overdue</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>mia.nguyen69@hotmail.example</b></span><span class="muted">Consent: POS receipt prompt, 2025-05-12</span></div><div class="ev"><div><div class="l">Their usual</div><div class="v">Smashed Avo</div></div><div><div class="l">Times ordered</div><div class="v">21</div></div><div><div class="l">Usual gap (days)</div><div class="v">14</div></div><div><div class="l">Days since</div><div class="v">22</div></div><div><div class="l">x their normal</div><div class="v">1.57x</div></div><div><div class="l">How they order it</div><div class="v">Add Poached Egg on 86% of their orders of it</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">The smashed avo misses you, Mia</b></div><span class="pill p-mute">Their usual, overdue</span></div><div class="email" style="margin-top:18px">Hi Mia,
+
+It&#x27;s been a few weeks since your last smashed avo (add poached egg), and we&#x27;ve missed handing it over.
+
+Whenever you&#x27;re next in, an oat milk upgrade on us - no code, no app, just mention it when you order.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> Ordered a <b>Smashed Avo</b> on <b>21</b> separate visits. Their own median gap is <b>14 days</b>; it has been <b>22</b> (1.57x their normal). Highest-response message in the system, because it names the exact thing they buy. The email itself says only &ldquo;a few weeks&rdquo; - the numbers are yours, not theirs. They order it <b>Add Poached Egg on 86% of their orders of it</b>, and the email names the choice, never the count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00070_signature_overdue/">Open &amp; edit</a><span class="sm soft">Offer: an oat milk upgrade on us &mdash; costs A$0.60 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Sienna C.</span><span class="subj">The eggs benedict misses you, Sienna</span><span class="pill p-acc">Upgrade or perk</span><span class="pill p-mute">Their usual, overdue</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>sienna.chen14@gmail.example</b></span><span class="muted">Consent: Loyalty signup, 2026-02-01</span></div><div class="ev"><div><div class="l">Their usual</div><div class="v">Eggs Benedict</div></div><div><div class="l">Times ordered</div><div class="v">11</div></div><div><div class="l">Usual gap (days)</div><div class="v">14</div></div><div><div class="l">Days since</div><div class="v">23</div></div><div><div class="l">x their normal</div><div class="v">1.64x</div></div><div><div class="l">How they order it</div><div class="v">No Ham on 100% of their orders of it</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">The eggs benedict misses you, Sienna</b></div><span class="pill p-mute">Their usual, overdue</span></div><div class="email" style="margin-top:18px">Hi Sienna,
+
+It&#x27;s been a few weeks since your last eggs benedict (no ham), and we&#x27;ve missed handing it over.
+
+Whenever you&#x27;re next in, an oat milk upgrade on us - no code, no app, just mention it when you order.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> Ordered a <b>Eggs Benedict</b> on <b>11</b> separate visits. Their own median gap is <b>14 days</b>; it has been <b>23</b> (1.64x their normal). Highest-response message in the system, because it names the exact thing they buy. The email itself says only &ldquo;a few weeks&rdquo; - the numbers are yours, not theirs. They order it <b>No Ham on 100% of their orders of it</b>, and the email names the choice, never the count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00079_signature_overdue/">Open &amp; edit</a><span class="sm soft">Offer: an oat milk upgrade on us &mdash; costs A$0.60 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Grace T.</span><span class="subj">The smashed avo misses you, Grace</span><span class="pill p-acc">Upgrade or perk</span><span class="pill p-mute">Their usual, overdue</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>grace.taylor56@hotmail.example</b></span><span class="muted">Consent: Loyalty signup, 2025-11-09</span></div><div class="ev"><div><div class="l">Their usual</div><div class="v">Smashed Avo</div></div><div><div class="l">Times ordered</div><div class="v">26</div></div><div><div class="l">Usual gap (days)</div><div class="v">14</div></div><div><div class="l">Days since</div><div class="v">25</div></div><div><div class="l">x their normal</div><div class="v">1.79x</div></div><div><div class="l">How they order it</div><div class="v">Gluten-Free Base on 92% of their orders of it</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">The smashed avo misses you, Grace</b></div><span class="pill p-mute">Their usual, overdue</span></div><div class="email" style="margin-top:18px">Hi Grace,
+
+It&#x27;s been a few weeks since your last smashed avo (gluten-free base), and we&#x27;ve missed handing it over.
+
+Whenever you&#x27;re next in, an oat milk upgrade on us - no code, no app, just mention it when you order.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> Ordered a <b>Smashed Avo</b> on <b>26</b> separate visits. Their own median gap is <b>14 days</b>; it has been <b>25</b> (1.79x their normal). Highest-response message in the system, because it names the exact thing they buy. The email itself says only &ldquo;a few weeks&rdquo; - the numbers are yours, not theirs. They order it <b>Gluten-Free Base on 92% of their orders of it</b>, and the email names the choice, never the count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00081_signature_overdue/">Open &amp; edit</a><span class="sm soft">Offer: an oat milk upgrade on us &mdash; costs A$0.60 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Isla B.</span><span class="subj">The eggs benedict misses you, Isla</span><span class="pill p-acc">Upgrade or perk</span><span class="pill p-mute">Their usual, overdue</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>isla.brown79@yahoo.example</b></span><span class="muted">Consent: POS receipt prompt, 2026-03-25</span></div><div class="ev"><div><div class="l">Their usual</div><div class="v">Eggs Benedict</div></div><div><div class="l">Times ordered</div><div class="v">22</div></div><div><div class="l">Usual gap (days)</div><div class="v">13</div></div><div><div class="l">Days since</div><div class="v">24</div></div><div><div class="l">x their normal</div><div class="v">1.85x</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">The eggs benedict misses you, Isla</b></div><span class="pill p-mute">Their usual, overdue</span></div><div class="email" style="margin-top:18px">Hi Isla,
+
+It&#x27;s been a few weeks since your last eggs benedict, and we&#x27;ve missed handing it over.
+
+Whenever you&#x27;re next in, an oat milk upgrade on us - no code, no app, just mention it when you order.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> Ordered a <b>Eggs Benedict</b> on <b>22</b> separate visits. Their own median gap is <b>13 days</b>; it has been <b>24</b> (1.85x their normal). Highest-response message in the system, because it names the exact thing they buy. The email itself says only &ldquo;a few weeks&rdquo; - the numbers are yours, not theirs.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00088_signature_overdue/">Open &amp; edit</a><span class="sm soft">Offer: an oat milk upgrade on us &mdash; costs A$0.60 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Marco W.</span><span class="subj">The smashed avo misses you, Marco</span><span class="pill p-acc">Upgrade or perk</span><span class="pill p-mute">Their usual, overdue</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>marco.walker71@outlook.example</b></span><span class="muted">Consent: POS receipt prompt, 2025-03-30</span></div><div class="ev"><div><div class="l">Their usual</div><div class="v">Smashed Avo</div></div><div><div class="l">Times ordered</div><div class="v">25</div></div><div><div class="l">Usual gap (days)</div><div class="v">14.0</div></div><div><div class="l">Days since</div><div class="v">21</div></div><div><div class="l">x their normal</div><div class="v">1.5x</div></div><div><div class="l">How they order it</div><div class="v">No Feta on 96% of their orders of it</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">The smashed avo misses you, Marco</b></div><span class="pill p-mute">Their usual, overdue</span></div><div class="email" style="margin-top:18px">Hi Marco,
+
+It&#x27;s been a few weeks since your last smashed avo (no feta), and we&#x27;ve missed handing it over.
+
+Whenever you&#x27;re next in, an oat milk upgrade on us - no code, no app, just mention it when you order.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> Ordered a <b>Smashed Avo</b> on <b>25</b> separate visits. Their own median gap is <b>14 days</b>; it has been <b>21</b> (1.5x their normal). Highest-response message in the system, because it names the exact thing they buy. The email itself says only &ldquo;a few weeks&rdquo; - the numbers are yours, not theirs. They order it <b>No Feta on 96% of their orders of it</b>, and the email names the choice, never the count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00101_signature_overdue/">Open &amp; edit</a><span class="sm soft">Offer: an oat milk upgrade on us &mdash; costs A$0.60 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Bianca S.</span><span class="subj">The eggs benedict misses you, Bianca</span><span class="pill p-acc">Upgrade or perk</span><span class="pill p-mute">Their usual, overdue</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>bianca.singh92@icloud.example</b></span><span class="muted">Consent: POS receipt prompt, 2025-12-10</span></div><div class="ev"><div><div class="l">Their usual</div><div class="v">Eggs Benedict</div></div><div><div class="l">Times ordered</div><div class="v">22</div></div><div><div class="l">Usual gap (days)</div><div class="v">14</div></div><div><div class="l">Days since</div><div class="v">21</div></div><div><div class="l">x their normal</div><div class="v">1.5x</div></div><div><div class="l">How they order it</div><div class="v">No Ham on 95% of their orders of it</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">The eggs benedict misses you, Bianca</b></div><span class="pill p-mute">Their usual, overdue</span></div><div class="email" style="margin-top:18px">Hi Bianca,
+
+It&#x27;s been a few weeks since your last eggs benedict (no ham), and we&#x27;ve missed handing it over.
+
+Whenever you&#x27;re next in, an oat milk upgrade on us - no code, no app, just mention it when you order.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> Ordered a <b>Eggs Benedict</b> on <b>22</b> separate visits. Their own median gap is <b>14 days</b>; it has been <b>21</b> (1.5x their normal). Highest-response message in the system, because it names the exact thing they buy. The email itself says only &ldquo;a few weeks&rdquo; - the numbers are yours, not theirs. They order it <b>No Ham on 95% of their orders of it</b>, and the email names the choice, never the count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00107_signature_overdue/">Open &amp; edit</a><span class="sm soft">Offer: an oat milk upgrade on us &mdash; costs A$0.60 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Ruby P.</span><span class="subj">The eggs benedict misses you, Ruby</span><span class="pill p-acc">Upgrade or perk</span><span class="pill p-mute">Their usual, overdue</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>ruby.patel48@hotmail.example</b></span><span class="muted">Consent: Website form, 2025-11-14</span></div><div class="ev"><div><div class="l">Their usual</div><div class="v">Eggs Benedict</div></div><div><div class="l">Times ordered</div><div class="v">12</div></div><div><div class="l">Usual gap (days)</div><div class="v">14</div></div><div><div class="l">Days since</div><div class="v">24</div></div><div><div class="l">x their normal</div><div class="v">1.71x</div></div><div><div class="l">How they order it</div><div class="v">Sauce on the Side on 100% of their orders of it</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">The eggs benedict misses you, Ruby</b></div><span class="pill p-mute">Their usual, overdue</span></div><div class="email" style="margin-top:18px">Hi Ruby,
+
+It&#x27;s been a few weeks since your last eggs benedict (sauce on the side), and we&#x27;ve missed handing it over.
+
+Whenever you&#x27;re next in, an oat milk upgrade on us - no code, no app, just mention it when you order.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> Ordered a <b>Eggs Benedict</b> on <b>12</b> separate visits. Their own median gap is <b>14 days</b>; it has been <b>24</b> (1.71x their normal). Highest-response message in the system, because it names the exact thing they buy. The email itself says only &ldquo;a few weeks&rdquo; - the numbers are yours, not theirs. They order it <b>Sauce on the Side on 100% of their orders of it</b>, and the email names the choice, never the count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00110_signature_overdue/">Open &amp; edit</a><span class="sm soft">Offer: an oat milk upgrade on us &mdash; costs A$0.60 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Jack P.</span><span class="subj">The smashed avo misses you, Jack</span><span class="pill p-acc">Upgrade or perk</span><span class="pill p-mute">Their usual, overdue</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>jack.patel83@icloud.example</b></span><span class="muted">Consent: Booking, 2025-12-18</span></div><div class="ev"><div><div class="l">Their usual</div><div class="v">Smashed Avo</div></div><div><div class="l">Times ordered</div><div class="v">13</div></div><div><div class="l">Usual gap (days)</div><div class="v">13</div></div><div><div class="l">Days since</div><div class="v">21</div></div><div><div class="l">x their normal</div><div class="v">1.62x</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">The smashed avo misses you, Jack</b></div><span class="pill p-mute">Their usual, overdue</span></div><div class="email" style="margin-top:18px">Hi Jack,
+
+It&#x27;s been a few weeks since your last smashed avo, and we&#x27;ve missed handing it over.
+
+Whenever you&#x27;re next in, an oat milk upgrade on us - no code, no app, just mention it when you order.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> Ordered a <b>Smashed Avo</b> on <b>13</b> separate visits. Their own median gap is <b>13 days</b>; it has been <b>21</b> (1.62x their normal). Highest-response message in the system, because it names the exact thing they buy. The email itself says only &ldquo;a few weeks&rdquo; - the numbers are yours, not theirs.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00121_signature_overdue/">Open &amp; edit</a><span class="sm soft">Offer: an oat milk upgrade on us &mdash; costs A$0.60 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Grace W.</span><span class="subj">The pappardelle ragu misses you, Grace</span><span class="pill p-acc">Upgrade or perk</span><span class="pill p-mute">Their usual, overdue</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>grace.white75@icloud.example</b></span><span class="muted">Consent: Loyalty signup, 2026-04-12</span></div><div class="ev"><div><div class="l">Their usual</div><div class="v">Pappardelle Ragu</div></div><div><div class="l">Times ordered</div><div class="v">9</div></div><div><div class="l">Usual gap (days)</div><div class="v">18.0</div></div><div><div class="l">Days since</div><div class="v">29</div></div><div><div class="l">x their normal</div><div class="v">1.61x</div></div><div><div class="l">How they order it</div><div class="v">Extra Ragu on 89% of their orders of it</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">The pappardelle ragu misses you, Grace</b></div><span class="pill p-mute">Their usual, overdue</span></div><div class="email" style="margin-top:18px">Hi Grace,
+
+It&#x27;s been a few weeks since your last pappardelle ragu (extra ragu), and we&#x27;ve missed handing it over.
+
+Whenever you&#x27;re next in, an oat milk upgrade on us - no code, no app, just mention it when you order.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> Ordered a <b>Pappardelle Ragu</b> on <b>9</b> separate visits. Their own median gap is <b>18 days</b>; it has been <b>29</b> (1.61x their normal). Highest-response message in the system, because it names the exact thing they buy. The email itself says only &ldquo;a few weeks&rdquo; - the numbers are yours, not theirs. They order it <b>Extra Ragu on 89% of their orders of it</b>, and the email names the choice, never the count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00170_signature_overdue/">Open &amp; edit</a><span class="sm soft">Offer: an oat milk upgrade on us &mdash; costs A$0.60 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Kirra S.</span><span class="subj">The fish &amp; chips misses you, Kirra</span><span class="pill p-acc">Upgrade or perk</span><span class="pill p-mute">Their usual, overdue</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>kirra.santos16@yahoo.example</b></span><span class="muted">Consent: POS receipt prompt, 2026-06-25</span></div><div class="ev"><div><div class="l">Their usual</div><div class="v">Fish &amp; Chips</div></div><div><div class="l">Times ordered</div><div class="v">5</div></div><div><div class="l">Usual gap (days)</div><div class="v">19.0</div></div><div><div class="l">Days since</div><div class="v">36</div></div><div><div class="l">x their normal</div><div class="v">1.89x</div></div><div><div class="l">How they order it</div><div class="v">No Tartare on 100% of their orders of it; Add Salad on 60% of their orders of it</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">The fish &amp; chips misses you, Kirra</b></div><span class="pill p-mute">Their usual, overdue</span></div><div class="email" style="margin-top:18px">Hi Kirra,
+
+It&#x27;s been a few weeks since your last fish &amp; chips (no tartare, add salad), and we&#x27;ve missed handing it over.
+
+Whenever you&#x27;re next in, an oat milk upgrade on us - no code, no app, just mention it when you order.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> Ordered a <b>Fish & Chips</b> on <b>5</b> separate visits. Their own median gap is <b>19 days</b>; it has been <b>36</b> (1.89x their normal). Highest-response message in the system, because it names the exact thing they buy. The email itself says only &ldquo;a few weeks&rdquo; - the numbers are yours, not theirs. They order it <b>No Tartare on 100% of their orders of it; Add Salad on 60% of their orders of it</b>, and the email names the choice, never the count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00192_signature_overdue/">Open &amp; edit</a><span class="sm soft">Offer: an oat milk upgrade on us &mdash; costs A$0.60 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Bianca O.</span><span class="subj">The pappardelle ragu misses you, Bianca</span><span class="pill p-acc">Upgrade or perk</span><span class="pill p-mute">Their usual, overdue</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>bianca.o&#x27;brien31@gmail.example</b></span><span class="muted">Consent: POS receipt prompt, 2025-02-09</span></div><div class="ev"><div><div class="l">Their usual</div><div class="v">Pappardelle Ragu</div></div><div><div class="l">Times ordered</div><div class="v">11</div></div><div><div class="l">Usual gap (days)</div><div class="v">19.5</div></div><div><div class="l">Days since</div><div class="v">32</div></div><div><div class="l">x their normal</div><div class="v">1.64x</div></div><div><div class="l">How they order it</div><div class="v">Extra Ragu on 91% of their orders of it</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">The pappardelle ragu misses you, Bianca</b></div><span class="pill p-mute">Their usual, overdue</span></div><div class="email" style="margin-top:18px">Hi Bianca,
+
+It&#x27;s been a few weeks since your last pappardelle ragu (extra ragu), and we&#x27;ve missed handing it over.
+
+Whenever you&#x27;re next in, an oat milk upgrade on us - no code, no app, just mention it when you order.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> Ordered a <b>Pappardelle Ragu</b> on <b>11</b> separate visits. Their own median gap is <b>20 days</b>; it has been <b>32</b> (1.64x their normal). Highest-response message in the system, because it names the exact thing they buy. The email itself says only &ldquo;a few weeks&rdquo; - the numbers are yours, not theirs. They order it <b>Extra Ragu on 91% of their orders of it</b>, and the email names the choice, never the count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00201_signature_overdue/">Open &amp; edit</a><span class="sm soft">Offer: an oat milk upgrade on us &mdash; costs A$0.60 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Priya G.</span><span class="subj">The pappardelle ragu misses you, Priya</span><span class="pill p-acc">Upgrade or perk</span><span class="pill p-mute">Their usual, overdue</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>priya.gray8@yahoo.example</b></span><span class="muted">Consent: Booking, 2026-04-04</span></div><div class="ev"><div><div class="l">Their usual</div><div class="v">Pappardelle Ragu</div></div><div><div class="l">Times ordered</div><div class="v">7</div></div><div><div class="l">Usual gap (days)</div><div class="v">21</div></div><div><div class="l">Days since</div><div class="v">35</div></div><div><div class="l">x their normal</div><div class="v">1.67x</div></div><div><div class="l">How they order it</div><div class="v">No Parmesan on 100% of their orders of it</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">The pappardelle ragu misses you, Priya</b></div><span class="pill p-mute">Their usual, overdue</span></div><div class="email" style="margin-top:18px">Hi Priya,
+
+It&#x27;s been a few weeks since your last pappardelle ragu (no parmesan), and we&#x27;ve missed handing it over.
+
+Whenever you&#x27;re next in, an oat milk upgrade on us - no code, no app, just mention it when you order.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> Ordered a <b>Pappardelle Ragu</b> on <b>7</b> separate visits. Their own median gap is <b>21 days</b>; it has been <b>35</b> (1.67x their normal). Highest-response message in the system, because it names the exact thing they buy. The email itself says only &ldquo;a few weeks&rdquo; - the numbers are yours, not theirs. They order it <b>No Parmesan on 100% of their orders of it</b>, and the email names the choice, never the count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00210_signature_overdue/">Open &amp; edit</a><span class="sm soft">Offer: an oat milk upgrade on us &mdash; costs A$0.60 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Kirra P.</span><span class="subj">The fish &amp; chips misses you, Kirra</span><span class="pill p-acc">Upgrade or perk</span><span class="pill p-mute">Their usual, overdue</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>kirra.patel43@hotmail.example</b></span><span class="muted">Consent: POS receipt prompt, 2026-03-03</span></div><div class="ev"><div><div class="l">Their usual</div><div class="v">Fish &amp; Chips</div></div><div><div class="l">Times ordered</div><div class="v">8</div></div><div><div class="l">Usual gap (days)</div><div class="v">19</div></div><div><div class="l">Days since</div><div class="v">34</div></div><div><div class="l">x their normal</div><div class="v">1.79x</div></div><div><div class="l">How they order it</div><div class="v">No Tartare on 100% of their orders of it</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">The fish &amp; chips misses you, Kirra</b></div><span class="pill p-mute">Their usual, overdue</span></div><div class="email" style="margin-top:18px">Hi Kirra,
+
+It&#x27;s been a few weeks since your last fish &amp; chips (no tartare), and we&#x27;ve missed handing it over.
+
+Whenever you&#x27;re next in, an oat milk upgrade on us - no code, no app, just mention it when you order.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> Ordered a <b>Fish & Chips</b> on <b>8</b> separate visits. Their own median gap is <b>19 days</b>; it has been <b>34</b> (1.79x their normal). Highest-response message in the system, because it names the exact thing they buy. The email itself says only &ldquo;a few weeks&rdquo; - the numbers are yours, not theirs. They order it <b>No Tartare on 100% of their orders of it</b>, and the email names the choice, never the count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00221_signature_overdue/">Open &amp; edit</a><span class="sm soft">Offer: an oat milk upgrade on us &mdash; costs A$0.60 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Isla O.</span><span class="subj">The fish &amp; chips misses you, Isla</span><span class="pill p-acc">Upgrade or perk</span><span class="pill p-mute">Their usual, overdue</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>isla.o&#x27;brien21@gmail.example</b></span><span class="muted">Consent: Loyalty signup, 2025-06-30</span></div><div class="ev"><div><div class="l">Their usual</div><div class="v">Fish &amp; Chips</div></div><div><div class="l">Times ordered</div><div class="v">10</div></div><div><div class="l">Usual gap (days)</div><div class="v">21.5</div></div><div><div class="l">Days since</div><div class="v">36</div></div><div><div class="l">x their normal</div><div class="v">1.67x</div></div><div><div class="l">How they order it</div><div class="v">No Tartare on 90% of their orders of it</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">The fish &amp; chips misses you, Isla</b></div><span class="pill p-mute">Their usual, overdue</span></div><div class="email" style="margin-top:18px">Hi Isla,
+
+It&#x27;s been a few weeks since your last fish &amp; chips (no tartare), and we&#x27;ve missed handing it over.
+
+Whenever you&#x27;re next in, an oat milk upgrade on us - no code, no app, just mention it when you order.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> Ordered a <b>Fish & Chips</b> on <b>10</b> separate visits. Their own median gap is <b>22 days</b>; it has been <b>36</b> (1.67x their normal). Highest-response message in the system, because it names the exact thing they buy. The email itself says only &ldquo;a few weeks&rdquo; - the numbers are yours, not theirs. They order it <b>No Tartare on 90% of their orders of it</b>, and the email names the choice, never the count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00226_signature_overdue/">Open &amp; edit</a><span class="sm soft">Offer: an oat milk upgrade on us &mdash; costs A$0.60 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Angus S.</span><span class="subj">The fish &amp; chips misses you, Angus</span><span class="pill p-acc">Upgrade or perk</span><span class="pill p-mute">Their usual, overdue</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>angus.smith22@gmail.example</b></span><span class="muted">Consent: Website form, 2025-02-11</span></div><div class="ev"><div><div class="l">Their usual</div><div class="v">Fish &amp; Chips</div></div><div><div class="l">Times ordered</div><div class="v">12</div></div><div><div class="l">Usual gap (days)</div><div class="v">12.0</div></div><div><div class="l">Days since</div><div class="v">20</div></div><div><div class="l">x their normal</div><div class="v">1.67x</div></div><div><div class="l">How they order it</div><div class="v">No Tartare on 83% of their orders of it</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">The fish &amp; chips misses you, Angus</b></div><span class="pill p-mute">Their usual, overdue</span></div><div class="email" style="margin-top:18px">Hi Angus,
+
+It&#x27;s been a couple of weeks since your last fish &amp; chips (no tartare), and we&#x27;ve missed handing it over.
+
+Whenever you&#x27;re next in, an oat milk upgrade on us - no code, no app, just mention it when you order.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> Ordered a <b>Fish & Chips</b> on <b>12</b> separate visits. Their own median gap is <b>12 days</b>; it has been <b>20</b> (1.67x their normal). Highest-response message in the system, because it names the exact thing they buy. The email itself says only &ldquo;a couple of weeks&rdquo; - the numbers are yours, not theirs. They order it <b>No Tartare on 83% of their orders of it</b>, and the email names the choice, never the count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00274_signature_overdue/">Open &amp; edit</a><span class="sm soft">Offer: an oat milk upgrade on us &mdash; costs A$0.60 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Ethan T.</span><span class="subj">The burger &amp; fries misses you, Ethan</span><span class="pill p-acc">Upgrade or perk</span><span class="pill p-mute">Their usual, overdue</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>ethan.thompson36@yahoo.example</b></span><span class="muted">Consent: Old import (unverified), 2024-12-25</span></div><div class="ev"><div><div class="l">Their usual</div><div class="v">Burger &amp; Fries</div></div><div><div class="l">Times ordered</div><div class="v">13</div></div><div><div class="l">Usual gap (days)</div><div class="v">12.5</div></div><div><div class="l">Days since</div><div class="v">21</div></div><div><div class="l">x their normal</div><div class="v">1.68x</div></div><div><div class="l">How they order it</div><div class="v">No Onion on 85% of their orders of it</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">The burger &amp; fries misses you, Ethan</b></div><span class="pill p-mute">Their usual, overdue</span></div><div class="email" style="margin-top:18px">Hi Ethan,
+
+It&#x27;s been a few weeks since your last burger &amp; fries (no onion), and we&#x27;ve missed handing it over.
+
+Whenever you&#x27;re next in, an oat milk upgrade on us - no code, no app, just mention it when you order.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> Ordered a <b>Burger & Fries</b> on <b>13</b> separate visits. Their own median gap is <b>12 days</b>; it has been <b>21</b> (1.68x their normal). Highest-response message in the system, because it names the exact thing they buy. The email itself says only &ldquo;a few weeks&rdquo; - the numbers are yours, not theirs. They order it <b>No Onion on 85% of their orders of it</b>, and the email names the choice, never the count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00277_signature_overdue/">Open &amp; edit</a><span class="sm soft">Offer: an oat milk upgrade on us &mdash; costs A$0.60 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Sofia S.</span><span class="subj">The margherita pizza misses you, Sofia</span><span class="pill p-acc">Upgrade or perk</span><span class="pill p-mute">Their usual, overdue</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>sofia.silva43@outlook.example</b></span><span class="muted">Consent: POS receipt prompt, 2026-05-13</span></div><div class="ev"><div><div class="l">Their usual</div><div class="v">Margherita Pizza</div></div><div><div class="l">Times ordered</div><div class="v">12</div></div><div><div class="l">Usual gap (days)</div><div class="v">12.0</div></div><div><div class="l">Days since</div><div class="v">22</div></div><div><div class="l">x their normal</div><div class="v">1.83x</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">The margherita pizza misses you, Sofia</b></div><span class="pill p-mute">Their usual, overdue</span></div><div class="email" style="margin-top:18px">Hi Sofia,
+
+It&#x27;s been a few weeks since your last margherita pizza, and we&#x27;ve missed handing it over.
+
+Whenever you&#x27;re next in, an oat milk upgrade on us - no code, no app, just mention it when you order.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> Ordered a <b>Margherita Pizza</b> on <b>12</b> separate visits. Their own median gap is <b>12 days</b>; it has been <b>22</b> (1.83x their normal). Highest-response message in the system, because it names the exact thing they buy. The email itself says only &ldquo;a few weeks&rdquo; - the numbers are yours, not theirs.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00278_signature_overdue/">Open &amp; edit</a><span class="sm soft">Offer: an oat milk upgrade on us &mdash; costs A$0.60 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Willow A.</span><span class="subj">The margherita pizza misses you, Willow</span><span class="pill p-acc">Upgrade or perk</span><span class="pill p-mute">Their usual, overdue</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>willow.anderson32@icloud.example</b></span><span class="muted">Consent: POS receipt prompt, 2026-06-22</span></div><div class="ev"><div><div class="l">Their usual</div><div class="v">Margherita Pizza</div></div><div><div class="l">Times ordered</div><div class="v">13</div></div><div><div class="l">Usual gap (days)</div><div class="v">12</div></div><div><div class="l">Days since</div><div class="v">18</div></div><div><div class="l">x their normal</div><div class="v">1.5x</div></div><div><div class="l">How they order it</div><div class="v">Add Nduja on 100% of their orders of it</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">The margherita pizza misses you, Willow</b></div><span class="pill p-mute">Their usual, overdue</span></div><div class="email" style="margin-top:18px">Hi Willow,
+
+It&#x27;s been a couple of weeks since your last margherita pizza (add nduja), and we&#x27;ve missed handing it over.
+
+Whenever you&#x27;re next in, an oat milk upgrade on us - no code, no app, just mention it when you order.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> Ordered a <b>Margherita Pizza</b> on <b>13</b> separate visits. Their own median gap is <b>12 days</b>; it has been <b>18</b> (1.5x their normal). Highest-response message in the system, because it names the exact thing they buy. The email itself says only &ldquo;a couple of weeks&rdquo; - the numbers are yours, not theirs. They order it <b>Add Nduja on 100% of their orders of it</b>, and the email names the choice, never the count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00298_signature_overdue/">Open &amp; edit</a><span class="sm soft">Offer: an oat milk upgrade on us &mdash; costs A$0.60 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Ella S.</span><span class="subj">The burger &amp; fries misses you, Ella</span><span class="pill p-acc">Upgrade or perk</span><span class="pill p-mute">Their usual, overdue</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>ella.singh89@outlook.example</b></span><span class="muted">Consent: POS receipt prompt, 2025-04-29</span></div><div class="ev"><div><div class="l">Their usual</div><div class="v">Burger &amp; Fries</div></div><div><div class="l">Times ordered</div><div class="v">5</div></div><div><div class="l">Usual gap (days)</div><div class="v">12</div></div><div><div class="l">Days since</div><div class="v">19</div></div><div><div class="l">x their normal</div><div class="v">1.58x</div></div><div><div class="l">How they order it</div><div class="v">Extra Bacon on 80% of their orders of it</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">The burger &amp; fries misses you, Ella</b></div><span class="pill p-mute">Their usual, overdue</span></div><div class="email" style="margin-top:18px">Hi Ella,
+
+It&#x27;s been a couple of weeks since your last burger &amp; fries (extra bacon), and we&#x27;ve missed handing it over.
+
+Whenever you&#x27;re next in, an oat milk upgrade on us - no code, no app, just mention it when you order.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> Ordered a <b>Burger & Fries</b> on <b>5</b> separate visits. Their own median gap is <b>12 days</b>; it has been <b>19</b> (1.58x their normal). Highest-response message in the system, because it names the exact thing they buy. The email itself says only &ldquo;a couple of weeks&rdquo; - the numbers are yours, not theirs. They order it <b>Extra Bacon on 80% of their orders of it</b>, and the email names the choice, never the count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00300_signature_overdue/">Open &amp; edit</a><span class="sm soft">Offer: an oat milk upgrade on us &mdash; costs A$0.60 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Willow S.</span><span class="subj">The burger &amp; fries misses you, Willow</span><span class="pill p-acc">Upgrade or perk</span><span class="pill p-mute">Their usual, overdue</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>willow.smith5@outlook.example</b></span><span class="muted">Consent: Old import (unverified), 2024-12-07</span></div><div class="ev"><div><div class="l">Their usual</div><div class="v">Burger &amp; Fries</div></div><div><div class="l">Times ordered</div><div class="v">10</div></div><div><div class="l">Usual gap (days)</div><div class="v">12.0</div></div><div><div class="l">Days since</div><div class="v">18</div></div><div><div class="l">x their normal</div><div class="v">1.5x</div></div><div><div class="l">How they order it</div><div class="v">No Onion on 80% of their orders of it</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">The burger &amp; fries misses you, Willow</b></div><span class="pill p-mute">Their usual, overdue</span></div><div class="email" style="margin-top:18px">Hi Willow,
+
+It&#x27;s been a couple of weeks since your last burger &amp; fries (no onion), and we&#x27;ve missed handing it over.
+
+Whenever you&#x27;re next in, an oat milk upgrade on us - no code, no app, just mention it when you order.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> Ordered a <b>Burger & Fries</b> on <b>10</b> separate visits. Their own median gap is <b>12 days</b>; it has been <b>18</b> (1.5x their normal). Highest-response message in the system, because it names the exact thing they buy. The email itself says only &ldquo;a couple of weeks&rdquo; - the numbers are yours, not theirs. They order it <b>No Onion on 80% of their orders of it</b>, and the email names the choice, never the count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00301_signature_overdue/">Open &amp; edit</a><span class="sm soft">Offer: an oat milk upgrade on us &mdash; costs A$0.60 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Luca W.</span><span class="subj">The pappardelle ragu misses you, Luca</span><span class="pill p-acc">Upgrade or perk</span><span class="pill p-mute">Their usual, overdue</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>luca.walker37@outlook.example</b></span><span class="muted">Consent: POS receipt prompt, 2025-10-18</span></div><div class="ev"><div><div class="l">Their usual</div><div class="v">Pappardelle Ragu</div></div><div><div class="l">Times ordered</div><div class="v">12</div></div><div><div class="l">Usual gap (days)</div><div class="v">22.0</div></div><div><div class="l">Days since</div><div class="v">35</div></div><div><div class="l">x their normal</div><div class="v">1.59x</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">The pappardelle ragu misses you, Luca</b></div><span class="pill p-mute">Their usual, overdue</span></div><div class="email" style="margin-top:18px">Hi Luca,
+
+It&#x27;s been a few weeks since your last pappardelle ragu, and we&#x27;ve missed handing it over.
+
+Whenever you&#x27;re next in, an oat milk upgrade on us - no code, no app, just mention it when you order.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> Ordered a <b>Pappardelle Ragu</b> on <b>12</b> separate visits. Their own median gap is <b>22 days</b>; it has been <b>35</b> (1.59x their normal). Highest-response message in the system, because it names the exact thing they buy. The email itself says only &ldquo;a few weeks&rdquo; - the numbers are yours, not theirs.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00305_signature_overdue/">Open &amp; edit</a><span class="sm soft">Offer: an oat milk upgrade on us &mdash; costs A$0.60 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Mei S.</span><span class="subj">The pappardelle ragu misses you, Mei</span><span class="pill p-acc">Upgrade or perk</span><span class="pill p-mute">Their usual, overdue</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>mei.smith46@hotmail.example</b></span><span class="muted">Consent: POS receipt prompt, 2026-02-19</span></div><div class="ev"><div><div class="l">Their usual</div><div class="v">Pappardelle Ragu</div></div><div><div class="l">Times ordered</div><div class="v">9</div></div><div><div class="l">Usual gap (days)</div><div class="v">20</div></div><div><div class="l">Days since</div><div class="v">37</div></div><div><div class="l">x their normal</div><div class="v">1.85x</div></div><div><div class="l">How they order it</div><div class="v">Extra Ragu on 89% of their orders of it</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">The pappardelle ragu misses you, Mei</b></div><span class="pill p-mute">Their usual, overdue</span></div><div class="email" style="margin-top:18px">Hi Mei,
+
+It&#x27;s been a few weeks since your last pappardelle ragu (extra ragu), and we&#x27;ve missed handing it over.
+
+Whenever you&#x27;re next in, an oat milk upgrade on us - no code, no app, just mention it when you order.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> Ordered a <b>Pappardelle Ragu</b> on <b>9</b> separate visits. Their own median gap is <b>20 days</b>; it has been <b>37</b> (1.85x their normal). Highest-response message in the system, because it names the exact thing they buy. The email itself says only &ldquo;a few weeks&rdquo; - the numbers are yours, not theirs. They order it <b>Extra Ragu on 89% of their orders of it</b>, and the email names the choice, never the count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00309_signature_overdue/">Open &amp; edit</a><span class="sm soft">Offer: an oat milk upgrade on us &mdash; costs A$0.60 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Eleni Z.</span><span class="subj">The pappardelle ragu misses you, Eleni</span><span class="pill p-acc">Upgrade or perk</span><span class="pill p-mute">Their usual, overdue</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>eleni.zhang78@gmail.example</b></span><span class="muted">Consent: Old import (unverified), 2025-06-24</span></div><div class="ev"><div><div class="l">Their usual</div><div class="v">Pappardelle Ragu</div></div><div><div class="l">Times ordered</div><div class="v">8</div></div><div><div class="l">Usual gap (days)</div><div class="v">25</div></div><div><div class="l">Days since</div><div class="v">42</div></div><div><div class="l">x their normal</div><div class="v">1.68x</div></div><div><div class="l">How they order it</div><div class="v">No Parmesan on 100% of their orders of it</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">The pappardelle ragu misses you, Eleni</b></div><span class="pill p-mute">Their usual, overdue</span></div><div class="email" style="margin-top:18px">Hi Eleni,
+
+It&#x27;s been a few weeks since your last pappardelle ragu (no parmesan), and we&#x27;ve missed handing it over.
+
+Whenever you&#x27;re next in, an oat milk upgrade on us - no code, no app, just mention it when you order.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> Ordered a <b>Pappardelle Ragu</b> on <b>8</b> separate visits. Their own median gap is <b>25 days</b>; it has been <b>42</b> (1.68x their normal). Highest-response message in the system, because it names the exact thing they buy. The email itself says only &ldquo;a few weeks&rdquo; - the numbers are yours, not theirs. They order it <b>No Parmesan on 100% of their orders of it</b>, and the email names the choice, never the count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00319_signature_overdue/">Open &amp; edit</a><span class="sm soft">Offer: an oat milk upgrade on us &mdash; costs A$0.60 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Hamish K.</span><span class="subj">The margherita pizza misses you, Hamish</span><span class="pill p-acc">Upgrade or perk</span><span class="pill p-mute">Their usual, overdue</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>hamish.kowalski91@icloud.example</b></span><span class="muted">Consent: POS receipt prompt, 2025-09-13</span></div><div class="ev"><div><div class="l">Their usual</div><div class="v">Margherita Pizza</div></div><div><div class="l">Times ordered</div><div class="v">4</div></div><div><div class="l">Usual gap (days)</div><div class="v">51</div></div><div><div class="l">Days since</div><div class="v">102</div></div><div><div class="l">x their normal</div><div class="v">2.0x</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">The margherita pizza misses you, Hamish</b></div><span class="pill p-mute">Their usual, overdue</span></div><div class="email" style="margin-top:18px">Hi Hamish,
+
+It&#x27;s been a season since your last margherita pizza, and we&#x27;ve missed handing it over.
+
+Whenever you&#x27;re next in, an oat milk upgrade on us - no code, no app, just mention it when you order.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> Ordered a <b>Margherita Pizza</b> on <b>4</b> separate visits. Their own median gap is <b>51 days</b>; it has been <b>102</b> (2.0x their normal). Highest-response message in the system, because it names the exact thing they buy. The email itself says only &ldquo;a season&rdquo; - the numbers are yours, not theirs.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00414_signature_overdue/">Open &amp; edit</a><span class="sm soft">Offer: an oat milk upgrade on us &mdash; costs A$0.60 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Imogen J.</span><span class="subj">The margherita pizza misses you, Imogen</span><span class="pill p-acc">Upgrade or perk</span><span class="pill p-mute">Their usual, overdue</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>imogen.jones3@gmail.example</b></span><span class="muted">Consent: POS receipt prompt, 2025-10-01</span></div><div class="ev"><div><div class="l">Their usual</div><div class="v">Margherita Pizza</div></div><div><div class="l">Times ordered</div><div class="v">3</div></div><div><div class="l">Usual gap (days)</div><div class="v">58.0</div></div><div><div class="l">Days since</div><div class="v">95</div></div><div><div class="l">x their normal</div><div class="v">1.64x</div></div><div><div class="l">How they order it</div><div class="v">No Basil on 100% of their orders of it</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">The margherita pizza misses you, Imogen</b></div><span class="pill p-mute">Their usual, overdue</span></div><div class="email" style="margin-top:18px">Hi Imogen,
+
+It&#x27;s been a season since your last margherita pizza (no basil), and we&#x27;ve missed handing it over.
+
+Whenever you&#x27;re next in, an oat milk upgrade on us - no code, no app, just mention it when you order.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> Ordered a <b>Margherita Pizza</b> on <b>3</b> separate visits. Their own median gap is <b>58 days</b>; it has been <b>95</b> (1.64x their normal). Highest-response message in the system, because it names the exact thing they buy. The email itself says only &ldquo;a season&rdquo; - the numbers are yours, not theirs. They order it <b>No Basil on 100% of their orders of it</b>, and the email names the choice, never the count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00415_signature_overdue/">Open &amp; edit</a><span class="sm soft">Offer: an oat milk upgrade on us &mdash; costs A$0.60 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Marco G.</span><span class="subj">The margherita pizza misses you, Marco</span><span class="pill p-acc">Upgrade or perk</span><span class="pill p-mute">Their usual, overdue</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>marco.gray72@yahoo.example</b></span><span class="muted">Consent: Loyalty signup, 2025-07-04</span></div><div class="ev"><div><div class="l">Their usual</div><div class="v">Margherita Pizza</div></div><div><div class="l">Times ordered</div><div class="v">5</div></div><div><div class="l">Usual gap (days)</div><div class="v">44.0</div></div><div><div class="l">Days since</div><div class="v">103</div></div><div><div class="l">x their normal</div><div class="v">2.34x</div></div><div><div class="l">How they order it</div><div class="v">No Basil on 100% of their orders of it</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">The margherita pizza misses you, Marco</b></div><span class="pill p-mute">Their usual, overdue</span></div><div class="email" style="margin-top:18px">Hi Marco,
+
+It&#x27;s been a season since your last margherita pizza (no basil), and we&#x27;ve missed handing it over.
+
+Whenever you&#x27;re next in, an oat milk upgrade on us - no code, no app, just mention it when you order.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> Ordered a <b>Margherita Pizza</b> on <b>5</b> separate visits. Their own median gap is <b>44 days</b>; it has been <b>103</b> (2.34x their normal). Highest-response message in the system, because it names the exact thing they buy. The email itself says only &ldquo;a season&rdquo; - the numbers are yours, not theirs. They order it <b>No Basil on 100% of their orders of it</b>, and the email names the choice, never the count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00426_signature_overdue/">Open &amp; edit</a><span class="sm soft">Offer: an oat milk upgrade on us &mdash; costs A$0.60 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Ava G.</span><span class="subj">The margherita pizza misses you, Ava</span><span class="pill p-acc">Upgrade or perk</span><span class="pill p-mute">Their usual, overdue</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>ava.gray49@gmail.example</b></span><span class="muted">Consent: Loyalty signup, 2026-08-09</span></div><div class="ev"><div><div class="l">Their usual</div><div class="v">Margherita Pizza</div></div><div><div class="l">Times ordered</div><div class="v">6</div></div><div><div class="l">Usual gap (days)</div><div class="v">54</div></div><div><div class="l">Days since</div><div class="v">95</div></div><div><div class="l">x their normal</div><div class="v">1.76x</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">The margherita pizza misses you, Ava</b></div><span class="pill p-mute">Their usual, overdue</span></div><div class="email" style="margin-top:18px">Hi Ava,
+
+It&#x27;s been a season since your last margherita pizza, and we&#x27;ve missed handing it over.
+
+Whenever you&#x27;re next in, an oat milk upgrade on us - no code, no app, just mention it when you order.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> Ordered a <b>Margherita Pizza</b> on <b>6</b> separate visits. Their own median gap is <b>54 days</b>; it has been <b>95</b> (1.76x their normal). Highest-response message in the system, because it names the exact thing they buy. The email itself says only &ldquo;a season&rdquo; - the numbers are yours, not theirs.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00432_signature_overdue/">Open &amp; edit</a><span class="sm soft">Offer: an oat milk upgrade on us &mdash; costs A$0.60 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Arlo H.</span><span class="subj">The margherita pizza misses you, Arlo</span><span class="pill p-acc">Upgrade or perk</span><span class="pill p-mute">Their usual, overdue</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>arlo.hughes17@yahoo.example</b></span><span class="muted">Consent: Website form, 2026-06-03</span></div><div class="ev"><div><div class="l">Their usual</div><div class="v">Margherita Pizza</div></div><div><div class="l">Times ordered</div><div class="v">3</div></div><div><div class="l">Usual gap (days)</div><div class="v">43.0</div></div><div><div class="l">Days since</div><div class="v">87</div></div><div><div class="l">x their normal</div><div class="v">2.02x</div></div><div><div class="l">How they order it</div><div class="v">No Basil on 100% of their orders of it</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">The margherita pizza misses you, Arlo</b></div><span class="pill p-mute">Their usual, overdue</span></div><div class="email" style="margin-top:18px">Hi Arlo,
+
+It&#x27;s been a season since your last margherita pizza (no basil), and we&#x27;ve missed handing it over.
+
+Whenever you&#x27;re next in, an oat milk upgrade on us - no code, no app, just mention it when you order.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> Ordered a <b>Margherita Pizza</b> on <b>3</b> separate visits. Their own median gap is <b>43 days</b>; it has been <b>87</b> (2.02x their normal). Highest-response message in the system, because it names the exact thing they buy. The email itself says only &ldquo;a season&rdquo; - the numbers are yours, not theirs. They order it <b>No Basil on 100% of their orders of it</b>, and the email names the choice, never the count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00436_signature_overdue/">Open &amp; edit</a><span class="sm soft">Offer: an oat milk upgrade on us &mdash; costs A$0.60 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Angus S.</span><span class="subj">The margherita pizza misses you, Angus</span><span class="pill p-acc">Upgrade or perk</span><span class="pill p-mute">Their usual, overdue</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>angus.santos67@icloud.example</b></span><span class="muted">Consent: Website form, 2026-04-26</span></div><div class="ev"><div><div class="l">Their usual</div><div class="v">Margherita Pizza</div></div><div><div class="l">Times ordered</div><div class="v">3</div></div><div><div class="l">Usual gap (days)</div><div class="v">48.5</div></div><div><div class="l">Days since</div><div class="v">91</div></div><div><div class="l">x their normal</div><div class="v">1.88x</div></div><div><div class="l">How they order it</div><div class="v">Gluten-Free Base on 100% of their orders of it; No Basil on 67% of their orders of it</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">The margherita pizza misses you, Angus</b></div><span class="pill p-mute">Their usual, overdue</span></div><div class="email" style="margin-top:18px">Hi Angus,
+
+It&#x27;s been a season since your last margherita pizza (gluten-free base, no basil), and we&#x27;ve missed handing it over.
+
+Whenever you&#x27;re next in, an oat milk upgrade on us - no code, no app, just mention it when you order.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> Ordered a <b>Margherita Pizza</b> on <b>3</b> separate visits. Their own median gap is <b>48 days</b>; it has been <b>91</b> (1.88x their normal). Highest-response message in the system, because it names the exact thing they buy. The email itself says only &ldquo;a season&rdquo; - the numbers are yours, not theirs. They order it <b>Gluten-Free Base on 100% of their orders of it; No Basil on 67% of their orders of it</b>, and the email names the choice, never the count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00458_signature_overdue/">Open &amp; edit</a><span class="sm soft">Offer: an oat milk upgrade on us &mdash; costs A$0.60 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Olivia T.</span><span class="subj">The margherita pizza misses you, Olivia</span><span class="pill p-acc">Upgrade or perk</span><span class="pill p-mute">Their usual, overdue</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>olivia.thompson69@icloud.example</b></span><span class="muted">Consent: POS receipt prompt, 2025-10-11</span></div><div class="ev"><div><div class="l">Their usual</div><div class="v">Margherita Pizza</div></div><div><div class="l">Times ordered</div><div class="v">4</div></div><div><div class="l">Usual gap (days)</div><div class="v">47</div></div><div><div class="l">Days since</div><div class="v">90</div></div><div><div class="l">x their normal</div><div class="v">1.91x</div></div><div><div class="l">How they order it</div><div class="v">Add Nduja on 100% of their orders of it</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">The margherita pizza misses you, Olivia</b></div><span class="pill p-mute">Their usual, overdue</span></div><div class="email" style="margin-top:18px">Hi Olivia,
+
+It&#x27;s been a season since your last margherita pizza (add nduja), and we&#x27;ve missed handing it over.
+
+Whenever you&#x27;re next in, an oat milk upgrade on us - no code, no app, just mention it when you order.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> Ordered a <b>Margherita Pizza</b> on <b>4</b> separate visits. Their own median gap is <b>47 days</b>; it has been <b>90</b> (1.91x their normal). Highest-response message in the system, because it names the exact thing they buy. The email itself says only &ldquo;a season&rdquo; - the numbers are yours, not theirs. They order it <b>Add Nduja on 100% of their orders of it</b>, and the email names the choice, never the count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00461_signature_overdue/">Open &amp; edit</a><span class="sm soft">Offer: an oat milk upgrade on us &mdash; costs A$0.60 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Angus K.</span><span class="subj">The margherita pizza misses you, Angus</span><span class="pill p-acc">Upgrade or perk</span><span class="pill p-mute">Their usual, overdue</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>angus.kowalski49@outlook.example</b></span><span class="muted">Consent: POS receipt prompt, 2025-03-08</span></div><div class="ev"><div><div class="l">Their usual</div><div class="v">Margherita Pizza</div></div><div><div class="l">Times ordered</div><div class="v">6</div></div><div><div class="l">Usual gap (days)</div><div class="v">57</div></div><div><div class="l">Days since</div><div class="v">108</div></div><div><div class="l">x their normal</div><div class="v">1.89x</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">The margherita pizza misses you, Angus</b></div><span class="pill p-mute">Their usual, overdue</span></div><div class="email" style="margin-top:18px">Hi Angus,
+
+It&#x27;s been a season since your last margherita pizza, and we&#x27;ve missed handing it over.
+
+Whenever you&#x27;re next in, an oat milk upgrade on us - no code, no app, just mention it when you order.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> Ordered a <b>Margherita Pizza</b> on <b>6</b> separate visits. Their own median gap is <b>57 days</b>; it has been <b>108</b> (1.89x their normal). Highest-response message in the system, because it names the exact thing they buy. The email itself says only &ldquo;a season&rdquo; - the numbers are yours, not theirs.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00463_signature_overdue/">Open &amp; edit</a><span class="sm soft">Offer: an oat milk upgrade on us &mdash; costs A$0.60 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Ava T.</span><span class="subj">The margherita pizza misses you, Ava</span><span class="pill p-acc">Upgrade or perk</span><span class="pill p-mute">Their usual, overdue</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>ava.taylor10@icloud.example</b></span><span class="muted">Consent: Booking, 2025-05-02</span></div><div class="ev"><div><div class="l">Their usual</div><div class="v">Margherita Pizza</div></div><div><div class="l">Times ordered</div><div class="v">5</div></div><div><div class="l">Usual gap (days)</div><div class="v">43.0</div></div><div><div class="l">Days since</div><div class="v">71</div></div><div><div class="l">x their normal</div><div class="v">1.65x</div></div><div><div class="l">How they order it</div><div class="v">Gluten-Free Base on 100% of their orders of it</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">The margherita pizza misses you, Ava</b></div><span class="pill p-mute">Their usual, overdue</span></div><div class="email" style="margin-top:18px">Hi Ava,
+
+It&#x27;s been a month or two since your last margherita pizza (gluten-free base), and we&#x27;ve missed handing it over.
+
+Whenever you&#x27;re next in, an oat milk upgrade on us - no code, no app, just mention it when you order.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> Ordered a <b>Margherita Pizza</b> on <b>5</b> separate visits. Their own median gap is <b>43 days</b>; it has been <b>71</b> (1.65x their normal). Highest-response message in the system, because it names the exact thing they buy. The email itself says only &ldquo;a month or two&rdquo; - the numbers are yours, not theirs. They order it <b>Gluten-Free Base on 100% of their orders of it</b>, and the email names the choice, never the count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00470_signature_overdue/">Open &amp; edit</a><span class="sm soft">Offer: an oat milk upgrade on us &mdash; costs A$0.60 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Sofia L.</span><span class="subj">The margherita pizza misses you, Sofia</span><span class="pill p-acc">Upgrade or perk</span><span class="pill p-mute">Their usual, overdue</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>sofia.lee73@outlook.example</b></span><span class="muted">Consent: Website form, 2025-11-22</span></div><div class="ev"><div><div class="l">Their usual</div><div class="v">Margherita Pizza</div></div><div><div class="l">Times ordered</div><div class="v">6</div></div><div><div class="l">Usual gap (days)</div><div class="v">46</div></div><div><div class="l">Days since</div><div class="v">80</div></div><div><div class="l">x their normal</div><div class="v">1.74x</div></div><div><div class="l">How they order it</div><div class="v">Extra Cheese on 100% of their orders of it</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">The margherita pizza misses you, Sofia</b></div><span class="pill p-mute">Their usual, overdue</span></div><div class="email" style="margin-top:18px">Hi Sofia,
+
+It&#x27;s been a season since your last margherita pizza (extra cheese), and we&#x27;ve missed handing it over.
+
+Whenever you&#x27;re next in, an oat milk upgrade on us - no code, no app, just mention it when you order.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> Ordered a <b>Margherita Pizza</b> on <b>6</b> separate visits. Their own median gap is <b>46 days</b>; it has been <b>80</b> (1.74x their normal). Highest-response message in the system, because it names the exact thing they buy. The email itself says only &ldquo;a season&rdquo; - the numbers are yours, not theirs. They order it <b>Extra Cheese on 100% of their orders of it</b>, and the email names the choice, never the count.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00474_signature_overdue/">Open &amp; edit</a><span class="sm soft">Offer: an oat milk upgrade on us &mdash; costs A$0.60 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Angus M.</span><span class="subj">The margherita pizza misses you, Angus</span><span class="pill p-acc">Upgrade or perk</span><span class="pill p-mute">Their usual, overdue</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>angus.martin11@icloud.example</b></span><span class="muted">Consent: POS receipt prompt, 2025-12-05</span></div><div class="ev"><div><div class="l">Their usual</div><div class="v">Margherita Pizza</div></div><div><div class="l">Times ordered</div><div class="v">3</div></div><div><div class="l">Usual gap (days)</div><div class="v">49.0</div></div><div><div class="l">Days since</div><div class="v">83</div></div><div><div class="l">x their normal</div><div class="v">1.69x</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">The margherita pizza misses you, Angus</b></div><span class="pill p-mute">Their usual, overdue</span></div><div class="email" style="margin-top:18px">Hi Angus,
+
+It&#x27;s been a season since your last margherita pizza, and we&#x27;ve missed handing it over.
+
+Whenever you&#x27;re next in, an oat milk upgrade on us - no code, no app, just mention it when you order.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> Ordered a <b>Margherita Pizza</b> on <b>3</b> separate visits. Their own median gap is <b>49 days</b>; it has been <b>83</b> (1.69x their normal). Highest-response message in the system, because it names the exact thing they buy. The email itself says only &ldquo;a season&rdquo; - the numbers are yours, not theirs.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00477_signature_overdue/">Open &amp; edit</a><span class="sm soft">Offer: an oat milk upgrade on us &mdash; costs A$0.60 if redeemed</span></div></div></details><details class="msg"><summary><span class="who">Kirra W.</span><span class="subj">The margherita pizza misses you, Kirra</span><span class="pill p-acc">Upgrade or perk</span><span class="pill p-mute">Their usual, overdue</span></summary><div class="mbody"><div class="row between sm"><span class="muted">To: <b>kirra.williams25@icloud.example</b></span><span class="muted">Consent: POS receipt prompt, 2025-08-20</span></div><div class="ev"><div><div class="l">Their usual</div><div class="v">Margherita Pizza</div></div><div><div class="l">Times ordered</div><div class="v">7</div></div><div><div class="l">Usual gap (days)</div><div class="v">48.5</div></div><div><div class="l">Days since</div><div class="v">76</div></div><div><div class="l">x their normal</div><div class="v">1.57x</div></div></div><div class="sm soft">These numbers are for you. None of them appear in the email below &mdash; the customer gets their usual and a vague sense of time, never a ratio.</div><div class="row between" style="margin-top:22px"><div><div class="sm soft">Subject</div><b style="font-size:18px">The margherita pizza misses you, Kirra</b></div><span class="pill p-mute">Their usual, overdue</span></div><div class="email" style="margin-top:18px">Hi Kirra,
+
+It&#x27;s been a month or two since your last margherita pizza, and we&#x27;ve missed handing it over.
+
+Whenever you&#x27;re next in, an oat milk upgrade on us - no code, no app, just mention it when you order.
+
+- Marlow &amp; Finch
+
+--
+Marlow &amp; Finch - Fitzroy, Melbourne
+ABN 12 345 678 901
+You&#x27;re getting this because you gave us your email at the venue or when you signed up to our loyalty program.
+Unsubscribe: {{unsubscribe_url}} - takes one click, and it&#x27;s permanent.
+Questions? Just reply to this email.</div><div class="why"><b>Why this person, why this offer:</b> Ordered a <b>Margherita Pizza</b> on <b>7</b> separate visits. Their own median gap is <b>48 days</b>; it has been <b>76</b> (1.57x their normal). Highest-response message in the system, because it names the exact thing they buy. The email itself says only &ldquo;a month or two&rdquo; - the numbers are yours, not theirs.</div><div class="row" style="margin-top:26px"><form style="display:inline" action="#" method="get" data-snapshot="1"><button class="btn green sm" type="submit">Approve this one</button></form><a class="btn ghost sm" href="/m/id_cust_00478_signature_overdue/">Open &amp; edit</a><span class="sm soft">Offer: an oat milk upgrade on us &mdash; costs A$0.60 if redeemed</span></div></div></details>
+<div class="foot">Regulars 0.6.0<br>The example data is made up: an example restaurant, its customers and their orders.<br>Every figure in every message traces to an order in the data; no figure appears in a customer&rsquo;s email unless a human put it there.</div></div><div class="snap-toast" id="snap-toast">Read-only snapshot: this button doesn't do anything here.</div>
+<script>
+(function(){var t=document.getElementById('snap-toast'),h;
+function toast(){t.style.display='block';clearTimeout(h);h=setTimeout(function(){t.style.display='none'},2600)}
+document.addEventListener('submit',function(e){e.preventDefault();toast()},true);
+document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('[data-snap-dead]');
+if(a){e.preventDefault();toast()}},true)})();
+</script></body></html>
