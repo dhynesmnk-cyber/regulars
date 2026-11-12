@@ -13,7 +13,7 @@ cd app
 python3 server.py 8010          # http://localhost:8010
 
 cd ..
-python3 -m unittest discover -s tests -t .    # 317 tests
+python3 -m unittest discover -s tests -t .    # 262 tests
 ```
 
 Python 3.11 standard library only. No framework, no CDN, no build step, no internet.
@@ -406,8 +406,6 @@ app/pages/        one module per screen (setup and its venue checklist, goals,
                   its page plus its form actions
 app/exports.py    audience CSV, copy-paste text, sample input files
 app/upload.py     multipart parsing and CSV-to-dataset import
-regulars/, demo/  standalone Square export parser + synthetic demo CSV pair (docs/square-export-parser.md);
-                  not used by the app
 site/             read-only static snapshot of the demo, published by netlify.toml
 scripts/make_snapshot.py  regenerates site/ from a running app (docs/review-site.md)
 netlify.toml      Netlify: publish site/, nothing to build
@@ -415,7 +413,7 @@ Dockerfile        python:3.12-slim, non-root, /data volume, healthcheck
 DEPLOYMENT.md     operator guide: run, proxy, env, Square app, backups, incidents
 CHANGELOG.md      release history and state-schema migrations
 .github/          CI: the full test suite on every push and pull request
-tests/            317 tests: dataset, one-message-per-person, offer/behaviour match,
+tests/            262 tests: dataset, one-message-per-person, offer/behaviour match,
                   the copy rule, suppression, Spam Act/CAN-SPAM footers, regions,
                   goals/threshold/catalogue sensitivity, import (incl. Square
                   Dashboard exports), persistence, HTTP routes, security primitives,
