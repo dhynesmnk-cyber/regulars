@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+*.db
+*.db-journal
+*.egg-info/
+build/
+dist/
+.venv/
+# Real Square exports must never be committed; demo/ is the only data folder.
+/exports/
+/private/
