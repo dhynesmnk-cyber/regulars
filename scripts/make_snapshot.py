@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Turn a running Regulars demo app into a read-only static site for Netlify.
 
-    ./start.sh                                   # in the app checkout (demo mode)
-    python scripts/make_snapshot.py http://127.0.0.1:8010 \\
-        --source "PR #1 @ 985e54f" --scrub /path/to/app/checkout
+    ./start.sh 8010 &                            # the app, demo mode, from the repo root
+    python3 scripts/make_snapshot.py http://127.0.0.1:8010 --scrub "$PWD" \\
+        --source "app @ $(git rev-parse --short HEAD)" --landing /inbox/ \\
+        --banner "Demo: an example restaurant with made-up customers. Buttons are switched off." \\
+        --contact-email you@yourdomain.com.au
 
 Crawls every same-origin GET page reachable from the app's screens, rewrites links
 to static paths, switches every form off, adds a "read-only snapshot" banner and
@@ -31,6 +33,13 @@ SKIP_SUFFIXES = (".csv", ".zip", ".pdf", ".json", ".txt", ".log")
 ROBOTS_MARKER = "# regulars-snapshot"
 SCRUBBED = "/srv/regulars"
 LEAK_RE = re.compile(r"(/tmp/|/home/|/root/|claude-0|scratchpad)")
+
+# Operator-only notices that mean nothing (or look unfinished) in a public demo,
+# e.g. "No operator password is set yet". Matched on the app's own markup; if the
+# app changes, the notice simply reappears, which is harmless.
+STRIP_RES = [re.compile(r'<div class="warn"><b>Security\.</b>.*?</div>', re.S)]
+DEFAULT_BANNER = "Read-only snapshot of the demo venue (synthetic data) \u00b7 buttons and forms are switched off"
+CONTACT_RE = re.compile(r"^[^@\s<>\"']+@[^@\s<>\"']+\.[^@\s<>\"']+$")
 
 A_TAG_RE = re.compile(r"<a\b[^>]*>", re.I | re.S)
 HREF_RE = re.compile(r"""\bhref=(["'])(.*?)\1""", re.S)
@@ -91,7 +100,7 @@ def extract_links(page: str) -> list[str]:
     return [html.unescape(m.group(2)) for tag in A_TAG_RE.findall(page) for m in [HREF_RE.search(tag)] if m]
 
 
-def _rewrite_a(tag: str, base_url: str, current: str, known: set) -> str:
+def _rewrite_a(tag: str, base_url: str, current: str, known: set, aliases: dict) -> str:
     m = HREF_RE.search(tag)
     if not m:
         return tag
@@ -103,7 +112,7 @@ def _rewrite_a(tag: str, base_url: str, current: str, known: set) -> str:
         return tag
     path, query, frag = r
     if (path, query) in known:
-        new = local_url(path, query) + (f"#{frag}" if frag else "")
+        new = (aliases.get((path, query)) or local_url(path, query)) + (f"#{frag}" if frag else "")
         return tag[: m.start()] + f'href="{html.escape(new)}"' + tag[m.end():]
     dead = tag[: m.start()] + 'href="#" data-snap-dead="1" title="Not available in the read-only snapshot"' + tag[m.end():]
     return dead
@@ -116,7 +125,7 @@ def _neuter_form(tag: str) -> str:
 
 BANNER_CSS = """<style>
 .snap-banner{position:sticky;top:0;z-index:99999;background:#1f2937;color:#f9fafb;font:13px/1.4 system-ui,sans-serif;
-padding:8px 14px;text-align:center}.snap-banner b{color:#fbbf24}.snap-banner span{opacity:.8}
+padding:8px 14px;text-align:center}.snap-banner a{color:#fbbf24}
 [data-snap-dead]{cursor:not-allowed;opacity:.55}
 .snap-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#111827;color:#fff;
 padding:10px 16px;border-radius:8px;font:14px system-ui,sans-serif;z-index:99999;display:none;box-shadow:0 4px 16px #0006}
@@ -132,27 +141,35 @@ if(a){e.preventDefault();toast()}},true)})();
 </script>"""
 
 
-def banner(source: str, built: str) -> str:
-    return (
-        '<div class="snap-banner"><b>Read-only snapshot</b> of the demo venue '
-        f'(synthetic data) <span>&middot; {html.escape(source)} &middot; built {html.escape(built)}'
-        " &middot; buttons and forms are switched off</span></div>"
-    )
+def banner(text: str, source: str, built: str, contact: str | None = None) -> str:
+    cta = ""
+    if contact:
+        e = html.escape(contact)
+        cta = f' &middot; Want this on your own data? <a href="mailto:{e}">{e}</a>'
+    tip = html.escape(f"Snapshot of {source}, built {built}")
+    return f'<div class="snap-banner" title="{tip}">{html.escape(text)}{cta}</div>'
 
 
 def rewrite_page(page: str, base_url: str, current: str, known: set, source: str, built: str,
-                 scrub: list[str]) -> str:
-    page = A_TAG_RE.sub(lambda m: _rewrite_a(m.group(0), base_url, current, known), page)
+                 scrub: list[str], *, aliases: dict | None = None, banner_text: str = DEFAULT_BANNER,
+                 contact: str | None = None) -> str:
+    aliases = aliases or {}
+    for rx in STRIP_RES:
+        page = rx.sub("", page)
+    page = A_TAG_RE.sub(lambda m: _rewrite_a(m.group(0), base_url, current, known, aliases), page)
     page = FORM_RE.sub(lambda m: _neuter_form(m.group(0)), page)
+    for prefix in scrub:
+        page = page.replace(prefix, SCRUBBED)
+    # Mask first, inject after: the contact address in the banner is the owner's own
+    # and must not be rewritten like a demo customer's.
+    page = mask_emails(page)
     head_add = '<meta name="robots" content="noindex,nofollow">' + BANNER_CSS
     page = re.sub(r"</head>", lambda m: head_add + "</head>", page, count=1, flags=re.I) \
         if re.search(r"</head>", page, re.I) else head_add + page
-    page = BODY_RE.sub(lambda m: m.group(0) + banner(source, built), page, count=1)
+    page = BODY_RE.sub(lambda m: m.group(0) + banner(banner_text, source, built, contact), page, count=1)
     page = re.sub(r"</body>", lambda m: SNAP_JS + "</body>", page, count=1, flags=re.I) \
         if re.search(r"</body>", page, re.I) else page + SNAP_JS
-    for prefix in scrub:
-        page = page.replace(prefix, SCRUBBED)
-    return mask_emails(page)
+    return page
 
 
 # --- Crawl + write ------------------------------------------------------------------
@@ -204,24 +221,40 @@ def prepare_out(out: Path) -> None:
     out.mkdir(parents=True, exist_ok=True)
 
 
-def build(base_url: str, out: Path, source: str, built: str, scrub: list[str], max_pages: int):
+REDIRECT_PAGE = """<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow">
+<title>Regulars demo</title><meta http-equiv="refresh" content="0; url={url}"><link rel="canonical" href="{url}"></head>
+<body><p><a href="{url}">Open the demo</a></p></body></html>
+"""
+
+
+def build(base_url: str, out: Path, source: str, built: str, scrub: list[str], max_pages: int, *,
+          landing: str | None = None, banner_text: str = DEFAULT_BANNER, contact: str | None = None):
+    """landing: local URL (e.g. '/inbox/') the site root should open on. The app's own
+    home screen then moves to /setup/ so the "Setup" tab still works."""
     base_url = base_url.rstrip("/")
     pages, skipped, leftover = crawl(base_url, max_pages)
     if ("/", "") not in pages:
         sys.exit(f"{base_url}/ did not return a page; is the app running?")
     known = set(pages)
+    aliases = {("/", ""): "/setup/"} if landing else {}
 
     rendered, taken = {}, {}
     for (path, query), text in pages.items():
-        url = local_url(path, query)
+        url = aliases.get((path, query)) or local_url(path, query)
         if url in taken and taken[url] != (path, query):
             sys.exit(f"two pages map to {url}: {taken[url]} and {(path, query)}")
         taken[url] = (path, query)
-        page = rewrite_page(text, base_url, path, known, source, built, scrub)
+        page = rewrite_page(text, base_url, path, known, source, built, scrub,
+                            aliases=aliases, banner_text=banner_text, contact=contact)
         if LEAK_RE.search(page):
             bad = LEAK_RE.search(page)
             sys.exit(f"{path}: output still contains a local path near {page[max(0, bad.start()-40):bad.end()+40]!r}; pass --scrub")
         rendered[url] = page
+    if landing:
+        if landing not in rendered:
+            sys.exit(f"--landing {landing} is not a page in the snapshot (have e.g. {sorted(rendered)[:4]})")
+        rendered["/"] = REDIRECT_PAGE.format(url=html.escape(landing))
 
     prepare_out(out)
     for url, page in rendered.items():
@@ -240,8 +273,14 @@ def main(argv=None) -> int:
     ap.add_argument("--built", default=datetime.date.today().isoformat())
     ap.add_argument("--scrub", action="append", default=[], help="local path prefix to replace (repeatable)")
     ap.add_argument("--max-pages", type=int, default=400)
+    ap.add_argument("--landing", help="open the site on this page, e.g. /inbox/ (app home moves to /setup/)")
+    ap.add_argument("--banner", default=DEFAULT_BANNER, help="text of the banner on every page")
+    ap.add_argument("--contact-email", help="adds 'Want this on your own data? <email>' to the banner")
     a = ap.parse_args(argv)
-    n, skipped, leftover = build(a.base_url, Path(a.out), a.source, a.built, a.scrub, a.max_pages)
+    if a.contact_email and not CONTACT_RE.match(a.contact_email):
+        ap.error(f"--contact-email {a.contact_email!r} doesn't look like an email address")
+    n, skipped, leftover = build(a.base_url, Path(a.out), a.source, a.built, a.scrub, a.max_pages,
+                                 landing=a.landing, banner_text=a.banner, contact=a.contact_email)
     print(f"wrote {n} pages to {a.out}/")
     for u, why in sorted(skipped.items()):
         print(f"  skipped {u}: {why}")
