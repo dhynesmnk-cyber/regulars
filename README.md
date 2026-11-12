@@ -79,3 +79,22 @@ regulars/cli.py      python -m regulars {load,check,summary,demo}
 demo/                the generated synthetic pair (see demo/README.md)
 tests/               unittest suite
 ```
+
+## Review site (Netlify)
+
+`site/` is a **read-only static snapshot** of the Regulars demo app (the "Marlow & Finch"
+demo venue, synthetic data), published by `netlify.toml`. Netlify can't run the app itself
+(it's a Python server), so this is what you click through to review progress: every screen
+and every message page, with buttons and forms switched off and a banner saying so.
+
+Regenerate it whenever the app changes (needs the app checkout running in demo mode):
+
+```bash
+./start.sh                                   # in the app checkout, serves :8010
+python scripts/make_snapshot.py http://127.0.0.1:8010 \
+    --source "PR #1 @ <sha>" --scrub /path/to/app/checkout
+```
+
+The generator replaces local paths, masks demo email domains (`…@icloud.example`, so no
+made-up address can match a real person's), adds `noindex` everywhere and refuses to write
+output that still contains a filesystem path. It only overwrites a folder it created.
