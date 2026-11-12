@@ -13,7 +13,7 @@ cd app
 python3 server.py 8010          # http://localhost:8010
 
 cd ..
-python3 -m unittest discover -s tests -t .    # 262 tests
+python3 -m unittest discover -s tests -t .    # 269 tests
 ```
 
 Python 3.11 standard library only. No framework, no CDN, no build step, no internet.
@@ -413,7 +413,7 @@ Dockerfile        python:3.12-slim, non-root, /data volume, healthcheck
 DEPLOYMENT.md     operator guide: run, proxy, env, Square app, backups, incidents
 CHANGELOG.md      release history and state-schema migrations
 .github/          CI: the full test suite on every push and pull request
-tests/            262 tests: dataset, one-message-per-person, offer/behaviour match,
+tests/            269 tests: dataset, one-message-per-person, offer/behaviour match,
                   the copy rule, suppression, Spam Act/CAN-SPAM footers, regions,
                   goals/threshold/catalogue sensitivity, import (incl. Square
                   Dashboard exports), persistence, HTTP routes, security primitives,

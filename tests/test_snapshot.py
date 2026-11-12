@@ -64,10 +64,10 @@ class RewriteTests(unittest.TestCase):
     def test_banner_noindex_and_script(self):
         o = self.out()
         self.assertIn("Read-only snapshot", o)
-        self.assertIn("PR #1 @ abc1234", o)
+        self.assertIn('title="Snapshot of PR #1 @ abc1234, built 2026-11-12"', o)   # provenance: tooltip
         self.assertIn('name="robots" content="noindex,nofollow"', o)
         self.assertIn("snap-toast", o)
-        self.assertLess(o.index("<body>"), o.index('<div class="snap-banner">'))
+        self.assertLess(o.index("<body>"), o.index('<div class="snap-banner"'))
 
     def test_scrub_and_email_masking(self):
         o = self.out()
@@ -76,6 +76,47 @@ class RewriteTests(unittest.TestCase):
         self.assertIn("jo@icloud.example", o)
         self.assertIn("mailto:Jo@gmail.example", o)
         self.assertNotIn("icloud.com", o)
+
+    def test_operator_notice_is_removed(self):
+        page = ('<html><head></head><body><div class="warn"><b>Security.</b> No operator password is set yet. '
+                '<a href="/login/">Sign-in &rarr;</a></div><h2>Your business</h2></body></html>')
+        o = ms.rewrite_page(page, BASE, "/", {("/", "")}, "src", "2026-11-12", [])
+        self.assertNotIn("operator password", o)
+        self.assertNotIn("Sign-in", o)
+        self.assertIn("Your business", o)
+
+    def test_security_screen_operator_warning_is_removed_too(self):
+        page = ('<html><head></head><body><div class="stat">Sign-in Open demo</div>'
+                '<div class="warn"><b>No operator password is set.</b> Every screen is publicly reachable while this '
+                'instance stays in demo mode. <a href="/login/">Set the password &rarr;</a></div>'
+                "<h2>Outside-attack detection</h2></body></html>")
+        o = ms.rewrite_page(page, BASE, "/security", {("/security", "")}, "src", "d", [])
+        self.assertNotIn("operator password", o)
+        self.assertNotIn("Set the password", o)
+        self.assertIn("Outside-attack detection", o)     # the rest of the screen stays
+        self.assertIn("Open demo", o)
+
+    def test_alias_redirects_links_to_the_moved_page(self):
+        page = '<html><head></head><body><a href="/">Setup</a> <a href="/goals">Goals</a></body></html>'
+        known = {("/", ""), ("/goals", "")}
+        o = ms.rewrite_page(page, BASE, "/goals", known, "src", "d", [], aliases={("/", ""): "/setup/"})
+        self.assertIn('<a href="/setup/">Setup</a>', o)
+        self.assertIn('<a href="/goals/">Goals</a>', o)
+
+    def test_custom_banner_and_contact_email(self):
+        page = "<html><head></head><body><p>jo@icloud.com</p></body></html>"
+        o = ms.rewrite_page(page, BASE, "/", {("/", "")}, "src", "d", [],
+                            banner_text="Demo <b>only</b> & made up", contact="owner@gmail.com")
+        self.assertIn("Demo &lt;b&gt;only&lt;/b&gt; &amp; made up", o)            # banner text is escaped
+        self.assertIn('<a href="mailto:owner@gmail.com">owner@gmail.com</a>', o)   # contact NOT masked
+        self.assertIn("jo@icloud.example", o)                                      # demo customer still masked
+        self.assertNotIn("Want this on your own data?", ms.rewrite_page(page, BASE, "/", {("/", "")}, "s", "d", []))
+
+    def test_contact_email_is_validated(self):
+        for bad in ("nope", "a b@c.com", '"><script>@x.y'):
+            with self.subTest(bad=bad), self.assertRaises(SystemExit):
+                ms.main(["--contact-email", bad, "--out", "/nonexistent-out"])
+        self.assertTrue(ms.CONTACT_RE.match("owner@yourdomain.com.au"))
 
     def test_placeholder_email_domains_survive(self):
         for e in ("owner@yourvenue.com.au", "a@example.com", "b@x.invalid"):
@@ -132,6 +173,27 @@ class EndToEndTests(unittest.TestCase):
             # rebuilding over a previous snapshot is allowed
             ms.build(base, out, "src", "2026-11-13", [], 50)
             self.assertIn("2026-11-13", (out / "index.html").read_text())
+
+    def test_landing_page_and_setup_alias(self):
+        base = self.serve()
+        with tempfile.TemporaryDirectory() as d:
+            out = Path(d) / "site"
+            ms.build(base, out, "src", "2026-11-12", [], 50, landing="/a/")
+            root = (out / "index.html").read_text()
+            self.assertIn('url=/a/', root)                       # the root just forwards to the landing page
+            self.assertIn("noindex", root)
+            self.assertNotIn("snap-banner", root)
+            home = (out / "setup" / "index.html").read_text()    # the app's own home moved here
+            self.assertIn('href="/a/"', home)
+            self.assertIn("snap-banner", home)
+            self.assertIn('href="/setup/"', (out / "a" / "index.html").read_text())   # a link to "/" follows it
+
+    def test_landing_must_exist(self):
+        base = self.serve()
+        with tempfile.TemporaryDirectory() as d:
+            with self.assertRaises(SystemExit):
+                ms.build(base, Path(d) / "site", "src", "x", [], 50, landing="/nope/")
+            self.assertFalse((Path(d) / "site").exists())
 
     def test_refuses_to_overwrite_a_folder_that_is_not_a_snapshot(self):
         base = self.serve()
