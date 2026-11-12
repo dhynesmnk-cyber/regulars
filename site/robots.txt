@@ -1,0 +1,3 @@
+# regulars-snapshot
+User-agent: *
+Disallow: /
