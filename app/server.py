@@ -20,14 +20,15 @@ from datetime import datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlparse
 
+import demo as DEMO
 import exports
 import security as SEC
 import store
 from pages import (data_page, goals_page, login_page, messages_page, security_page,
                    sending_page, sent_page, setup_page, triggers_page, welcome_page)
-from state import (AUDIT, CTX, DS, GUARD, LOCK, SCHEMA, SETUP_TOKEN_MIN, STATE, VERSION,
-                   demo_instance, demo_mode, local_request_allowed, result, session_from_token,
-                   setup_token, unclaimed)
+from state import (AUDIT, CTX, DS, GUARD, LOCK, SCHEMA, SETUP_TOKEN_MIN, STATE, VERSION, VISITORS,
+                   demo_instance, demo_mode, local_request_allowed, public_demo, result,
+                   session_from_token, set_visitor, setup_token, unclaimed)
 from ui import e, page
 from upload import parse_multipart
 from web import Req, send
@@ -115,13 +116,19 @@ def _not_found(req):
 
 class Handler(BaseHTTPRequestHandler):
     server_version = "Regulars/" + VERSION
+    _demo_cookie = None      # public demo: set while answering a visitor's first request
 
     def log_message(self, fmt, *args):
-        sys.stderr.write(f"[{datetime.now().strftime('%H:%M:%S')}] {_redact(fmt % args)}\n")
+        line = _redact(fmt % args)
+        if public_demo():
+            # '/m?id=<customer id from a visitor's file>' must not reach the log
+            line = re.sub(r"\?\S*", "?...", line)
+        sys.stderr.write(f"[{datetime.now().strftime('%H:%M:%S')}] {line}\n")
 
     def _send(self, body, status=200, ctype="text/html; charset=utf-8", extra=None,
               cookie=None):
         raw = body.encode() if isinstance(body, str) else body
+        cookie = cookie or self._demo_cookie
         self.send_response(status)
         self.send_header("Content-Type", ctype)
         self.send_header("Content-Length", str(len(raw)))
@@ -136,6 +143,7 @@ class Handler(BaseHTTPRequestHandler):
             self.wfile.write(raw)
 
     def _redirect(self, loc, cookie=None):
+        cookie = cookie or self._demo_cookie
         self.send_response(303)
         self.send_header("Location", loc)
         for k, v in SEC.security_headers(tls=bool(os.environ.get("REGULARS_TLS"))).items():
@@ -200,6 +208,68 @@ class Handler(BaseHTTPRequestHandler):
     def _authorized(self):
         return demo_mode() or self._session() is not None
 
+    def do_GET(self):
+        self._serve("GET", self._do_get)
+
+    def do_POST(self):
+        self._serve("POST", self._do_post)
+
+    def _serve(self, method, handler):
+        """Outside the public demo this is just handler(). Inside it, anything the
+        demo doesn't offer is refused, and the rest is served from the visitor's
+        own sandbox (demo.py), which is created on their first request."""
+        if not public_demo():
+            return handler()
+        path = urlparse(self.path).path
+        if path not in DEMO.ALLOWED[method]:
+            title, text = DEMO.blocked_message(path)
+            self._demo_answer(method, 403, title, text)
+            return
+        if path in DEMO.STATELESS:
+            return handler()
+        ip = self._ip()
+        try:
+            visitor, status = VISITORS.attach(
+                DEMO.token_from_cookie(self.headers.get("Cookie")),
+                may_create=lambda: GUARD.allow(ip, "DEMO_NEW", DEMO.NEW_SESSIONS_PER_MINUTE))
+        except DEMO.Full:
+            self._demo_answer(method, 503, "The demo is busy right now.",
+                              "Everyone's sandbox is in use. Try again in a few minutes.")
+            return
+        except DEMO.Throttled:
+            self._demo_answer(method, 429, "Slow down.",
+                              "Too many new demo sessions from this address. Wait a minute.")
+            return
+        if status == "expired":
+            visitor.flash.append("Your demo session timed out and was cleared, as promised. "
+                                 "This is a fresh one.")
+        self._demo_cookie = (DEMO.cookie_header(visitor.token, tls=bool(os.environ.get("REGULARS_TLS")))
+                             if status != "existing" else None)
+        set_visitor(visitor)
+        try:
+            handler()
+        except Exception as exc:
+            # A visitor's file may be in the message: log what failed, never its text.
+            sys.stderr.write(f"error serving {method} {path}: {type(exc).__name__}\n")
+            try:
+                self._send(page("Error", "<h1>Something went wrong.</h1><p>Press Start over on "
+                                "Setup and try again.</p>"), 500)
+            except OSError:
+                pass
+        finally:
+            set_visitor(None)
+            self._demo_cookie = None
+
+    def _demo_answer(self, method, status, title, text):
+        """A plain page, without touching any visitor's sandbox."""
+        body = page(title, f"<h1>{e(title)}</h1><p>{e(text)}</p>"
+                    '<p style="margin-top:30px"><a class="btn" href="/inbox">Back to the demo</a></p>',
+                    bare=True)
+        if method == "POST":
+            self._refuse_unread(body, status)     # its body is unread
+        else:
+            self._send(body, status, extra={"Retry-After": "60"} if status in (429, 503) else None)
+
     def do_HEAD(self):
         """Uptime monitors often check with HEAD. Only the health check answers
         it: every other page is a GET, so none can be triggered (an export
@@ -208,7 +278,7 @@ class Handler(BaseHTTPRequestHandler):
             return self.do_GET()
         self._send("", 405, extra={"Allow": "GET, POST"})
 
-    def do_GET(self):
+    def _do_get(self):
         ip = self._ip()
         if not GUARD.allow(ip, "GET", SEC.RATE_GET):
             AUDIT.write("rate_limit", ip=ip,
@@ -236,17 +306,23 @@ class Handler(BaseHTTPRequestHandler):
             with LOCK:
                 resp = GET_ROUTES.get(u.path, _not_found)(req)
             self._respond(resp)
-        except Exception:
+        except Exception as exc:
             import traceback
-            tb = traceback.format_exc()
-            sys.stderr.write(tb)
-            detail = (f'<div class="email">{e(tb)}</div>' if demo_mode() else
+            if public_demo():
+                sys.stderr.write(f"error serving GET {u.path}: {type(exc).__name__}\n")
+                tb = ""
+            else:
+                tb = traceback.format_exc()
+                sys.stderr.write(tb)
+            detail = ('<p class="sm muted">Something went wrong on our side. Press Start over on '
+                      'Setup and try again.</p>' if public_demo() else
+                      f'<div class="email">{e(tb)}</div>' if demo_mode() else
                       '<p class="sm muted">The error was written to the server log. '
                       'The audit trail on /security shows what happened just before '
                       'it.</p>')
             self._send(page("Error", f'<h1>Something broke</h1>{detail}'), 500)
 
-    def do_POST(self):
+    def _do_post(self):
         ip = self._ip()
         if not GUARD.allow(ip, "POST", SEC.RATE_POST):
             AUDIT.write("rate_limit", ip=ip,
@@ -384,13 +460,22 @@ def main():
         sys.exit(f"REGULARS_SETUP_TOKEN is too short ({len(token)} characters; at least "
                  f"{SETUP_TOKEN_MIN}). Generate one with:\n  python3 -c \"import secrets; "
                  f"print(secrets.token_urlsafe(32))\"")
+    if public_demo() and token:
+        sys.exit("REGULARS_PUBLIC_DEMO and REGULARS_SETUP_TOKEN can't be combined: a public "
+                 "demo has no owner to hand the app to. Provision a venue separately.")
     mode = ("CLOSED until the owner uses their setup link" if unclaimed() else
+            "PUBLIC DEMO - a private in-memory sandbox per visitor; nothing can be sent"
+            if public_demo() else
             "OPEN DEMO MODE - no operator password set" if demo_mode() else "password gated")
     if demo_instance():
         mode += " | hosted DEMO: example data only, uploads off"
     bind = bind_address()
     print(f"Regulars {VERSION} -> http://{bind}:{port}")
     print(f"  market: {STATE.get('region', 'AU')} | auth: {mode}")
+    if public_demo():
+        print(f"  sandboxes: up to {VISITORS.max_sessions} ({VISITORS.max_uploads} holding an "
+              f"upload), deleted after {VISITORS.ttl // 60} min idle; upload cap "
+              f"{SEC.max_upload_bytes() // (1024 * 1024)} MB; nothing written to disk")
     print(f"  audit log: {AUDIT.path}")
     r = result()
     print(f"  {DS['stats']['customers']} demo customers, {DS['stats']['orders']:,} orders -> "

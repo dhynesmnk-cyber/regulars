@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 
 import oauth as OAUTH
 from state import (AUDIT, ESP, LOCK, STATE, _load_tokens, _store_tokens, flash, identity,
-                   persist)
+                   persist, public_demo)
 from ui import e, page
 from views import _flash_html
 from web import html, redirect
@@ -24,7 +24,11 @@ def page_sending():
 
     _ost = OAUTH.status(_load_tokens() if STATE.get("oauth_tokens_enc") else None)
     body.append('<h2>Square connection (OAuth)</h2>')
-    if STATE.get("oauth_tokens_enc"):
+    if public_demo():
+        body.append('<div class="card"><p class="sm muted">Connecting Square directly is switched '
+                    'off in the demo. Upload a Square export on Setup instead: it needs no '
+                    'credentials at all.</p></div>')
+    elif STATE.get("oauth_tokens_enc"):
         body.append('<div class="good"><b>Square tokens stored &mdash; encrypted at rest.</b> '
                     'The authorization-code flow completed against Square&rsquo;s OAuth server. '
                     'Pulling live data through these tokens is the first production step; until '
@@ -67,29 +71,30 @@ def page_sending():
                     + '</span></label>')
     body.append('</div>')
 
-    body.append('<h2>If you send through your own SMTP</h2>')
-    body.append('<p class="sm muted" style="margin-top:18px">Stored locally in this app&rsquo;s '
-                'config file so real sending can be switched on later. The prototype never '
-                'transmits anything &mdash; the test button below only checks that the details '
-                'work.</p><div class="card"><div class="grid g2">')
-    for key, lab, ph, typ in [("smtp_host", "Host", "smtp.example.com", "text"),
-                              ("smtp_port", "Port", "587", "number"),
-                              ("smtp_user", "Username", "campaigns@yourvenue.com.au", "text"),
-                              ("smtp_pass", "Password / app password", "", "password"),
-                              ("from_addr", "From address", f"{identity()['name']} <hello@...>", "text"),
-                              ("reply_to", "Reply-to (should be a monitored inbox)", "", "text")]:
-        body.append(f'<div class="field"><label>{e(lab)}</label>'
-                    f'<input type="{typ}" name="{key}" value="{e(sd.get(key) or "")}" '
-                    f'placeholder="{e(ph)}"></div>')
-    body.append('</div>')
-    res = sd.get("test_result")
-    if res:
-        cls = "good" if res["ok"] else "bad"
-        body.append(f'<div class="{cls} sm"><b>Connection test:</b> {e(res["msg"])}</div>')
-    body.append('<div class="row"><button class="btn ghost sm" type="submit" '
-                'formaction="/sending/test">Test the connection</button>'
-                '<span class="sm soft">Runs from wherever this app is running. It will fail in a '
-                'sandbox with no network, and that is fine.</span></div></div>')
+    if not public_demo():     # no server details, no connection tests in the demo
+        body.append('<h2>If you send through your own SMTP</h2>')
+        body.append('<p class="sm muted" style="margin-top:18px">Stored locally in this app&rsquo;s '
+                    'config file so real sending can be switched on later. The prototype never '
+                    'transmits anything &mdash; the test button below only checks that the details '
+                    'work.</p><div class="card"><div class="grid g2">')
+        for key, lab, ph, typ in [("smtp_host", "Host", "smtp.example.com", "text"),
+                                  ("smtp_port", "Port", "587", "number"),
+                                  ("smtp_user", "Username", "campaigns@yourvenue.com.au", "text"),
+                                  ("smtp_pass", "Password / app password", "", "password"),
+                                  ("from_addr", "From address", f"{identity()['name']} <hello@...>", "text"),
+                                  ("reply_to", "Reply-to (should be a monitored inbox)", "", "text")]:
+            body.append(f'<div class="field"><label>{e(lab)}</label>'
+                        f'<input type="{typ}" name="{key}" value="{e(sd.get(key) or "")}" '
+                        f'placeholder="{e(ph)}"></div>')
+        body.append('</div>')
+        res = sd.get("test_result")
+        if res:
+            cls = "good" if res["ok"] else "bad"
+            body.append(f'<div class="{cls} sm"><b>Connection test:</b> {e(res["msg"])}</div>')
+        body.append('<div class="row"><button class="btn ghost sm" type="submit" '
+                    'formaction="/sending/test">Test the connection</button>'
+                    '<span class="sm soft">Runs from wherever this app is running. It will fail in a '
+                    'sandbox with no network, and that is fine.</span></div></div>')
 
     body.append('<h2>What changes in the export</h2><div class="card">')
     tag = g.get("unsub_tag") or "{{unsubscribe_url}}"
@@ -126,7 +131,8 @@ def post_sending(req):
         tool = "none"
     sd = STATE["sender"]
     sd["tool"] = tool
-    _read_smtp_fields(req, sd)
+    if not public_demo():
+        _read_smtp_fields(req, sd)     # the demo never stores server details
     tag = ESP[tool][1]
     STATE["goals"]["unsub_tag"] = tag or "{{unsubscribe_url}}"
     sd.pop("test_result", None)

@@ -5,7 +5,7 @@ from datetime import datetime
 
 import engine as E
 from state import (AUDIT, CAT_HELP, CAT_LABEL, STATE, approval_for, approved_messages,
-                   fingerprint, flash, persist, result, send_block, unsub_tag)
+                   fingerprint, flash, persist, public_demo, result, send_block, unsub_tag)
 from ui import e, page, stat
 from views import _flash_html, _send_banner, evidence_html, money
 from web import html, redirect
@@ -60,9 +60,12 @@ def page_inbox(flt=None):
                 + (f'<form method="post" action="/approve-all{cat_q}" style="display:inline">'
                    f'<button class="btn sm ghost" type="submit">Approve all {todo}'
                    f'{" shown" if cat_q else ""}</button></form> ' if todo else "")
-                + (f'<form method="post" action="/export" style="display:inline">'
-                   f'<button class="btn sm green" type="submit">Export these {n_ok}</button>'
-                   f'</form>' if n_ok else "")
+                + (('<button class="btn sm green" type="button" disabled title="Exports are switched '
+                    f'off in the demo">Export these {n_ok}</button> <span class="sm muted">'
+                    'Exports are off in the demo.</span>' if public_demo() else
+                    f'<form method="post" action="/export" style="display:inline">'
+                    f'<button class="btn sm green" type="submit">Export these {n_ok}</button>'
+                    f'</form>') if n_ok else "")
                 + '</span></div></div>')
     body.append(f'<p class="sm muted" style="margin:20px 0 30px">Showing {len(msgs)}</p>')
     for m in msgs[:120]:

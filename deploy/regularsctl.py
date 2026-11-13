@@ -208,7 +208,8 @@ def industries():
 def billing_line(meta, on_day):
     """What `status` says about a venue's plan."""
     if meta.get("billing", "on") != "on":
-        return "demo, no billing" if meta.get("demo") else "no billing"
+        return ("demo, no billing" if meta.get("demo") else
+                "public demo, no billing" if meta.get("public_demo") else "no billing")
     bill = app_module("billing")
     paid = date.fromisoformat(meta["paid_until"]) if meta.get("paid_until") else None
     st = bill.status(paid, on_day)
@@ -231,6 +232,9 @@ def build_image(ctx):
     return tag
 
 
+PUBLIC_DEMO_MEMORY = "1g"      # the app's own caps keep a demo far below this; it is the backstop
+
+
 def run_container(ctx, slug, tag="current", meta=None):
     """The one place a venue container is created: provision, upgrade, link
     and restore all come through here, so every venue runs the same way."""
@@ -243,6 +247,11 @@ def run_container(ctx, slug, tag="current", meta=None):
     shared = os.path.join(ctx.etc, "shared.env")
     if os.path.exists(shared):
         args += ["--env-file", shared]
+    if meta.get("public_demo"):
+        # Strangers upload files here: cap what one container can take from the server.
+        args += ["--memory", PUBLIC_DEMO_MEMORY, "--memory-swap", PUBLIC_DEMO_MEMORY,
+                 "--pids-limit", "256", "--cap-drop", "ALL",
+                 "--security-opt", "no-new-privileges"]
     args += ["--log-opt", "max-size=10m", "--log-opt", "max-file=3",
              "--label", f"regulars.slug={slug}", f"{IMAGE}:{tag}"]
     ctx.r.run(args)
@@ -315,6 +324,9 @@ def cmd_provision(ctx, a):
         raise Fail(f"{slug} already exists (see: regularsctl status)")
     if a.industry not in industries():
         raise Fail(f"unknown industry {a.industry!r}; available: {', '.join(industries())}")
+    if a.demo and a.public_demo:
+        raise Fail("choose one: --demo (a password-gated demo for screen-sharing) or "
+                   "--public-demo (open to anyone, every visitor in a private sandbox)")
     if not image_exists(ctx, "current"):
         tag = build_image(ctx)
         ctx.r.run(["docker", "tag", f"{IMAGE}:{tag}", f"{IMAGE}:current"])
@@ -324,20 +336,25 @@ def cmd_provision(ctx, a):
     master = secrets.token_hex(32)
     meta = {"slug": slug, "port": port, "industry": a.industry, "host": host(cfg, slug),
             "created": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-            "billing": "off" if (a.no_billing or a.demo) else "on"}
+            "billing": "off" if (a.no_billing or a.demo or a.public_demo) else "on"}
     if a.demo:
         meta["demo"] = True
+    if a.public_demo:
+        meta["public_demo"] = True
     caddy_file = os.path.join(ctx.p(cfg["caddy_dir"]), slug + ".caddy")
     written = []
     try:
         ctx.r.write(os.path.join(ctx.venues_dir, slug + ".json"),
                     json.dumps(meta, indent=2) + "\n", 0o600)
         written.append(os.path.join(ctx.venues_dir, slug + ".json"))
-        env = {"REGULARS_MASTER_KEY": master, "REGULARS_SETUP_TOKEN": token,
-               "REGULARS_INDUSTRY": a.industry,
-               "REGULARS_REDIRECT_URI": f"https://{meta['host']}/oauth/callback",
-               "REGULARS_VENUE_ID": slug,
-               "REGULARS_BILLING": meta["billing"]}
+        env = {"REGULARS_MASTER_KEY": master, "REGULARS_INDUSTRY": a.industry,
+               "REGULARS_VENUE_ID": slug, "REGULARS_BILLING": meta["billing"]}
+        if a.public_demo:
+            # No owner, no password and no setup link: the app refuses to start with a token.
+            env["REGULARS_PUBLIC_DEMO"] = "1"
+        else:
+            env["REGULARS_SETUP_TOKEN"] = token
+            env["REGULARS_REDIRECT_URI"] = f"https://{meta['host']}/oauth/callback"
         if a.demo:
             env["REGULARS_DEMO"] = "1"
         ctx.write_env(slug, env)
@@ -358,6 +375,20 @@ def cmd_provision(ctx, a):
             ctx.r.run(list(cfg["caddy_reload"]), check=False)
         raise
 
+    if a.public_demo:
+        ctx.r.say(f"""
+{slug} is up at https://{meta['host']} (port {port}, {a.industry}, PUBLIC DEMO).
+
+Anyone can open it. Each visitor gets a private in-memory sandbox (their own settings and
+uploaded file, deleted after 30 idle minutes, never written to disk) and nothing can be
+sent. There is no password and no setup link.
+
+1. Add this to your uptime monitor:
+     https://{meta['host']}/healthz
+2. Link to it from your site: "Try it with your own Square export".
+3. Restarting it (regularsctl upgrade {slug}) clears every visitor's sandbox.
+""".rstrip())
+        return 0
     if a.demo:
         first = ("Open your one-time setup link and set your own password. That password is "
                  "the demo's only gate, so screen-share it or give it only to people you "
@@ -392,7 +423,8 @@ def cmd_status(ctx, a):
             down.append(slug)
             rows.append(f"{slug:24} {meta['port']:5}  {state:9}  DOWN")
             continue
-        claimed = "claimed" if h.get("auth_enabled") else "waiting for owner"
+        claimed = ("public demo" if meta.get("public_demo") else
+                   "claimed" if h.get("auth_enabled") else "waiting for owner")
         rows.append(f"{slug:24} {meta['port']:5}  {state:9}  ok  v{h.get('version', '?')}  "
                     f"{claimed:17}  {billing_line(meta, on_day)}")
     if not a.quiet:
@@ -446,7 +478,9 @@ def cmd_backup(ctx, a):
     if not ctx.r.dry:
         os.makedirs(out_dir, mode=0o700, exist_ok=True)
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    made = [backup_one(ctx, slug, out_dir, stamp) for slug in ctx.slugs()]
+    # A public demo keeps nothing on disk (visitors' work is in memory only): nothing to back up.
+    made = [backup_one(ctx, slug, out_dir, stamp) for slug in ctx.slugs()
+            if not ctx.meta(slug).get("public_demo")]
     cutoff = time.time() - a.keep * 86400
     pruned = 0
     if not ctx.r.dry and os.path.isdir(out_dir):
@@ -496,8 +530,9 @@ def cmd_paid(ctx, a):
     ctx.config()
     meta = ctx.meta(a.slug)
     if meta.get("billing", "on") != "on":
-        raise Fail(f"{a.slug} was set up with {'--demo' if meta.get('demo') else '--no-billing'}"
-                   f", so it is never billed")
+        why = ("--demo" if meta.get("demo") else "--public-demo" if meta.get("public_demo")
+               else "--no-billing")
+        raise Fail(f"{a.slug} was set up with {why}, so it is never billed")
     today = datetime.now(timezone.utc).date()
     if a.until:
         try:
@@ -522,6 +557,8 @@ def cmd_paid(ctx, a):
 def cmd_link(ctx, a):
     cfg = ctx.config()
     meta = ctx.meta(a.slug)
+    if meta.get("public_demo"):
+        raise Fail(f"{a.slug} is a public demo: it has no owner, password or setup link")
     h = wait_healthy(ctx, meta["port"], tries=30)
     if not h:
         raise Fail(f"{a.slug} isn't answering, so it can't tell whether the owner has already "
@@ -561,6 +598,10 @@ def parser():
     p.add_argument("--demo", action="store_true",
                    help="a sales demo: the example restaurant, uploads off, never billed. "
                         "You set its password from the setup link")
+    p.add_argument("--public-demo", action="store_true",
+                   help="a try-it demo open to anyone: each visitor gets a private in-memory "
+                        "sandbox with uploads on, and nothing can be sent. No password or setup "
+                        "link. e.g.  provision try --public-demo  ->  https://try.<domain>")
     p.add_argument("--no-billing", action="store_true",
                    help="never ask this venue to pay (demo or friends-and-family instances)")
     p = sub.add_parser("paid", help="record a payment, e.g. --months 1")

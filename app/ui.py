@@ -173,6 +173,12 @@ NAV = [
     ("/security", "Security"),
 ]
 
+def hidden_nav():
+    """Menu entries to leave out. The public demo hides the owner-only Security
+    screen; state.py replaces this."""
+    return set()
+
+
 LAYOUT = """<!doctype html><html lang="{{lang}}"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{{title}} &middot; Regulars</title><style>{{css}}</style></head><body>
@@ -241,7 +247,9 @@ def page(title, body, active="/", venue=None, bare=False):
         return render(LAYOUT, title=e(title), css=CSS, nav="", body=body, venue="",
                       foot=_foot("Regulars"), lang=lang())
     body = notice(active) + body
-    nav = "".join(f'<a href="{h}" class="{"on" if h == active else ""}">{e(l)}</a>' for h, l in NAV)
+    hide = hidden_nav()
+    nav = "".join(f'<a href="{h}" class="{"on" if h == active else ""}">{e(l)}</a>'
+                  for h, l in NAV if h not in hide)
     return render(LAYOUT, title=e(title), css=CSS, nav=nav, body=body, foot=_foot(footer()),
                   venue=venue if venue is not None else venue_label(), lang=lang())
 

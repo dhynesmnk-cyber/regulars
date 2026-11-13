@@ -13,7 +13,7 @@ cd app
 python3 server.py 8010          # http://localhost:8010
 
 cd ..
-python3 -m unittest discover -s tests -t .    # 269 tests
+python3 -m unittest discover -s tests -t .    # 313 tests
 ```
 
 Python 3.11 standard library only. No framework, no CDN, no build step, no internet.
@@ -370,6 +370,13 @@ What this means today:
 - **Memory**: a 20,000-customer import peaks near 1.8 GB, too much for the
   smallest VPS plans. Gate 3's target is under 512 MB.
 
+## Try it with your own CSV
+
+`REGULARS_PUBLIC_DEMO=1` (or `regularsctl provision try --public-demo`) runs a hosted copy anyone can
+open: every visitor gets a private, in-memory sandbox (their own goals, settings and uploaded Square
+export, deleted after 30 idle minutes), and nothing can be sent, exported or connected. See
+`DEPLOYMENT.md`, "A public try-it demo".
+
 ## Review it without running it
 
 A read-only snapshot of the demo venue is published on Netlify from `site/` (the app itself is a Python
@@ -386,6 +393,8 @@ app/packs/        industry packs (REGULARS_INDUSTRY, default restaurant): profil
 app/core.py       industry-neutral wording: vague timing, seasons, US spelling
 app/abn.py        ABN check-digit validation and formatting
 app/billing.py    free preview, pay to send: paid-up status, reminders, Stripe pay links
+app/demo.py       public try-it demo: a private in-memory sandbox per visitor, the route
+                  allow-list, and the limits (DEPLOYMENT.md, "A public try-it demo")
 tools/bench.py    timings and memory at 2k-50k customers (see Performance)
 deploy/regularsctl.py  run many venues on one server: provision, status, upgrade,
                   backup, restore, link (see DEPLOYMENT.md)
@@ -413,7 +422,7 @@ Dockerfile        python:3.12-slim, non-root, /data volume, healthcheck
 DEPLOYMENT.md     operator guide: run, proxy, env, Square app, backups, incidents
 CHANGELOG.md      release history and state-schema migrations
 .github/          CI: the full test suite on every push and pull request
-tests/            269 tests: dataset, one-message-per-person, offer/behaviour match,
+tests/            313 tests: dataset, one-message-per-person, offer/behaviour match,
                   the copy rule, suppression, Spam Act/CAN-SPAM footers, regions,
                   goals/threshold/catalogue sensitivity, import (incl. Square
                   Dashboard exports), persistence, HTTP routes, security primitives,

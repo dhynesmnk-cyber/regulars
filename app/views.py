@@ -7,9 +7,10 @@ import billing as BILL
 import core
 import engine as E
 import ui
-from state import (CTX, IDENTITY_MISSING_MSG, OFFERS_UNCHECKED_MSG, STATE, VERSION,
-                   billing_message, billing_state, demo_mode, identity_missing, offers_unchecked,
-                   on_example, take_flash, venue_instance)
+from state import (CTX, OFFERS_UNCHECKED_MSG, STATE, VERSION, VISITORS,
+                   billing_message, billing_state, demo_mode, identity_missing, identity_missing_msg,
+                   offers_unchecked,
+                   on_example, public_demo, take_flash, venue_instance)
 from ui import e
 
 
@@ -88,7 +89,7 @@ def _flash_html():
 
 
 def _security_banner():
-    if not demo_mode():
+    if not demo_mode() or public_demo():     # the public demo has its own notice
         return ""
     if getattr(CTX, "local_ok", False):
         txt = ("No operator password is set yet. Create one from the sign-in page "
@@ -107,7 +108,7 @@ def _identity_banner():
     if not identity_missing():
         return ""
     return (f'<div class="warn"><b>Your business details are missing.</b> '
-            f'{e(IDENTITY_MISSING_MSG)} <a href="/">Add them on Setup &rarr;</a></div>')
+            f'{e(identity_missing_msg())} <a href="/">Add them on Setup &rarr;</a></div>')
 
 
 def _business_card():
@@ -118,8 +119,10 @@ def _business_card():
                    for v, l in (("AU", "Australia"), ("US", "United States")))
     missing = ('<div class="warn" style="margin-bottom:20px"><b>Not set yet.</b> Your messages '
                'are signed &ldquo;[Your business name]&rdquo; with &ldquo;[ABN]&rdquo; in the '
-               'footer, and approving and exporting stay off until you save these details.'
-               '</div>') if identity_missing() else ""
+               + ('footer. Save these details to see your own name in every message.'
+                  if public_demo() else
+                  'footer, and approving and exporting stay off until you save these details.')
+               + '</div>') if identity_missing() else ""
     return (
         '<h2>Your business</h2>'
         '<div class="card"><form method="post" action="/business">'
@@ -204,8 +207,15 @@ def _example_notice(active):
             f'<a href="/#upload">Upload your Square export on Setup &rarr;</a></div>')
 
 
+def _public_demo_notice():
+    mins = max(1, VISITORS.ttl // 60)
+    return ('<div class="warn"><b>Public demo.</b> Nothing here can be sent. Your changes, and any '
+            'file you upload, are private to this browser, kept in memory only, and deleted after '
+            f'{mins} minutes without activity or when you press <b>Start over</b> on Setup.</div>')
+
+
 def _page_notice(active):
-    return _example_notice(active) + _billing_notice()
+    return (_public_demo_notice() if public_demo() else "") + _example_notice(active) + _billing_notice()
 
 
 def _footer():

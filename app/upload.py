@@ -66,6 +66,7 @@ def do_import(fields, files, region="AU"):
     rep.update(customers=ds["stats"]["customers"], menu_items=len(menu),
                unmatched=ds.get("unmatched_line_items", 0), mode="square" if square else "simple",
                attested=attested, with_email=reachable)
+    rep.setdefault("orders", ds["stats"]["orders"])   # the simple format never set it: "0 visits read"
     if square and not reachable:
         rep["warning"] = ("None of these orders is linked to a customer with an email address, "
                           "so nobody can be messaged yet. Upload your customer export too "

@@ -486,6 +486,18 @@ class TestGoalsThresholdsCatalogue(unittest.TestCase):
 class TestImport(unittest.TestCase):
     NOW = datetime(2026, 11, 4, 9, 0)
 
+    def test_simple_format_report_counts_the_visits(self):
+        """The Setup screen says 'N visits read'; the simple format used to report 0."""
+        import upload as UP
+        csv = ("date,time,email,name,items,party_size,channel\n"
+               "2026-10-01,10:15,a@example.com,Ann A,1x Flat White,1,DINE_IN\n"
+               "2026-10-08,10:15,a@example.com,Ann A,1x Flat White,1,DINE_IN\n"
+               "2026-10-09,11:00,b@example.com,Bob B,2x Oat Latte,2,DINE_IN\n")
+        ds, rep = UP.do_import({}, {"f_main": ("s.csv", csv.encode())}, "AU")
+        self.assertEqual(rep["mode"], "simple")
+        self.assertEqual(rep["orders"], 3)
+        self.assertEqual(rep["customers"], 2)
+
     def test_simple_format_round_trip(self):
         text = D.sample_simple(200)
         visits, people, rep = IMP.parse_simple(text, [])

@@ -112,6 +112,26 @@ class RewriteTests(unittest.TestCase):
         self.assertIn("jo@icloud.example", o)                                      # demo customer still masked
         self.assertNotIn("Want this on your own data?", ms.rewrite_page(page, BASE, "/", {("/", "")}, "s", "d", []))
 
+    def test_try_url_links_the_banner_and_the_switched_off_message(self):
+        page = "<html><head></head><body><p>x</p></body></html>"
+        url = "https://try.example.com.au/"
+        o = ms.rewrite_page(page, BASE, "/", {("/", "")}, "src", "d", [], try_url=url,
+                            contact="owner@gmail.com")
+        self.assertIn(f'<a href="{url}">Try it with your own Square export', o)    # banner
+        self.assertIn(f'<a href="{url}">Open the interactive demo</a>', o)           # toast
+        self.assertIn("setTimeout(function(){t.style.display='none'},7000)", o)      # long enough to click
+        self.assertLess(o.index("Try it with your own"), o.index("Want this on your own data?"))
+        plain = ms.rewrite_page(page, BASE, "/", {("/", "")}, "src", "d", [])
+        self.assertNotIn("interactive demo", plain)
+        self.assertIn("this button doesn't do anything here", plain)
+
+    def test_try_url_must_be_https(self):
+        for bad in ("http://try.example.com", "javascript:alert(1)", "https://x.y/\"onmouseover=\"z", "try.example.com"):
+            with self.subTest(bad=bad), self.assertRaises(SystemExit):
+                ms.main(["--try-url", bad, "--out", "/nonexistent-out"])
+        self.assertTrue(ms.TRY_URL_RE.match("https://try.regulars.com.au"))
+        self.assertTrue(ms.TRY_URL_RE.match("https://try.regulars.com.au:8443/demo?a=1"))
+
     def test_contact_email_is_validated(self):
         for bad in ("nope", "a b@c.com", '"><script>@x.y'):
             with self.subTest(bad=bad), self.assertRaises(SystemExit):

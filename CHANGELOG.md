@@ -4,6 +4,24 @@ Versioning: the state file carries a `schema` number; the server migrates older
 state on boot and writes a `config_change` audit entry when it does. Bump
 `VERSION` and `SCHEMA` in `app/server.py` for every release.
 
+## Unreleased - Public try-it demo
+
+`REGULARS_PUBLIC_DEMO=1` (`regularsctl provision <slug> --public-demo`): a hosted copy anyone
+can open, with the buttons on and nothing able to leave it.
+
+- **A private sandbox per visitor** (`app/demo.py`): their own goals, settings, approvals and
+  uploaded CSV, in memory only, deleted after 30 idle minutes or on Start over. `STATE`,
+  flash messages and persistence all follow the visitor, so no screen changed to support it.
+- **Nothing can leave:** export, download, Square connect, SMTP details and tests, sign-in and
+  the Security screen are refused (anything not on an allow-list is). Uploads are on, capped
+  at 5 MB, 3 at a time, with CSV parsing limited to 2 at once.
+- **Nothing is kept:** no state file, no audit entries for visitor actions (only security
+  events), no query strings in the access log, no tracebacks in pages or logs.
+- **Limits:** 40 sandboxes, 10 new per minute per address, then a "busy" page.
+- `regularsctl provision --public-demo`: no setup token, container limited to 1 GB / 256
+  processes with capabilities dropped; `status` shows it, `link` and `paid` refuse it, `backup`
+  skips it.
+
 ## Unreleased - Approve, then export what was approved (schema 4)
 
 The rehearsal showed approve and export working against each other: approving

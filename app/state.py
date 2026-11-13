@@ -16,10 +16,12 @@ import hmac
 import json
 import os
 import threading
+from collections.abc import MutableMapping
 from datetime import datetime, timezone
 
 import billing as BILL
 import core
+import demo as DEMO
 import engine as E
 import security as SEC
 import store
@@ -37,13 +39,98 @@ DS = E.PACK.demo_dataset()
 # Single-instance threat model: one venue, one operator, one server process.
 # Everything below fails safe - if a check can't run, access is refused.
 
-AUDIT = SEC.AuditLog(os.environ.get("REGULARS_AUDIT_LOG")
-                     or os.path.join(HERE, "regulars-audit.log"))
+
+
+class _PublicDemoAudit:
+    """The audit log. In the public demo a visitor's own actions (goals, uploads,
+    approvals) are not recorded anywhere: only the events that matter for
+    defending the server are, so the log can't grow with demo traffic or hold
+    anything a visitor typed."""
+    KEEP = frozenset({"rate_limit", "oversize_upload", "csrf_reject", "lockout", "login_fail"})
+
+    def __init__(self, inner):
+        self._inner = inner
+
+    def write(self, event, *args, **kwargs):
+        if public_demo() and event not in self.KEEP:
+            return None
+        return self._inner.write(event, *args, **kwargs)
+
+    def __getattr__(self, name):
+        return getattr(self._inner, name)
+
+
+AUDIT = _PublicDemoAudit(SEC.AuditLog(os.environ.get("REGULARS_AUDIT_LOG")
+                                      or os.path.join(HERE, "regulars-audit.log")))
 GUARD = SEC.Guard()
 FLASH = []
 CTX = threading.local()
 LOCK = threading.RLock()
 _BOX = None
+
+
+# ------------------------------------------------------------ public demo
+# REGULARS_PUBLIC_DEMO=1 (demo.py): every visitor works in a private sandbox.
+# A request runs with its visitor set here (server.py); STATE, flash messages
+# and persistence all follow it, so no screen needs to know.
+
+def public_demo():
+    return (os.environ.get("REGULARS_PUBLIC_DEMO") or "").strip().lower() in ("1", "on", "yes", "true")
+
+
+_VISITOR = threading.local()
+
+
+def set_visitor(visitor):
+    """Serve the rest of this thread's request from this visitor's sandbox (None clears)."""
+    _VISITOR.session = visitor
+
+
+def visitor_session():
+    return getattr(_VISITOR, "session", None)
+
+
+class _StateProxy(MutableMapping):
+    """STATE, as every screen sees it. Normally the one process-wide dict; while
+    a public-demo visitor is being served, that visitor's own dict, so one
+    person's goals and uploaded file can never reach another."""
+
+    def __init__(self, base):
+        self._base = base
+
+    def _d(self):
+        v = getattr(_VISITOR, "session", None)
+        return v.state if v is not None else self._base
+
+    def __getitem__(self, key):
+        return self._d()[key]
+
+    def __setitem__(self, key, value):
+        self._d()[key] = value
+
+    def __delitem__(self, key):
+        del self._d()[key]
+
+    def __iter__(self):
+        return iter(self._d())
+
+    def __len__(self):
+        return len(self._d())
+
+    def __contains__(self, key):
+        return key in self._d()
+
+    def get(self, key, default=None):
+        return self._d().get(key, default)
+
+    def setdefault(self, key, default=None):
+        return self._d().setdefault(key, default)
+
+    def copy(self):
+        return dict(self._d())
+
+    def __repr__(self):
+        return f"<STATE {'visitor' if visitor_session() else 'instance'} {self._d()!r:.80}>"
 
 
 def _guard_flag(ip, what):
@@ -61,12 +148,18 @@ def _flag_and_audit(ip, what, now=None):
 GUARD.flag = _flag_and_audit
 
 
+def _flash_list():
+    v = visitor_session()
+    return v.flash if v is not None else FLASH
+
+
 def flash(msg):
-    FLASH.append(msg)
+    _flash_list().append(msg)
 
 
 def take_flash():
-    items, FLASH[:] = list(FLASH), []
+    lst = _flash_list()
+    items, lst[:] = list(lst), []
     return items
 
 
@@ -297,7 +390,15 @@ def fresh_state():
     }
 
 
-STATE = fresh_state()
+def new_visitor_state():
+    """A public-demo visitor starts on the example restaurant with default goals."""
+    return fresh_state()
+
+
+VISITORS = DEMO.Visitors(new_visitor_state, **DEMO.limits_from_env())
+
+_BASE = fresh_state()
+STATE = _StateProxy(_BASE)
 _saved = store.load()
 for k, v in _saved.items():
     if k in STATE:
@@ -333,7 +434,9 @@ if _MIGRATED_FROM is not None and _MIGRATED_FROM < SCHEMA:
 
 
 def persist():
-    store.save(STATE)
+    if public_demo():
+        return       # a visitor's work lives in memory only
+    store.save(_BASE)
 
 
 def dataset():
@@ -357,6 +460,14 @@ OFFERS_UNCHECKED_MSG = ("Check your goals and offers on the Goals screen first, 
 IDENTITY_MISSING_MSG = ("Add your business name, suburb and ABN under Your business on the "
                         "Setup screen first. Until then your messages are signed with "
                         "placeholders, so approving and exporting are switched off.")
+
+
+def identity_missing_msg():
+    if public_demo():
+        return ("Add your business name, suburb and ABN under Your business on the Setup screen "
+                "to see your own name in every message. Until then they are signed with "
+                "placeholders.")
+    return IDENTITY_MISSING_MSG
 
 
 def business_complete():
@@ -390,6 +501,7 @@ def header_label():
 
 
 ui.venue_label = header_label
+ui.hidden_nav = lambda: {"/security"} if public_demo() else set()
 ui.lang = lambda: core.lang(STATE.get("region", "AU"))
 
 
@@ -440,7 +552,11 @@ def offers_unchecked():
 
 def send_block():
     """Why approving or exporting is refused right now, or None. Only real
-    customer data is ever blocked; the demo can always be rehearsed."""
+    customer data is ever blocked; the demo can always be rehearsed. Nothing can
+    leave the public demo at all, so approving is never blocked there: a visitor
+    who has just uploaded their file shouldn't have to invent an ABN to try it."""
+    if public_demo():
+        return None
     if identity_missing():
         return IDENTITY_MISSING_MSG
     if STATE.get("dataset") is None:

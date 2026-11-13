@@ -34,6 +34,7 @@ RATE_POST = 120                      # per minute per IP
 RATE_GET = 600
 MAX_FORM_BYTES = 1024 * 1024        # every POST except a CSV upload
 DEFAULT_UPLOAD_MB = 50              # CSV uploads; REGULARS_MAX_UPLOAD_MB overrides
+PUBLIC_DEMO_UPLOAD_MB = 5           # the default when REGULARS_PUBLIC_DEMO is on
 UPLOAD_MB_RANGE = (1, 500)
 
 AUDIT_EVENTS = (
@@ -56,10 +57,12 @@ def max_upload_bytes():
     while it is read - several times its size - so raise it only with RAM to
     match (see Performance in the README)."""
     lo, hi = UPLOAD_MB_RANGE
+    public = (os.environ.get("REGULARS_PUBLIC_DEMO") or "").strip().lower() in ("1", "on", "yes", "true")
+    default = PUBLIC_DEMO_UPLOAD_MB if public else DEFAULT_UPLOAD_MB
     try:
-        mb = int(os.environ.get("REGULARS_MAX_UPLOAD_MB") or DEFAULT_UPLOAD_MB)
+        mb = int(os.environ.get("REGULARS_MAX_UPLOAD_MB") or default)
     except ValueError:
-        mb = DEFAULT_UPLOAD_MB
+        mb = default
     return max(lo, min(hi, mb)) * 1024 * 1024
 
 

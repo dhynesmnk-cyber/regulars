@@ -15,7 +15,8 @@ python3 scripts/make_snapshot.py http://127.0.0.1:8010 \
     --scrub /tmp/app-copy --source "main @ $(git rev-parse --short HEAD)" \
     --landing /inbox/ \
     --banner "Demo: an example restaurant with made-up customers. Buttons and forms are switched off." \
-    --contact-email you@yourdomain.com.au          # optional: adds "Want this on your own data?"
+    --contact-email you@yourdomain.com.au \        # optional: adds "Want this on your own data?"
+    --try-url https://try.yourdomain.com.au        # optional: links to the interactive demo
 ```
 
 - `--landing /inbox/` makes the bare URL open on the Messages screen (the product). The app's own
@@ -26,3 +27,6 @@ python3 scripts/make_snapshot.py http://127.0.0.1:8010 \
   address can match a real person's), adds `noindex` everywhere and refuses to write output that still
   contains a filesystem path. Your `--contact-email` is the one address it leaves alone. It only
   overwrites a folder it created. Tests: `tests/test_snapshot.py`.
+- `--try-url` points visitors at the interactive public demo (`DEPLOYMENT.md`, "A public try-it demo"): it
+  adds "Try it with your own Square export" to the banner and to the message shown when someone clicks a
+  switched-off button. It must be an `https://` address.

@@ -6,11 +6,12 @@ from datetime import date
 
 import abn as ABN
 import billing as BILL
+import demo as DEMO
 import engine as E
 import security as SEC
-from state import (AUDIT, ESP, LOCK, STATE, VERSION, billing_state, business_complete,
+from state import (AUDIT, ESP, LOCK, STATE, VERSION, VISITORS, billing_state, business_complete,
                    dataset, demo_instance, flash, fresh_state, mark, on_example, persist,
-                   result, venue_instance)
+                   public_demo, result, venue_instance, visitor_session)
 from ui import e, page, stat
 from upload import do_import
 from views import (_business_card, _flash_html, _plan_card, _security_banner,
@@ -34,6 +35,20 @@ def _upload_limit_html(own_line=False):
     return (f'<span class="sm soft"{style}>Up to {SEC.max_upload_bytes() // (1024 * 1024)} MB '
             'in total. A bigger export? Pick a shorter date range in Square: the '
             'last two years is plenty.</span>')
+
+
+def _demo_upload_note():
+    """The public demo takes strangers' files, so say what happens to them."""
+    if not public_demo():
+        return ""
+    mins = max(1, VISITORS.ttl // 60)
+    return ('<p class="sm" style="margin:14px 0"><b>Using real customer data?</b> It is read into '
+            'this server&rsquo;s memory for your visit only: never written to disk, never sent '
+            f'anywhere, and deleted after {mins} minutes without activity or when you press '
+            'Start over. Rather not? The sample files below do the same job. '
+            'Tick the consent box to see messages for your customers: without it every '
+            'contact is held back, exactly as on a live instance. Nothing is sent either '
+            'way.</p>')
 
 
 def _import_report_html():
@@ -100,6 +115,7 @@ def page_setup():
                         '(transactions plus, optionally, the customer directory), or our simple '
                         'one-row-per-visit format. Column names are matched tolerantly and '
                         'you&rsquo;ll get a report of what was found and what wasn&rsquo;t.</p>'
+                        + _demo_upload_note() +
                         '<form method="post" action="/upload" enctype="multipart/form-data">'
                         '<div class="filerow"><div class="field"><label>Square transactions / '
                         'item sales CSV &mdash; or the simple format</label>'
@@ -451,7 +467,20 @@ def post_upload(req):
     if demo_instance():
         flash(DEMO_NO_UPLOAD)
         return redirect("/")
-    ds, rep = do_import(req.fields, req.files, STATE.get("region", "AU"))
+    if public_demo():
+        if not VISITORS.may_upload(visitor_session()):
+            flash("The demo is holding as many uploaded files as it can right now. Try a sample "
+                  "file, or come back in a few minutes.")
+            return redirect("/")
+        if not DEMO.IMPORT_SLOTS.acquire(blocking=False):
+            flash("The demo is reading other people's files right now. Try again in a moment.")
+            return redirect("/")
+        try:
+            ds, rep = do_import(req.fields, req.files, STATE.get("region", "AU"))
+        finally:
+            DEMO.IMPORT_SLOTS.release()
+    else:
+        ds, rep = do_import(req.fields, req.files, STATE.get("region", "AU"))
     with LOCK:
         if ds is None:
             STATE["import_report"] = rep

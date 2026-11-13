@@ -179,6 +179,61 @@ other instance. To undo changes made during a demo, use **Start over** on the
 Setup screen: it clears goals, triggers, sender settings and the sent history
 and keeps your password.
 
+### A public try-it demo
+
+```
+regularsctl provision try --public-demo
+```
+
+An instance **anyone can open**, with every button switched on except the ones that
+could send or hand anything over. Use it as the "try it with your own Square export"
+link in your sales material (the read-only Netlify demo can point at it).
+
+**What a visitor gets.** The example restaurant, and a private sandbox: their own goals,
+offers, business details, approvals and, if they choose, their own uploaded CSV. Nobody
+sees anyone else's. A sandbox is deleted after 30 idle minutes, when they press **Start
+over**, or when the instance restarts.
+
+**What they can't do.** Export or download anything but the sample files, connect Square,
+enter or test SMTP details, sign in, set a password, or open the Security screen. Those
+routes answer "not part of the demo", and the menu doesn't show Security.
+
+**What happens to an uploaded file** (say this on your Privacy page): it is read into the
+server's memory for that visit and held only in that visitor's sandbox. It is never
+written to disk (not to the state file, not to the audit log, not to a temp file), never
+sent anywhere and never visible to another visitor. The access log keeps the request
+path but not query strings (so no customer id from a file), and a failure is logged by
+type only. Docker's log rotation keeps the rest for about three 10 MB files.
+
+**What it costs the server.** Each sandbox without an upload is small. An upload needs
+roughly 15-20x its size in memory (see Known limits), so the defaults cap it: uploads
+are at most **5 MB**, at most **3** sandboxes hold one at once, and at most **2** files
+are read at the same moment. Worst case that is about 0.5 GB on top of the app's own; the
+container is also limited to 1 GB and 256 processes, so a bad day can't take the server
+down with it. A 1 vCPU / 2 GB server is plenty. All visitors share one lock, so keep it to
+a handful of people at the same instant; when 40 sandboxes are in use, the next visitor
+sees "the demo is busy" and a 503.
+
+**Before you tell prospects to upload real customers.** A venue uploading its customer
+list is handing you personal information. Publish your Terms and Privacy pages first
+(`REGULARS_TERMS_URL`, `REGULARS_PRIVACY_URL` in `shared.env`; each shows in the foot of
+every page), and set `REGULARS_SUPPORT_EMAIL`. The Setup screen already tells visitors what
+happens to a file and offers the three sample files as the no-risk alternative.
+
+1. Point `try.<your domain>` at the server (or the wildcard record from the server setup).
+2. `/etc/regulars/shared.env` should have `REGULARS_TLS=1`. The image already trusts one
+   proxy hop, which is what Caddy is.
+3. Run the provision command above. It prints no setup link, because there is no owner.
+4. Open `https://try.<your domain>`, press a few buttons and upload a sample file.
+5. Add `https://try.<your domain>/healthz` to your uptime monitor.
+
+Change a limit by adding it to `/etc/regulars/venues/try.env`
+(`REGULARS_DEMO_TTL_MIN`, `REGULARS_DEMO_MAX_SESSIONS`, `REGULARS_DEMO_MAX_UPLOADS`,
+`REGULARS_DEMO_IMPORTS_AT_ONCE`, `REGULARS_MAX_UPLOAD_MB`) and running
+`regularsctl upgrade try`. That also clears every sandbox, which is the quickest way to
+wipe the demo. It is not backed up (there is nothing in it) and `link` and `paid` refuse
+it. `regularsctl status` shows it as "public demo".
+
 ### Doing it by hand (one venue)
 
 Docker + a TLS-terminating reverse proxy. The app itself speaks plain HTTP and
@@ -266,10 +321,15 @@ OAuth endpoints during connect/refresh/revoke.
 | `REGULARS_SUPPORT_EMAIL` | *(unset)* | Shown to owners in the page footer, beside the upload form (for exports that don't import), and in place of a missing pay link |
 | `REGULARS_TERMS_URL` / `REGULARS_PRIVACY_URL` | *(unset)* | Your Terms and Privacy pages, linked from the foot of every page. Each is used only if it is a plain `https://` address (no spaces, quotes or angle brackets); otherwise it is ignored |
 | `REGULARS_BILLING_FILE` | beside the state file | Where the paid-up date is read from (`regulars-billing.json`) |
-| `REGULARS_MAX_UPLOAD_MB` | `50` | Biggest CSV upload accepted (1-500). An upload needs roughly 20x its size in RAM while it's read (a 43 MB export peaked at 823 MB), so raise it only with memory to match. Every other form is capped at 1 MB |
+| `REGULARS_MAX_UPLOAD_MB` | `50` (`5` in the public demo) | Biggest CSV upload accepted (1-500). An upload needs roughly 20x its size in RAM while it's read (a 43 MB export peaked at 823 MB), so raise it only with memory to match. Every other form is capped at 1 MB |
 | `REGULARS_TRUST_PROXY` | *(unset)* | Number of reverse proxies in front (`1` for Caddy/nginx, `2` with a CDN too). Unset = `X-Forwarded-For` ignored. The Docker image sets `1` |
 | `REGULARS_SETUP_TOKEN` | *(unset)* | One-time owner setup link (`/welcome?token=...`). While set and no password exists, the whole app is closed except that link and `/healthz`. At least 24 characters. It also marks the instance as a venue's own: Setup becomes the onboarding checklist, the demo's goals and "Connect Square" button are left out, and offers must be confirmed before sending. **Use this for every instance you hand to a venue** |
 | `REGULARS_DEMO` | *(unset)* | `1` = a hosted sales demo: with a setup token it is still closed until claimed, but it shows the example restaurant like a local run (not a venue's checklist) and refuses uploads. `regularsctl provision --demo` sets it |
+| `REGULARS_PUBLIC_DEMO` | *(unset)* | `1` = a public try-it demo: every visitor gets a private in-memory sandbox, uploads are on, and nothing can be sent or downloaded. Not combinable with `REGULARS_SETUP_TOKEN` (the app refuses to start). `regularsctl provision --public-demo` sets it |
+| `REGULARS_DEMO_TTL_MIN` | `30` | Public demo: minutes idle before a sandbox is deleted (1-240) |
+| `REGULARS_DEMO_MAX_SESSIONS` | `40` | Public demo: sandboxes at once (1-500); beyond that visitors see a "busy" page |
+| `REGULARS_DEMO_MAX_UPLOADS` | `3` | Public demo: sandboxes holding an uploaded file at once (0-50). 0 = sample files only |
+| `REGULARS_DEMO_IMPORTS_AT_ONCE` | `2` | Public demo: CSV files read simultaneously (1-8) |
 | `REGULARS_OPEN_FIRST_RUN` | *(unset)* | `1` = allow creating the first password from a non-localhost address. Use once, behind TLS, then unset. Ignored while `REGULARS_SETUP_TOKEN` is set |
 | `SQUARE_CLIENT_ID` / `SQUARE_CLIENT_SECRET` | *(unset)* | Square OAuth application credentials. Unset = the connect button explains setup instead of failing |
 | `REGULARS_REDIRECT_URI` | `http://localhost:8010/oauth/callback` | Must match the redirect URL registered in the Square Developer Dashboard exactly |
@@ -326,6 +386,7 @@ credentials) — useful for staging.
 
 These are documented in `../04-COMMERCIAL-READINESS-TEARDOWN.md` with the plan:
 
+- The public demo serialises every visitor's request behind one lock and holds all sandboxes in one process: fine for a sales demo shared by a handful of people, not for a crowd, and a restart clears them all.
 - Single instance, single venue. Sessions and rate limits are in-process; multi-tenant SaaS needs shared storage and per-venue isolation.
 - Imports are memory-hungry: about 20x the upload's size while it's read, and the imported data stays in memory until the next restart (a 43 MB export: 823 MB peak, 672 MB after). Size the server for the venues it hosts; a leaner import is planned.
 - The stdlib HTTP server is fine behind a proxy for one venue's traffic; it is not a hardened production WSGI server.

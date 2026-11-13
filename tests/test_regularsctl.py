@@ -457,6 +457,67 @@ class TestDemoProvision(CtlCase):
         self.assertNotIn("demo", row)
 
 
+class TestPublicDemoProvision(CtlCase):
+    def setUp(self):
+        super().setUp()
+        self.assertEqual(self.ctl("provision", "try", "--public-demo"), 0)
+        self.out_text = self.d.output()
+
+    def test_it_is_a_sandbox_demo_with_no_owner(self):
+        env = self.env("try")
+        self.assertEqual(env["REGULARS_PUBLIC_DEMO"], "1")
+        self.assertEqual(env["REGULARS_BILLING"], "off")
+        self.assertNotIn("REGULARS_SETUP_TOKEN", env)        # the app refuses to start with one
+        self.assertNotIn("REGULARS_DEMO", env)
+        self.assertGreaterEqual(len(env["REGULARS_MASTER_KEY"]), 32)
+        meta = self.meta("try")
+        self.assertEqual((meta["public_demo"], meta["billing"]), (True, "off"))
+        self.assertNotIn("demo", meta)
+
+    def test_the_container_is_resource_limited(self):
+        run = self.d.docker_runs("regulars-try")[-1]
+        for flag, value in (("--memory", "1g"), ("--memory-swap", "1g"), ("--pids-limit", "256"),
+                            ("--cap-drop", "ALL"), ("--security-opt", "no-new-privileges")):
+            self.assertEqual(run[run.index(flag) + 1], value, flag)
+        self.assertEqual(self.ctl("provision", "juniper-co"), 0)            # a venue is untouched
+        venue = self.d.docker_runs("regulars-juniper-co")[-1]
+        for flag in ("--memory", "--pids-limit", "--cap-drop"):
+            self.assertNotIn(flag, venue)
+
+    def test_next_steps_have_no_password_or_link(self):
+        self.assertIn("https://try.example.com.au", self.out_text)
+        self.assertIn("/healthz", self.out_text)
+        self.assertIn("no password and no setup link", self.out_text)
+        self.assertNotIn("welcome?token=", self.out_text)
+
+    def test_limits_and_flags_survive_an_upgrade(self):
+        self.assertEqual(self.ctl("upgrade", "--tag", "v1"), 0)
+        self.assertEqual(self.env("try")["REGULARS_PUBLIC_DEMO"], "1")
+        self.assertIn("--memory", self.d.docker_runs("regulars-try")[-1])
+
+    def test_status_calls_it_a_public_demo(self):
+        self.d.out = io.StringIO()
+        self.ctl("status")
+        row = [ln for ln in self.d.output().splitlines() if ln.startswith("try")][0]
+        self.assertIn("public demo", row)
+        self.assertIn("public demo, no billing", row)
+        self.assertNotIn("waiting for owner", row)
+
+    def test_it_has_no_owner_to_link_or_bill(self):
+        self.assertEqual(self.ctl("link", "try"), 1)
+        self.assertEqual(self.ctl("paid", "try", "--months", "1"), 1)
+        self.assertIn("--public-demo", self.d.output())
+
+    def test_there_is_nothing_to_back_up(self):
+        self.d.out = io.StringIO()
+        self.assertEqual(self.ctl("backup"), 0)
+        self.assertIn("backed up 0 venue(s)", self.d.output())
+
+    def test_it_cannot_be_both_demo_kinds(self):
+        self.assertEqual(self.ctl("provision", "both", "--demo", "--public-demo"), 1)
+        self.assertNotIn("both", [os.path.splitext(f)[0] for f in os.listdir(self.path("etc/regulars/venues"))])
+
+
 class TestAdmin(unittest.TestCase):
     """app/admin.py run for real against a temp state file and audit log."""
 
